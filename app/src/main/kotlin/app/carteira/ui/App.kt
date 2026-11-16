@@ -6,6 +6,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -34,16 +36,24 @@ import app.carteira.R
 private data class Separador(val ecra: Ecra, val rotulo: String, val icone: Int)
 
 private val separadores = listOf(
-    Separador(Ecra.Resumo, "Resumo", R.drawable.ic_resumo),
+    Separador(Ecra.Resumo, "Início", R.drawable.ic_resumo),
     Separador(Ecra.Posicoes, "Posições", R.drawable.ic_posicoes),
     Separador(Ecra.Dividendos, "Dividendos", R.drawable.ic_dividendos),
     Separador(Ecra.Watchlist, "Watchlist", R.drawable.ic_watchlist),
 )
 
 @Composable
-fun AppCarteira(vm: CarteiraViewModel = viewModel()) {
+fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAbrir: () -> Unit = {}) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     val avisos = remember { SnackbarHostState() }
+
+    // Toque numa notificação: abre a empresa (ou a lista de alertas).
+    LaunchedEffect(abrir) {
+        if (abrir != null) {
+            vm.abrir(abrir)
+            aoAbrir()
+        }
+    }
 
     // A mensagem só é apagada depois de o aviso fechar. Apagá-la antes mudava a chave deste efeito,
     // que era cancelado e levava o aviso consigo logo a seguir a aparecer.
@@ -72,6 +82,15 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel()) {
                 },
                 actions = {
                     if (emSeparador) {
+                        IconButton(onClick = { vm.irPara(Ecra.Alertas) }) {
+                            BadgedBox(
+                                badge = {
+                                    if (estado.alertasNaoVistos > 0) Badge { Text(estado.alertasNaoVistos.coerceAtMost(99).toString()) }
+                                },
+                            ) {
+                                Icon(painterResource(R.drawable.ic_alertas), contentDescription = "Alertas")
+                            }
+                        }
                         IconButton(onClick = { vm.atualizar() }, enabled = !estado.aCarregar) {
                             Icon(painterResource(R.drawable.ic_atualizar), contentDescription = "Atualizar")
                         }
@@ -113,7 +132,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel()) {
     ) { margens ->
         Box(Modifier.padding(margens).fillMaxSize()) {
             when (ecra) {
-                Ecra.Resumo -> ResumoEcra(estado, vm)
+                Ecra.Resumo -> InicioEcra(estado, vm)
                 Ecra.Posicoes -> PosicoesEcra(estado, vm)
                 Ecra.Dividendos -> DividendosEcra(estado, vm)
                 Ecra.Watchlist -> WatchlistEcra(estado, vm)
@@ -121,6 +140,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel()) {
                 is Ecra.Etf -> EtfDetalheEcra(estado, vm, ecra.ticker)
                 is Ecra.Registar -> RegistarEcra(estado, vm, ecra)
                 Ecra.Definicoes -> DefinicoesEcra(estado, vm)
+                Ecra.Alertas -> AlertasEcra(estado, vm)
             }
             if (estado.aCarregar && !emSeparador) {
                 LinearProgressIndicator(modifier = Modifier.align(Alignment.TopCenter))
@@ -137,5 +157,6 @@ private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     is Ecra.Posicao -> estado.dados?.posicoes?.firstOrNull { it.ticker == ecra.ticker }?.nome ?: ecra.ticker
     is Ecra.Etf -> ecra.ticker
     is Ecra.Registar -> if (ecra.modo == ModoRegisto.DIVIDENDO) "Registar dividendo" else "Registar compra ou venda"
-    Ecra.Definicoes -> "Ligação à folha"
+    Ecra.Definicoes -> "Definições"
+    Ecra.Alertas -> "Alertas"
 }

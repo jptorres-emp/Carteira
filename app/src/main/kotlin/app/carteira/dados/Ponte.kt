@@ -13,6 +13,9 @@ interface FonteDados {
     suspend fun dados(): String
     suspend fun ping(): String
     suspend fun enviar(pedido: JSONObject): String
+
+    /** Só preços e sinais, para os alertas. Por omissão usa a resposta completa. */
+    suspend fun alertas(): String = dados()
 }
 
 /**
@@ -26,6 +29,9 @@ class Ponte(private val url: String, private val chave: String) : FonteDados {
     override suspend fun dados(): String = obter(mapOf("acao" to "dados", "chave" to chave))
 
     override suspend fun ping(): String = obter(mapOf("acao" to "ping", "chave" to chave))
+
+    /** A ponte v1 não conhece esta ação: quem chama volta a pedir os dados completos. */
+    override suspend fun alertas(): String = obter(mapOf("acao" to "alertas", "chave" to chave))
 
     override suspend fun enviar(pedido: JSONObject): String {
         pedido.put("chave", chave)

@@ -1,12 +1,627 @@
 {
  "ok": true,
- "versaoPonte": 1,
+ "versaoPonte": 2,
  "dados": {
   "meta": {
    "folha": "Carteira de exemplo",
    "atualizadoEm": "2026-11-16T09:40:00+00:00",
-   "hoje": "2026-11-16"
+   "hoje": "2026-11-16",
+   "avisos": []
   },
+  "evolucao": [
+   {
+    "mes": "2022-09",
+    "carteiraUsd": 1425.0,
+    "investidoUsd": 1500.0,
+    "sp500Usd": 1486.56,
+    "netWorthEur": 4282.5,
+    "reforcoEur": 300.0,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2022-10",
+    "carteiraUsd": 1776.51,
+    "investidoUsd": 1817.68,
+    "sp500Usd": 1819.49,
+    "netWorthEur": 4638.86,
+    "reforcoEur": 357.81,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2022-11",
+    "carteiraUsd": 2122.75,
+    "investidoUsd": 2135.37,
+    "sp500Usd": 2143.01,
+    "netWorthEur": 4990.47,
+    "reforcoEur": 330.93,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2022-12",
+    "carteiraUsd": 2439.83,
+    "investidoUsd": 2453.05,
+    "sp500Usd": 2452.56,
+    "netWorthEur": 5315.85,
+    "reforcoEur": 258.73,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-01",
+    "carteiraUsd": 2717.86,
+    "investidoUsd": 2770.73,
+    "sp500Usd": 2750.07,
+    "netWorthEur": 5606.08,
+    "reforcoEur": 246.99,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-02",
+    "carteiraUsd": 2970.08,
+    "investidoUsd": 3088.42,
+    "sp500Usd": 3044.29,
+    "netWorthEur": 5873.07,
+    "reforcoEur": 312.91,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-03",
+    "carteiraUsd": 3229.25,
+    "investidoUsd": 3406.1,
+    "sp500Usd": 3348.52,
+    "netWorthEur": 6146.33,
+    "reforcoEur": 359.91,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-04",
+    "carteiraUsd": 3531.26,
+    "investidoUsd": 3723.79,
+    "sp500Usd": 3676.26,
+    "netWorthEur": 6458.13,
+    "reforcoEur": 319.15,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-05",
+    "carteiraUsd": 3892.73,
+    "investidoUsd": 4041.47,
+    "sp500Usd": 4036.14,
+    "netWorthEur": 6823.46,
+    "reforcoEur": 250.33,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-06",
+    "carteiraUsd": 4295.24,
+    "investidoUsd": 4359.15,
+    "sp500Usd": 4428.13,
+    "netWorthEur": 7225.71,
+    "reforcoEur": 254.28,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-07",
+    "carteiraUsd": 4689.0,
+    "investidoUsd": 4676.84,
+    "sp500Usd": 4842.29,
+    "netWorthEur": 7620.1,
+    "reforcoEur": 325.21,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-08",
+    "carteiraUsd": 5021.13,
+    "investidoUsd": 4994.52,
+    "sp500Usd": 5260.96,
+    "netWorthEur": 7959.01,
+    "reforcoEur": 359.21,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-09",
+    "carteiraUsd": 5273.79,
+    "investidoUsd": 5312.2,
+    "sp500Usd": 5663.86,
+    "netWorthEur": 8226.41,
+    "reforcoEur": 306.47,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-10",
+    "carteiraUsd": 5481.08,
+    "investidoUsd": 5629.89,
+    "sp500Usd": 6034.75,
+    "netWorthEur": 8452.97,
+    "reforcoEur": 244.25,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-11",
+    "carteiraUsd": 5707.48,
+    "investidoUsd": 5947.57,
+    "sp500Usd": 6367.32,
+    "netWorthEur": 8696.73,
+    "reforcoEur": 263.71,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2023-12",
+    "carteiraUsd": 6009.33,
+    "investidoUsd": 6265.26,
+    "sp500Usd": 6668.41,
+    "netWorthEur": 9008.4,
+    "reforcoEur": 336.33,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-01",
+    "carteiraUsd": 6412.67,
+    "investidoUsd": 6582.94,
+    "sp500Usd": 6957.1,
+    "netWorthEur": 9411.4,
+    "reforcoEur": 355.73,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-02",
+    "carteiraUsd": 6911.07,
+    "investidoUsd": 6900.62,
+    "sp500Usd": 7259.67,
+    "netWorthEur": 9899.97,
+    "reforcoEur": 293.48,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-03",
+    "carteiraUsd": 7467.11,
+    "investidoUsd": 7218.31,
+    "sp500Usd": 7601.7,
+    "netWorthEur": 10440.4,
+    "reforcoEur": 240.79,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-04",
+    "carteiraUsd": 8016.18,
+    "investidoUsd": 7535.99,
+    "sp500Usd": 7999.73,
+    "netWorthEur": 10974.56,
+    "reforcoEur": 274.84,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-05",
+    "carteiraUsd": 8485.54,
+    "investidoUsd": 7853.67,
+    "sp500Usd": 8455.15,
+    "netWorthEur": 11436.99,
+    "reforcoEur": 345.75,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-06",
+    "carteiraUsd": 8828.01,
+    "investidoUsd": 8171.36,
+    "sp500Usd": 8952.46,
+    "netWorthEur": 11785.21,
+    "reforcoEur": 349.64,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-07",
+    "carteiraUsd": 9051.04,
+    "investidoUsd": 8489.04,
+    "sp500Usd": 9462.87,
+    "netWorthEur": 12025.94,
+    "reforcoEur": 280.8,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-08",
+    "carteiraUsd": 9220.88,
+    "investidoUsd": 8806.73,
+    "sp500Usd": 9952.41,
+    "netWorthEur": 12218.79,
+    "reforcoEur": 240.09,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-09",
+    "carteiraUsd": 9435.87,
+    "investidoUsd": 9124.41,
+    "sp500Usd": 10392.25,
+    "netWorthEur": 12452.28,
+    "reforcoEur": 287.14,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-10",
+    "carteiraUsd": 9780.62,
+    "investidoUsd": 9442.09,
+    "sp500Usd": 10768.24,
+    "netWorthEur": 12802.56,
+    "reforcoEur": 353.03,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-11",
+    "carteiraUsd": 10283.2,
+    "investidoUsd": 9759.78,
+    "sp500Usd": 11086.31,
+    "netWorthEur": 13294.88,
+    "reforcoEur": 341.23,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2024-12",
+    "carteiraUsd": 10897.41,
+    "investidoUsd": 10077.46,
+    "sp500Usd": 11372.02,
+    "netWorthEur": 13887.67,
+    "reforcoEur": 269.02,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-01",
+    "carteiraUsd": 11520.61,
+    "investidoUsd": 10395.14,
+    "sp500Usd": 11663.84,
+    "netWorthEur": 14488.55,
+    "reforcoEur": 242.2,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-02",
+    "carteiraUsd": 12040.65,
+    "investidoUsd": 10712.83,
+    "sp500Usd": 12002.0,
+    "netWorthEur": 14996.58,
+    "reforcoEur": 300.05,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-03",
+    "carteiraUsd": 12390.38,
+    "investidoUsd": 11030.51,
+    "sp500Usd": 12416.05,
+    "netWorthEur": 15351.35,
+    "reforcoEur": 357.83,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-04",
+    "carteiraUsd": 12583.41,
+    "investidoUsd": 11348.19,
+    "sp500Usd": 12915.08,
+    "netWorthEur": 15565.07,
+    "reforcoEur": 330.88,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-05",
+    "carteiraUsd": 12712.14,
+    "investidoUsd": 11665.88,
+    "sp500Usd": 13483.72,
+    "netWorthEur": 15720.93,
+    "reforcoEur": 258.7,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-06",
+    "carteiraUsd": 12907.12,
+    "investidoUsd": 11983.56,
+    "sp500Usd": 14085.46,
+    "netWorthEur": 15936.4,
+    "reforcoEur": 247.02,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-07",
+    "carteiraUsd": 13275.35,
+    "investidoUsd": 12301.25,
+    "sp500Usd": 14672.79,
+    "netWorthEur": 16307.81,
+    "reforcoEur": 312.96,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-08",
+    "carteiraUsd": 13846.78,
+    "investidoUsd": 12618.93,
+    "sp500Usd": 15201.24,
+    "netWorthEur": 16862.1,
+    "reforcoEur": 359.92,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-09",
+    "carteiraUsd": 14555.66,
+    "investidoUsd": 12936.61,
+    "sp500Usd": 15643.21,
+    "netWorthEur": 17540.09,
+    "reforcoEur": 319.1,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-10",
+    "carteiraUsd": 15267.57,
+    "investidoUsd": 13254.3,
+    "sp500Usd": 15997.31,
+    "netWorthEur": 18220.81,
+    "reforcoEur": 250.3,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-11",
+    "carteiraUsd": 15841.39,
+    "investidoUsd": 13571.98,
+    "sp500Usd": 16290.12,
+    "netWorthEur": 18777.25,
+    "reforcoEur": 254.32,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2025-12",
+    "carteiraUsd": 16197.52,
+    "investidoUsd": 13889.66,
+    "sp500Usd": 16569.36,
+    "netWorthEur": 19137.77,
+    "reforcoEur": 325.26,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-01",
+    "carteiraUsd": 16359.5,
+    "investidoUsd": 14207.35,
+    "sp500Usd": 16890.33,
+    "netWorthEur": 19323.55,
+    "reforcoEur": 359.2,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-02",
+    "carteiraUsd": 16447.38,
+    "investidoUsd": 14525.03,
+    "sp500Usd": 17299.34,
+    "netWorthEur": 19442.65,
+    "reforcoEur": 306.41,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-03",
+    "carteiraUsd": 16624.0,
+    "investidoUsd": 14842.72,
+    "sp500Usd": 17819.16,
+    "netWorthEur": 19641.6,
+    "reforcoEur": 244.23,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-04",
+    "carteiraUsd": 17018.01,
+    "investidoUsd": 15160.4,
+    "sp500Usd": 18441.03,
+    "netWorthEur": 20036.21,
+    "reforcoEur": 263.75,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-05",
+    "carteiraUsd": 17660.18,
+    "investidoUsd": 15478.08,
+    "sp500Usd": 19125.96,
+    "netWorthEur": 20654.16,
+    "reforcoEur": 336.37,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-06",
+    "carteiraUsd": 18464.29,
+    "investidoUsd": 15795.77,
+    "sp500Usd": 19815.32,
+    "netWorthEur": 21417.86,
+    "reforcoEur": 355.71,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-07",
+    "carteiraUsd": 19263.89,
+    "investidoUsd": 16113.45,
+    "sp500Usd": 20447.84,
+    "netWorthEur": 22177.5,
+    "reforcoEur": 293.43,
+    "metaBaseEur": null
+   },
+   {
+    "mes": "2026-08",
+    "carteiraUsd": 19889.37,
+    "investidoUsd": 16431.13,
+    "sp500Usd": 20978.16,
+    "netWorthEur": 22780.43,
+    "reforcoEur": 240.78,
+    "metaBaseEur": 23008.24
+   },
+   {
+    "mes": "2026-09",
+    "carteiraUsd": 20249.69,
+    "investidoUsd": 16748.82,
+    "sp500Usd": 21391.22,
+    "netWorthEur": 23144.72,
+    "reforcoEur": 274.89,
+    "metaBaseEur": 23376.16
+   },
+   {
+    "mes": "2026-10",
+    "carteiraUsd": 20379.35,
+    "investidoUsd": 17066.5,
+    "sp500Usd": 21708.03,
+    "netWorthEur": 23301.41,
+    "reforcoEur": 345.79,
+    "metaBaseEur": 23534.43
+   },
+   {
+    "mes": "2026-11",
+    "carteiraUsd": 20687.18,
+    "investidoUsd": 17384.18,
+    "sp500Usd": 21980.67,
+    "netWorthEur": 23618.46,
+    "reforcoEur": 349.61,
+    "metaBaseEur": 23854.65
+   }
+  ],
+  "objetivos": [
+   {
+    "objetivo": "Património em out/2026",
+    "meta": 21400.0,
+    "real": 21150.0,
+    "metaTexto": "21 400 €",
+    "realTexto": "21 150 €",
+    "diferencaTexto": "-250 €",
+    "estado": "No limite"
+   },
+   {
+    "objetivo": "Reforço médio mensal (últimos 12 meses)",
+    "meta": 300.0,
+    "real": 312.4,
+    "metaTexto": "300 €",
+    "realTexto": "312 €",
+    "diferencaTexto": "+12 €",
+    "estado": "No caminho"
+   },
+   {
+    "objetivo": "Rentabilidade anual da carteira (desde set/2022)",
+    "meta": 0.065,
+    "real": 0.081,
+    "metaTexto": "6,5%",
+    "realTexto": "8,1%",
+    "diferencaTexto": "+1,6 pp",
+    "estado": "Acima do plano"
+   }
+  ],
+  "patrimonio": {
+   "totalEur": 22694.41,
+   "classes": [
+    {
+     "classe": "Ações",
+     "investidoEur": 10164.336,
+     "valorEur": 12550.76075,
+     "valorizacao": 0.234784,
+     "rendimentoAnualEur": 264.04125
+    },
+    {
+     "classe": "ETFs",
+     "investidoEur": 4543.0,
+     "valorEur": 5343.65,
+     "valorizacao": 0.176238,
+     "rendimentoAnualEur": 0
+    },
+    {
+     "classe": "Certificado de Aforro (exemplo)",
+     "investidoEur": 2400,
+     "valorEur": 2500,
+     "valorizacao": 0.0417,
+     "rendimentoAnualEur": 75
+    },
+    {
+     "classe": "Depósito a prazo",
+     "investidoEur": 1500,
+     "valorEur": 1500,
+     "valorizacao": 0,
+     "rendimentoAnualEur": 30
+    },
+    {
+     "classe": "Corretora (saldo €)",
+     "investidoEur": 800,
+     "valorEur": 800,
+     "valorizacao": 0,
+     "rendimentoAnualEur": 0
+    }
+   ]
+  },
+  "comparacoes": [
+   {
+    "comparacao": "Só ações vs S&P 500 — com dividendos",
+    "carteiraEur": 12550.76075,
+    "indiceEur": 12971.26075,
+    "diferencaEur": -420.5,
+    "leitura": "🔴 atrás 3,2%",
+    "principal": false
+   },
+   {
+    "comparacao": "Carteira toda vs S&P 500 — com dividendos",
+    "carteiraEur": 17894.41075,
+    "indiceEur": 19079.01075,
+    "diferencaEur": -1184.6,
+    "leitura": "🔴 atrás 6,2%",
+    "principal": true
+   }
+  ],
+  "setores": [
+   {
+    "setor": "Technology",
+    "valorEur": 3419.13,
+    "pesoAcoes": 0.272424,
+    "numero": 2,
+    "limite": 0.35,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Healthcare",
+    "valorEur": 1384.65,
+    "pesoAcoes": 0.110324,
+    "numero": 1,
+    "limite": 0.2,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Financial Services",
+    "valorEur": 3142.72,
+    "pesoAcoes": 0.250401,
+    "numero": 2,
+    "limite": 0.15,
+    "estado": "🔴 Acima do limite"
+   },
+   {
+    "setor": "Consumer Cyclical",
+    "valorEur": 863.44,
+    "pesoAcoes": 0.068796,
+    "numero": 1,
+    "limite": 0.2,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Communication Services",
+    "valorEur": 892.03,
+    "pesoAcoes": 0.071074,
+    "numero": 1,
+    "limite": 0.15,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Consumer Defensive",
+    "valorEur": 1290.58,
+    "pesoAcoes": 0.102829,
+    "numero": 1,
+    "limite": 0.12,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Industrials",
+    "valorEur": 193.07,
+    "pesoAcoes": 0.015383,
+    "numero": 1,
+    "limite": 0.12,
+    "estado": "🟢 OK"
+   },
+   {
+    "setor": "Energy",
+    "valorEur": 1365.14,
+    "pesoAcoes": 0.10877,
+    "numero": 1,
+    "limite": 0.08,
+    "estado": "🔴 Acima do limite"
+   }
+  ],
   "cambio": {
    "usdEur": 0.865,
    "gbpUsd": 1.315
@@ -669,7 +1284,7 @@
     "pesoAlvo": 0.05,
     "pesoMaximo": 0.06,
     "zona": "🟢 Reforçar",
-    "sinal": "🟡 Em zona · satélite só compra em 🟢🟢",
+    "sinal": "🔴 Sair até 31/12/2026",
     "avaliacao": {
      "moeda": "USD",
      "precoLocal": 41.25,
@@ -1376,7 +1991,8 @@
     "moat": "Larga",
     "camadaPotencial": "Core A",
     "crescimento": 0.04,
-    "fcfYield": 0.02
+    "fcfYield": 0.02,
+    "testeTroca": "⏳ Bate GIRA por +1,0%/ano, mas está cara pelo teu P/E justo"
    },
    {
     "tabela": "POTENCIAL CORE A",
@@ -1394,7 +2010,8 @@
     "moat": "Larga",
     "camadaPotencial": "Core A",
     "crescimento": 0.065,
-    "fcfYield": 0.028
+    "fcfYield": 0.028,
+    "testeTroca": "✗ -0,2%/ano face a HORT (mín. +2%)"
    },
    {
     "tabela": "POTENCIAL CORE A",
@@ -1412,7 +2029,8 @@
     "moat": "Estreita",
     "camadaPotencial": "Core A",
     "crescimento": 0.09,
-    "fcfYield": 0.036
+    "fcfYield": 0.036,
+    "testeTroca": "✓ Avaliar troca com DUNA: +4,2%/ano"
    },
    {
     "tabela": "POTENCIAL CORE A",
@@ -1430,7 +2048,8 @@
     "moat": "Larga",
     "camadaPotencial": "Core A",
     "crescimento": 0.115,
-    "fcfYield": 0.044
+    "fcfYield": 0.044,
+    "testeTroca": "⏳ Bate GIRA por +1,9%/ano, mas está cara pelo teu P/E justo"
    },
    {
     "tabela": "POTENCIAL CORE B",
@@ -1448,7 +2067,8 @@
     "moat": "Larga",
     "camadaPotencial": "Core B",
     "crescimento": 0.14,
-    "fcfYield": 0.02
+    "fcfYield": 0.02,
+    "testeTroca": "⏳ Bate GIRA por +2,2%/ano, mas está cara pelo teu P/E justo"
    },
    {
     "tabela": "POTENCIAL CORE B",
@@ -1466,7 +2086,8 @@
     "moat": "Estreita",
     "camadaPotencial": "Core B",
     "crescimento": 0.04,
-    "fcfYield": 0.028
+    "fcfYield": 0.028,
+    "testeTroca": "✗ -0,6%/ano face a HORT (mín. +2%)"
    },
    {
     "tabela": "POTENCIAL CORE B",
@@ -1484,7 +2105,8 @@
     "moat": "Estreita",
     "camadaPotencial": "Core B",
     "crescimento": 0.065,
-    "fcfYield": 0.036
+    "fcfYield": 0.036,
+    "testeTroca": "⏳ Bate GIRA por +1,8%/ano, mas está cara pelo teu P/E justo"
    },
    {
     "tabela": "POTENCIAL CORE B",
@@ -1502,7 +2124,8 @@
     "moat": "Larga",
     "camadaPotencial": "Core B",
     "crescimento": 0.09,
-    "fcfYield": 0.044
+    "fcfYield": 0.044,
+    "testeTroca": "✓ Avaliar troca com DUNA: +5,7%/ano"
    },
    {
     "tabela": "POTENCIAL SATÉLITE",
@@ -1520,7 +2143,8 @@
     "moat": "Nenhuma",
     "camadaPotencial": "Satélite",
     "crescimento": 0.115,
-    "fcfYield": 0.02
+    "fcfYield": 0.02,
+    "testeTroca": "✓ Avaliar troca com DUNA: +2,8%/ano"
    },
    {
     "tabela": "POTENCIAL SATÉLITE",
@@ -1538,7 +2162,8 @@
     "moat": "Estreita",
     "camadaPotencial": "Satélite",
     "crescimento": 0.14,
-    "fcfYield": 0.028
+    "fcfYield": 0.028,
+    "testeTroca": "⏳ Bate GIRA por +1,7%/ano, mas está cara pelo teu P/E justo"
    },
    {
     "tabela": "POTENCIAL SATÉLITE",
@@ -1556,7 +2181,8 @@
     "moat": "Estreita",
     "camadaPotencial": "Satélite",
     "crescimento": 0.04,
-    "fcfYield": 0.036
+    "fcfYield": 0.036,
+    "testeTroca": "✗ -0,2%/ano face a HORT (mín. +2%)"
    },
    {
     "tabela": "POTENCIAL SATÉLITE",
@@ -1574,7 +2200,8 @@
     "moat": "Nenhuma",
     "camadaPotencial": "Satélite",
     "crescimento": 0.065,
-    "fcfYield": 0.044
+    "fcfYield": 0.044,
+    "testeTroca": "⏳ Bate GIRA por +3,3%/ano, mas está cara pelo teu P/E justo"
    }
   ],
   "transacoes": [

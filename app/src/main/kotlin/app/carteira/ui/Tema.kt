@@ -11,6 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 
 // Azuis da folha (quadros e cabeçalhos).
 private val Marinho = Color(0xFF1F2A44)
@@ -23,8 +24,10 @@ private val Claro = lightColorScheme(
     onPrimaryContainer = Marinho,
     secondary = Color(0xFF55607A),
     tertiary = Color(0xFFB7950B),
-    background = Color(0xFFF8F9FC),
-    surface = Color(0xFFF8F9FC),
+    background = Color(0xFFF2F4F8),
+    surface = Color(0xFFF2F4F8),
+    surfaceVariant = Color(0xFFE6E9EF),
+    outlineVariant = Color(0xFFD5DAE3),
 )
 
 private val Escuro = darkColorScheme(
@@ -85,5 +88,49 @@ fun estiloZona(zona: String?): EstiloZona {
         z.startsWith("🔴") -> EstiloZona(Color(0xFFFFD2CF), Color(0xFF8C1D18), rotulo)
         z.startsWith("⚪") -> EstiloZona(Color(0xFFE4E6EB), Color(0xFF3B4252), rotulo)
         else -> EstiloZona(Color(0xFFE4E6EB), Color(0xFF3B4252), rotulo)
+    }
+}
+
+/** Cores do cartão principal, dos gráficos e das categorias. */
+object Paleta {
+    val marinho = Color(0xFF1F2A44)
+    val marinhoClaro = Color(0xFF34497A)
+    val dourado = Color(0xFFC9A227)
+    val cinzento = Color(0xFF8A94A6)
+    val verde = Color(0xFF1B8A5A)
+    val ambar = Color(0xFFC98A10)
+    val vermelho = Color(0xFFC8463D)
+    /** No fundo escuro do cartão principal. */
+    val verdeClaro = Color(0xFF8FE3B0)
+    val vermelhoClaro = Color(0xFFFFA59E)
+
+    /** Categorias (camadas, classes de ativos), sempre pela mesma ordem. */
+    val categorias = listOf(
+        Color(0xFF2D5497), Color(0xFF5B8DD6), Color(0xFF9DBDEB), Color(0xFFC9A227),
+        Color(0xFF7A5C99), Color(0xFF3E9C8F), Color(0xFFD98C5F), Color(0xFFB0B7C3),
+    )
+
+    fun categoria(i: Int): Color = categorias[i % categorias.size]
+}
+
+/** Fundo dos cartões: branco no claro, um cinzento acima do fundo no escuro. */
+@Composable
+fun corCartao(): Color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
+
+@Composable
+fun corBordaCartao(): Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
+
+/** Algarismos da mesma largura, para os números alinharem (1 111 e 8 888 ocupam o mesmo). */
+fun TextStyle.numeros(): TextStyle = copy(fontFeatureSettings = "tnum")
+
+/** Verde, âmbar ou vermelho a partir de um estado da folha ("🟢 OK", "No limite", "Acima do plano", ...). */
+fun corDoEstado(estado: String?): Color {
+    val e = estado?.trim().orEmpty()
+    val minusculas = e.lowercase()
+    return when {
+        e.startsWith("🟢") || e.startsWith("✓") || "acima do plano" in minusculas || "no caminho" in minusculas -> Paleta.verde
+        e.startsWith("🔴") || "abaixo" in minusculas -> Paleta.vermelho
+        e.startsWith("🟡") || e.startsWith("🟠") || e.startsWith("⚠") || "limite" in minusculas -> Paleta.ambar
+        else -> Paleta.cinzento
     }
 }

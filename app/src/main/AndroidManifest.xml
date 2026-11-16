@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Só a internet: a app fala com a ponte da folha (Google Apps Script). -->
+    <!-- A internet para falar com a ponte da folha (Google Apps Script). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Avisos dos alertas (Android 13+ pede autorização ao ligar os alertas). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
         Sem cópias de segurança automáticas: as definições têm a chave da ponte e os dados da
@@ -20,6 +22,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

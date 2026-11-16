@@ -16,7 +16,7 @@
  * A chave impede que alguém com o URL leia a carteira. Se a mudares aqui, muda-a também na app.
  */
 const CHAVE = '__CHAVE__';
-const VERSAO_PONTE = 1;
+const VERSAO_PONTE = 2;
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto',
   'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -32,6 +32,7 @@ function doGet(e) {
       return { ok: true, versaoPonte: VERSAO_PONTE, folha: SpreadsheetApp.getActive().getName() };
     }
     if (acao === 'dados') return { ok: true, versaoPonte: VERSAO_PONTE, dados: lerTudo_() };
+    if (acao === 'alertas') return { ok: true, versaoPonte: VERSAO_PONTE, alertas: lerParaAlertas_() };
     throw new Error('Ação desconhecida: ' + acao);
   });
 }
@@ -176,12 +177,25 @@ function lerTudo_() {
   const cart = lerCarteira_();
   const aval = lerAvaliacao_();
   cart.posicoes.forEach(function (p) { p.avaliacao = aval[p.ticker] || null; });
+  // Secções da visão geral: se uma tab mudar de forma, a app recebe o resto e um aviso.
+  const avisos = [];
+  const evolucao = opcional_(avisos, 'Evolução Patrimonial', lerEvolucao_, []);
+  const objetivos = opcional_(avisos, 'Objetivos', lerObjetivos_, []);
+  const patrimonio = opcional_(avisos, 'Investimentos', lerPatrimonio_, null);
+  const comparacoes = opcional_(avisos, 'Validação S&P 500', lerComparacoes_, []);
+  const setores = opcional_(avisos, 'Distribuição', lerSetores_, []);
   return {
     meta: {
       folha: ss.getName(),
       atualizadoEm: Utilities.formatDate(new Date(), fuso_(), "yyyy-MM-dd'T'HH:mm:ssXXX"),
-      hoje: hojeIso_()
+      hoje: hojeIso_(),
+      avisos: avisos
     },
+    evolucao: evolucao,
+    objetivos: objetivos,
+    patrimonio: patrimonio,
+    comparacoes: comparacoes,
+    setores: setores,
     cambio: cart.cambio,
     totaisAcoes: cart.totais,
     totaisEtfs: cart.totaisEtfs,
@@ -519,11 +533,196 @@ function lerWatchlist_() {
         moat: campo_(d[r], m, 'Moat'),
         camadaPotencial: campo_(d[r], m, 'Camada potencial'),
         crescimento: num_(campo_(d[r], m, 'Crescimento esperado (2 anos)')),
-        fcfYield: num_(campo_(d[r], m, 'FCF yield hoje'))
+        fcfYield: num_(campo_(d[r], m, 'FCF yield hoje')),
+        testeTroca: campo_(d[r], m, 'Teste de troca')
       });
     }
   }
   return out;
+}
+
+// ───────────────────────────── Visão geral (ponte v2) ─────────────────────────────
+
+/** Corre uma leitura opcional; se falhar, guarda o motivo em "avisos" e devolve "vazio". */
+function opcional_(avisos, nome, fn, vazio) {
+  try {
+    return fn();
+  } catch (err) {
+    avisos.push(nome + ': ' + String((err && err.message) || err));
+    return vazio;
+  }
+}
+
+/** Primeiro número de uma linha a partir da coluna "desde". */
+function primeiroNumero_(linha, desde) {
+  for (let c = desde; c < linha.length; c++) if (num_(linha[c]) !== null) return linha[c];
+  return null;
+}
+
+/** Evolução mensal (tab Evolução Patrimonial): carteira, investido e o mesmo dinheiro no S&P 500. */
+function lerEvolucao_() {
+  const d = grelha_(folha_('Evolução Patrimonial'), 400).valores;
+  const h = acharLinha_(d, ['Mês', 'Portefólio ($)', 'Investido ($)']);
+  if (h < 0) throw new Error('não encontrei a tabela EVOLUÇÃO MENSAL');
+  const m = indice_(d[h]);
+  // A linha de "preenchimento rápido" tem os valores de agora, para o mês que ainda não fechou.
+  let netWorthAgora = null;
+  let spyAgora = null;
+  for (let r = 0; r < h; r++) {
+    for (let c = 0; c < d[r].length; c++) {
+      const t = norm_(d[r][c]);
+      if (t === 'Net Worth Atual (€)') netWorthAgora = primeiroNumero_(d[r], c + 1);
+      if (t.indexOf('SPY Equiv.') === 0) spyAgora = primeiroNumero_(d[r], c + 1);
+    }
+  }
+  const out = [];
+  for (let r = h + 1; r < d.length; r++) {
+    const data = d[r][m['Mês']];
+    if (!(data instanceof Date)) break;
+    const carteira = num_(campo_(d[r], m, 'Portefólio ($)'));
+    if (carteira === null) continue; // meses futuros: só têm as metas
+    out.push({
+      mes: Utilities.formatDate(data, fuso_(), 'yyyy-MM'),
+      carteiraUsd: carteira,
+      investidoUsd: num_(campo_(d[r], m, 'Investido ($)')),
+      sp500Usd: num_(campo_(d[r], m, 'S&P500 ($)')),
+      netWorthEur: num_(campo_(d[r], m, 'Net Worth (€)')),
+      reforcoEur: num_(campo_(d[r], m, 'Reforço (€)')),
+      metaBaseEur: num_(campo_(d[r], m, 'Meta Base (€)'))
+    });
+  }
+  const ultimo = out[out.length - 1];
+  if (ultimo && ultimo.mes === hojeIso_().slice(0, 7)) {
+    if (ultimo.sp500Usd === null) ultimo.sp500Usd = num_(spyAgora);
+    if (ultimo.netWorthEur === null) ultimo.netWorthEur = num_(netWorthAgora);
+  }
+  return out;
+}
+
+/** "Estou no caminho?" (tab Evolução Patrimonial), com os textos tal como a folha os mostra. */
+function lerObjetivos_() {
+  const g = grelha_(folha_('Evolução Patrimonial'), 40, true);
+  const d = g.valores;
+  const h = acharLinha_(d, ['Objetivo', 'Meta', 'Real', 'Estado']);
+  if (h < 0) throw new Error('não encontrei a tabela de objetivos');
+  const m = indice_(d[h]);
+  const out = [];
+  for (let r = h + 1; r < d.length; r++) {
+    const objetivo = campo_(d[r], m, 'Objetivo');
+    if (!objetivo) break;
+    const real = num_(d[r][m.Real]);
+    const estado = campo_(d[r], m, 'Estado');
+    if (real === null || !estado) continue; // linhas de parâmetros
+    const t = g.textos[r];
+    out.push({
+      objetivo: objetivo,
+      meta: num_(d[r][m.Meta]),
+      real: real,
+      metaTexto: norm_(t[m.Meta]),
+      realTexto: norm_(t[m.Real]),
+      diferencaTexto: m['Diferença'] === undefined ? null : norm_(t[m['Diferença']]),
+      estado: estado
+    });
+  }
+  return out;
+}
+
+/** Património por classe de ativo (tab Investimentos). */
+function lerPatrimonio_() {
+  const d = grelha_(folha_('Investimentos'), 60).valores;
+  const h = acharLinha_(d, ['Classe', 'Valor Atual (EUR)']);
+  if (h < 0) throw new Error('não encontrei o património por classe');
+  const m = indice_(d[h]);
+  const classes = [];
+  let total = null;
+  for (let r = h + 1; r < d.length; r++) {
+    const classe = campo_(d[r], m, 'Classe');
+    if (!classe) break;
+    const valor = num_(campo_(d[r], m, 'Valor Atual (EUR)'));
+    if (String(classe).toUpperCase().indexOf('TOTAL') === 0) { total = valor; break; }
+    if (valor === null) continue;
+    classes.push({
+      classe: classe,
+      investidoEur: num_(campo_(d[r], m, 'Investido (EUR)')),
+      valorEur: valor,
+      valorizacao: num_(campo_(d[r], m, 'Valorização')),
+      rendimentoAnualEur: num_(campo_(d[r], m, 'Rendimento Anual (EUR)'))
+    });
+  }
+  return { totalEur: total, classes: classes };
+}
+
+/** A carteira contra o mesmo dinheiro no índice (tab Validação S&P 500). */
+function lerComparacoes_() {
+  const d = grelha_(folha_('Validação S&P 500'), 40).valores;
+  const h = acharLinha_(d, ['Comparação', 'Diferença (€)']);
+  if (h < 0) throw new Error('não encontrei a tabela de comparação');
+  const m = indice_(d[h]);
+  const out = [];
+  for (let r = h + 1; r < d.length; r++) {
+    const comparacao = campo_(d[r], m, 'Comparação');
+    if (!comparacao) break;
+    const diferenca = num_(campo_(d[r], m, 'Diferença (€)'));
+    if (diferenca === null) continue;
+    out.push({
+      comparacao: comparacao,
+      carteiraEur: num_(campo_(d[r], m, 'A tua carteira hoje (€)')),
+      indiceEur: num_(campo_(d[r], m, 'Mesmo dinheiro no índice (€)')),
+      diferencaEur: diferenca,
+      leitura: campo_(d[r], m, 'Leitura'),
+      principal: String(campo_(d[r], m, 'Nota') || '').indexOf('MEDIDA PRINCIPAL') >= 0
+    });
+  }
+  return out;
+}
+
+/** Peso de cada setor nas ações e o limite da tab Distribuição. */
+function lerSetores_() {
+  const d = grelha_(folha_('Distribuição'), 80).valores;
+  const h = acharLinha_(d, ['Setor', 'Valor (EUR)', 'Limite (Setor)', 'Estado']);
+  if (h < 0) throw new Error('não encontrei a alocação por setor');
+  const m = indice_(d[h]);
+  const out = [];
+  for (let r = h + 1; r < d.length; r++) {
+    const setor = campo_(d[r], m, 'Setor');
+    const valor = num_(campo_(d[r], m, 'Valor (EUR)'));
+    if (!setor || valor === null) break;
+    out.push({
+      setor: setor,
+      valorEur: valor,
+      pesoAcoes: num_(campo_(d[r], m, '% Ações')),
+      numero: num_(campo_(d[r], m, 'Nº Posições')),
+      limite: num_(campo_(d[r], m, 'Limite (Setor)')),
+      estado: campo_(d[r], m, 'Estado')
+    });
+  }
+  return out;
+}
+
+/** Resposta leve para a verificação de alertas do telemóvel: preços, variação, zona e sinal. */
+function lerParaAlertas_() {
+  const cart = lerCarteira_();
+  return {
+    meta: {
+      atualizadoEm: Utilities.formatDate(new Date(), fuso_(), "yyyy-MM-dd'T'HH:mm:ssXXX"),
+      hoje: hojeIso_()
+    },
+    posicoes: cart.posicoes.map(function (p) {
+      return {
+        ticker: p.ticker, empresa: p.empresa, camada: p.camada, precoUsd: p.precoUsd,
+        varDiaPct: p.varDiaPct, zona: p.zona, sinal: p.sinal
+      };
+    }),
+    etfs: cart.etfs.map(function (e) {
+      return { ticker: e.ticker, nome: e.nome, precoEur: e.precoEur, varDiaPct: e.varDiaPct };
+    }),
+    watchlist: lerWatchlist_().map(function (w) {
+      return {
+        tabela: w.tabela, ticker: w.ticker, empresa: w.empresa, preco: w.preco, valorJusto: w.valorJusto,
+        margem: w.margem, sinal: w.sinal, prioridade: w.prioridade, testeTroca: w.testeTroca
+      };
+    })
+  };
 }
 
 /** Cabeçalho e bloco de linhas da tab Transações (as linhas livres já têm as fórmulas). */

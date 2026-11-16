@@ -62,6 +62,37 @@ object Formatos {
         return sinal + numero(abs(x), casas) + " $"
     }
 
+    /** Números grandes em curto, para eixos: 60 k, 1,2 M. */
+    fun compacto(x: Double?): String {
+        if (x == null) return "—"
+        val a = abs(x)
+        return when {
+            a >= 1_000_000 -> numero(x / 1_000_000, 1) + " M"
+            a >= 10_000 -> numero(x / 1_000, 0) + " k"
+            a >= 1_000 -> numero(x / 1_000, 1) + " k"
+            else -> numero(x, 0)
+        }
+    }
+
+    /** Diferença de duas percentagens em pontos percentuais (+7,4 pp). */
+    fun pp(x: Double?, casas: Int = 1): String {
+        if (x == null) return "—"
+        val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
+        return sinal + numero(abs(x) * 100, casas) + " pp"
+    }
+
+    /** "2026-11-16T15:42" → "hoje às 15:42", "ontem às 15:42" ou "13/11 às 15:42". */
+    fun quando(iso: String?, hoje: java.time.LocalDate = java.time.LocalDate.now()): String {
+        if (iso == null || iso.length < 16) return iso ?: "—"
+        val dia = runCatching { java.time.LocalDate.parse(iso.substring(0, 10)) }.getOrNull() ?: return iso
+        val hora = iso.substring(11, 16)
+        return when (dia) {
+            hoje -> "hoje às $hora"
+            hoje.minusDays(1) -> "ontem às $hora"
+            else -> iso.substring(8, 10) + "/" + iso.substring(5, 7) + " às " + hora
+        }
+    }
+
     /** "2026-11-16" → "16/11/2026". */
     fun data(iso: String?): String {
         if (iso == null || iso.length < 10) return iso ?: "—"

@@ -82,6 +82,55 @@ class LeitorTest {
     }
 
     @Test
+    fun leAsSeccoesDaPonteV2() {
+        val d = Leitor.lerResposta(amostra())
+        assertEquals(2, d.versaoPonte)
+        assertTrue(d.meta.avisos.isEmpty())
+        assertEquals("2022-09", d.evolucao.first().mes)
+        assertEquals("2026-11", d.evolucao.last().mes)
+        assertTrue(d.evolucao.all { it.carteiraUsd > 0 && it.investidoUsd != null && it.sp500Usd != null })
+        assertEquals(3, d.objetivos.size)
+        assertEquals("Acima do plano", d.objetivos.last().estado)
+        assertEquals(5, d.patrimonio!!.classes.size)
+        assertTrue(d.comparacaoPrincipal!!.principal)
+        assertTrue(d.comparacaoPrincipal!!.diferencaPct!! < 0)
+        assertTrue(d.setores.any { it.acima })
+        assertTrue(d.watchlist.all { it.testeTroca != null })
+    }
+
+    @Test
+    fun pontesAntigasContinuamALer() {
+        // Uma resposta da ponte v1 não tem as secções novas: ficam vazias, sem erro.
+        val v1 = org.json.JSONObject(amostra()).apply {
+            put("versaoPonte", 1)
+            val d = getJSONObject("dados")
+            listOf("evolucao", "objetivos", "patrimonio", "comparacoes", "setores").forEach { d.remove(it) }
+        }.toString()
+        val d = Leitor.lerResposta(v1)
+        assertEquals(1, d.versaoPonte)
+        assertTrue(d.evolucao.isEmpty() && d.objetivos.isEmpty() && d.setores.isEmpty())
+        assertNull(d.patrimonio)
+        assertNull(d.comparacaoPrincipal)
+    }
+
+    @Test
+    fun mercadoParaOsAlertas() {
+        // Dos dados completos (ponte v1)...
+        val deDados = Leitor.lerMercado(amostra())
+        assertTrue(deDados.cotacoes.any { it.chave == "P:ALFA" && it.sinal != null })
+        assertTrue(deDados.cotacoes.any { it.chave == "E:MUND" && it.moeda == "EUR" })
+        assertTrue(deDados.cotacoes.any { it.chave.startsWith("W:") && it.valorJusto != null })
+        // ... e da resposta leve da ponte v2.
+        val leve = """{"ok":true,"versaoPonte":2,"alertas":{"meta":{"hoje":"2026-11-16","atualizadoEm":"x"},
+            "posicoes":[{"ticker":"ALFA","empresa":"Alfa","camada":"Core A","precoUsd":268.15,"varDiaPct":0.01,"zona":"⚪ Manter","sinal":"⚪ Manter (core)"}],
+            "etfs":[{"ticker":"MUND","nome":"Mundo","precoEur":131.25,"varDiaPct":-0.001}],
+            "watchlist":[{"tabela":"POTENCIAL CORE A","ticker":"KAPA","empresa":"Kapa","preco":152.3,"valorJusto":175,"margem":0.149,"sinal":"🟡 Perto do justo","testeTroca":"⏳"}]}}"""
+        val m = Leitor.lerMercado(leve)
+        assertEquals("2026-11-16", m.hoje)
+        assertEquals(listOf("P:ALFA", "E:MUND", "W:KAPA"), m.cotacoes.map { it.chave })
+    }
+
+    @Test
     fun ping() {
         assertEquals("Portefolio", Leitor.lerPing("""{"ok":true,"versaoPonte":1,"folha":"Portefolio"}"""))
     }

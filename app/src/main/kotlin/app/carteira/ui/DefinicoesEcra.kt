@@ -44,7 +44,7 @@ fun DefinicoesEcra(estado: Estado, vm: CarteiraViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Cartao("Como ligar a app à folha") {
+        Cartao("Ligação à folha") {
             Text(
                 "A app lê a folha através de uma pequena ponte (Apps Script) que publicas uma vez no computador:",
                 style = MaterialTheme.typography.bodyMedium,
@@ -97,10 +97,24 @@ fun DefinicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         erro?.let {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
+        if (estado.configurado) CartaoDefinicoesAlertas(estado, vm)
+        Cartao("Atualizar a ponte") {
+            Text(
+                "Quando receberes uma versão nova do código da ponte (a versão 2 traz a evolução, os objetivos, o património, " +
+                    "os setores e os preços para os alertas):",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            TextoPequeno("1. Na folha: Extensões > Apps Script. Apaga o código antigo, cola o novo e guarda.")
+            TextoPequeno("2. Implementar > Gerir implementações > lápis (editar) > Versão: Nova versão > Implementar.")
+            TextoPequeno("3. O link mantém-se: não precisas de mudar nada aqui.")
+        }
         HorizontalDivider()
         val d = estado.dados
         if (d != null) {
-            TextoPequeno("Folha: ${d.meta.folha} · dados de ${Formatos.momento(d.meta.atualizadoEm)}")
+            TextoPequeno("Folha: ${d.meta.folha} · ponte v${d.versaoPonte} · dados de ${Formatos.momento(d.meta.atualizadoEm)}")
+            if (d.meta.avisos.isNotEmpty()) {
+                TextoPequeno("A ponte não conseguiu ler: " + d.meta.avisos.joinToString("; "), cor = MaterialTheme.colorScheme.error)
+            }
         }
         TextoPequeno("A chave e o link ficam só neste telemóvel. Versão ${BuildConfig.VERSION_NAME}.")
     }

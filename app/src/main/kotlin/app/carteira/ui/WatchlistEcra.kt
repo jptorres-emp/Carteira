@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,7 +44,23 @@ fun WatchlistEcra(estado: Estado, vm: CarteiraViewModel) {
         }
     }.sortedByDescending { it.margem ?: Double.NEGATIVE_INFINITY }
 
-    ListaAtualizavel(estado, vm) {
+    // Vindo de um alerta: mostra a empresa aberta e desliza até ela.
+    val lista = rememberLazyListState()
+    val destaque = estado.destaqueWatchlist
+    LaunchedEffect(destaque) {
+        if (destaque == null) return@LaunchedEffect
+        filtro = "Todas"
+        val todas = d.watchlist.sortedByDescending { it.margem ?: Double.NEGATIVE_INFINITY }
+        val k = todas.indexOfFirst { it.ticker == destaque }
+        if (k >= 0) {
+            aberto = todas[k].tabela + todas[k].ticker
+            val cabecalho = (if (estado.erro != null) 1 else 0) + 2
+            runCatching { lista.animateScrollToItem(k + cabecalho) }
+        }
+        vm.destaqueMostrado()
+    }
+
+    ListaAtualizavel(estado, vm, lista) {
         item { Filtros(opcoes, filtro) { filtro = it } }
         item {
             TextoPequeno(
@@ -73,7 +90,7 @@ private fun nomeCurto(tabela: String): String {
 
 @Composable
 private fun CartaoWatchlist(w: ItemWatchlist, aberto: Boolean, aoTocar: () -> Unit) {
-    ElevatedCard(Modifier.fillMaxWidth().clickable(onClick = aoTocar)) {
+    CartaoClicavel(aoTocar) {
         Column(
             Modifier.padding(horizontal = 14.dp, vertical = 10.dp).animateContentSize(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -110,6 +127,14 @@ private fun CartaoWatchlist(w: ItemWatchlist, aberto: Boolean, aoTocar: () -> Un
             }
             if (aberto) {
                 w.nota?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                w.testeTroca?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = if (it.startsWith("✓")) Paleta.verde else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 w.prioridade?.let { LinhaValor("Prioridade", it) }
                 LinhaValor("P/E atual / justo", "${Formatos.numero(w.pe, 1)} / ${Formatos.numero(w.peJusto, 1)}")
                 w.moat?.let { LinhaValor("Moat", it) }

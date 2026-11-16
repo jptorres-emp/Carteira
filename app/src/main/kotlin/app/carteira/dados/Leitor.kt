@@ -11,7 +11,40 @@ object Leitor {
         val raiz = objeto(texto)
         if (!raiz.optBoolean("ok", false)) throw ErroPonte(raiz.texto("erro") ?: "A ponte não devolveu dados")
         val d = raiz.optJSONObject("dados") ?: throw ErroPonte("A resposta da ponte não tem dados")
-        return lerDados(d)
+        return lerDados(d, raiz.optInt("versaoPonte", 1))
+    }
+
+    /**
+     * Preços e sinais para os alertas. Aceita a resposta leve de `acao=alertas` (ponte v2) ou a
+     * resposta completa de `acao=dados`.
+     */
+    fun lerMercado(texto: String): Mercado {
+        val raiz = objeto(texto)
+        if (!raiz.optBoolean("ok", false)) throw ErroPonte(raiz.texto("erro") ?: "A ponte respondeu com erro")
+        raiz.optJSONObject("dados")?.let { return Mercado.de(lerDados(it, raiz.optInt("versaoPonte", 1))) }
+        val a = raiz.optJSONObject("alertas") ?: throw ErroPonte("A resposta da ponte não tem preços")
+        val meta = a.optJSONObject("meta") ?: JSONObject()
+        return Mercado(
+            hoje = meta.texto("hoje") ?: "",
+            atualizadoEm = meta.texto("atualizadoEm") ?: "",
+            cotacoes = a.lista("posicoes") {
+                Cotacao(
+                    TipoCotacao.POSICAO, it.texto("ticker") ?: "?", it.texto("empresa") ?: it.texto("ticker") ?: "?",
+                    it.num("precoUsd"), "USD", it.num("varDiaPct"), it.texto("zona"), it.texto("sinal"), it.texto("camada"),
+                )
+            } + a.lista("etfs") {
+                Cotacao(
+                    TipoCotacao.ETF, it.texto("ticker") ?: "?", it.texto("nome") ?: it.texto("ticker") ?: "?",
+                    it.num("precoEur"), "EUR", it.num("varDiaPct"), null, null, "ETFs",
+                )
+            } + a.lista("watchlist") {
+                Cotacao(
+                    TipoCotacao.WATCHLIST, it.texto("ticker") ?: "?", it.texto("empresa") ?: it.texto("ticker") ?: "?",
+                    it.num("preco"), null, null, null, it.texto("sinal"), it.texto("tabela"),
+                    it.num("valorJusto"), it.num("margem"), it.texto("testeTroca"),
+                )
+            },
+        )
     }
 
     fun lerRegisto(texto: String): RespostaRegisto {
@@ -46,7 +79,7 @@ object Leitor {
         }
     }
 
-    fun lerDados(d: JSONObject): Dados {
+    fun lerDados(d: JSONObject, versaoPonte: Int = 1): Dados {
         val meta = d.optJSONObject("meta") ?: JSONObject()
         val cambio = d.optJSONObject("cambio") ?: JSONObject()
         return Dados(
@@ -54,7 +87,75 @@ object Leitor {
                 folha = meta.texto("folha") ?: "",
                 atualizadoEm = meta.texto("atualizadoEm") ?: "",
                 hoje = meta.texto("hoje") ?: "",
+                avisos = meta.textos("avisos"),
             ),
+            versaoPonte = versaoPonte,
+            evolucao = d.lista("evolucao") { o ->
+                o.num("carteiraUsd")?.let { carteira ->
+                    PontoEvolucao(
+                        mes = o.texto("mes") ?: "",
+                        carteiraUsd = carteira,
+                        investidoUsd = o.num("investidoUsd"),
+                        sp500Usd = o.num("sp500Usd"),
+                        netWorthEur = o.num("netWorthEur"),
+                        reforcoEur = o.num("reforcoEur"),
+                        metaBaseEur = o.num("metaBaseEur"),
+                    )
+                }
+            }.filterNotNull().filter { it.mes.length >= 7 },
+            objetivos = d.lista("objetivos") { o ->
+                o.num("real")?.let { real ->
+                    Objetivo(
+                        objetivo = o.texto("objetivo") ?: "",
+                        meta = o.num("meta"),
+                        real = real,
+                        metaTexto = o.texto("metaTexto"),
+                        realTexto = o.texto("realTexto"),
+                        diferencaTexto = o.texto("diferencaTexto"),
+                        estado = o.texto("estado") ?: "",
+                    )
+                }
+            }.filterNotNull(),
+            patrimonio = d.optJSONObject("patrimonio")?.let { p ->
+                Patrimonio(
+                    totalEur = p.num("totalEur"),
+                    classes = p.lista("classes") { o ->
+                        o.num("valorEur")?.let { valor ->
+                            ClassePatrimonio(
+                                classe = o.texto("classe") ?: "?",
+                                investidoEur = o.num("investidoEur"),
+                                valorEur = valor,
+                                valorizacao = o.num("valorizacao"),
+                                rendimentoAnualEur = o.num("rendimentoAnualEur"),
+                            )
+                        }
+                    }.filterNotNull(),
+                )
+            },
+            comparacoes = d.lista("comparacoes") { o ->
+                o.num("diferencaEur")?.let { dif ->
+                    Comparacao(
+                        comparacao = o.texto("comparacao") ?: "",
+                        carteiraEur = o.num("carteiraEur"),
+                        indiceEur = o.num("indiceEur"),
+                        diferencaEur = dif,
+                        leitura = o.texto("leitura"),
+                        principal = o.optBoolean("principal", false),
+                    )
+                }
+            }.filterNotNull(),
+            setores = d.lista("setores") { o ->
+                o.num("valorEur")?.let { valor ->
+                    Setor(
+                        setor = o.texto("setor") ?: "?",
+                        valorEur = valor,
+                        pesoAcoes = o.num("pesoAcoes"),
+                        numero = o.num("numero"),
+                        limite = o.num("limite"),
+                        estado = o.texto("estado"),
+                    )
+                }
+            }.filterNotNull(),
             cambio = Cambio(cambio.num("usdEur"), cambio.num("gbpUsd")),
             totaisAcoes = d.optJSONObject("totaisAcoes")?.let {
                 TotaisAcoes(
@@ -135,6 +236,7 @@ object Leitor {
                     camadaPotencial = it.texto("camadaPotencial"),
                     crescimento = it.num("crescimento"),
                     fcfYield = it.num("fcfYield"),
+                    testeTroca = it.texto("testeTroca"),
                 )
             },
             transacoes = d.lista("transacoes") {
@@ -265,6 +367,11 @@ object Leitor {
     private fun JSONObject.numeros(k: String): List<Double> {
         val a = optJSONArray(k) ?: return emptyList()
         return (0 until a.length()).map { i -> (a.opt(i) as? Number)?.toDouble() ?: 0.0 }
+    }
+
+    private fun JSONObject.textos(k: String): List<String> {
+        val a = optJSONArray(k) ?: return emptyList()
+        return (0 until a.length()).mapNotNull { i -> (a.opt(i) as? String)?.trim()?.ifEmpty { null } }
     }
 
     private fun <T> JSONObject.lista(k: String, ler: (JSONObject) -> T): List<T> {

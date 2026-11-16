@@ -7,6 +7,8 @@ androidxActivity = "1.13.0"
 androidxLifecycle = "2.11.0"
 composeBom = "2026.09.00"
 coroutines = "1.10.2"
+# Verificação dos alertas em segundo plano.
+work = "2.10.1"
 junit4 = "4.13.2"
 robolectric = "4.17"
 # org.json verdadeiro para os testes no computador (o do Android só existe no telemóvel).
@@ -31,6 +33,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 

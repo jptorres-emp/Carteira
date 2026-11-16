@@ -10,7 +10,7 @@ class FormatosTest {
     @Test
     fun dinheiroAPortuguesa() {
         assertEquals("1 234,50 €", Formatos.eur(1234.5))
-        assertEquals("48 918 €", Formatos.eur(48918.4, 0))
+        assertEquals("17 894 €", Formatos.eur(17894.4, 0))
         assertEquals("954,01 $", Formatos.usd(954.014))
         assertEquals("—", Formatos.usd(null))
         assertEquals("+1 235 €", Formatos.eurSinal(1234.5))
