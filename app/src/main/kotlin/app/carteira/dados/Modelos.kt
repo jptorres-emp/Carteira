@@ -93,6 +93,10 @@ data class Posicao(
     val avaliacao: Avaliacao?,
 ) {
     val nome: String get() = empresa ?: ticker
+
+    /** Ganho em euros sobre o custo em euros (o "Ganho %" da folha é em dólares e inclui o efeito do câmbio). */
+    val ganhoPctEur: Double?
+        get() = if (ganhoEur != null && custoEur != null && custoEur > 0) ganhoEur / custoEur else null
 }
 
 data class Avaliacao(

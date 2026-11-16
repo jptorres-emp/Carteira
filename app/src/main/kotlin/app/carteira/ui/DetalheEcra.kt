@@ -54,10 +54,16 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 LinhaValor("Preço médio", Formatos.usd(p.precoCompraUsd))
                 LinhaValor("Custo", "${Formatos.eur(p.custoEur, 0)} · ${Formatos.usd(p.custoUsd, 0)}")
                 LinhaValor("Valor", "${Formatos.eur(p.valorEur, 0)} · ${Formatos.usd(p.valorUsd, 0)}", destaque = true)
+                // Cada valor com a sua percentagem: em euros conta o câmbio, em dólares não.
                 LinhaValor(
-                    "Ganho",
-                    "${Formatos.eurSinal(p.ganhoEur)} (${Formatos.pctSinal(p.ganhoPct)})",
+                    "Ganho em euros",
+                    "${Formatos.eurSinal(p.ganhoEur)} (${Formatos.pctSinal(p.ganhoPctEur)})",
                     cor = corDoSinal(p.ganhoEur ?: p.ganhoUsd),
+                )
+                LinhaValor(
+                    "Ganho em dólares",
+                    "${Formatos.usdSinal(p.ganhoUsd)} (${Formatos.pctSinal(p.ganhoPct)})",
+                    cor = corDoSinal(p.ganhoUsd),
                 )
                 LinhaValor(
                     "Peso na carteira",

@@ -53,7 +53,8 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
 
     val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
     val linhas = d.posicoes.map {
-        Linha(it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, false)
+        // O valor da lista está em euros, por isso o ganho também.
+        Linha(it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPctEur ?: it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, false)
     } + d.etfs.map {
         Linha(
             it.ticker, it.nome ?: it.ticker, "ETFs", it.valorEur, it.ganhoPct, it.varDiaPct,
