@@ -1,3 +1,5 @@
+import java.time.Duration
+
 // O Kotlin vem integrado no AGP 9: não se aplica o plugin org.jetbrains.kotlin.android.
 plugins {
     alias(libs.plugins.android.application)
@@ -79,7 +81,7 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     // Um teste encravado não pode prender o CI durante horas.
-    timeout.set(java.time.Duration.ofMinutes(20))
+    timeout.set(Duration.ofMinutes(20))
     // O Robolectric com gráficos nativos precisa de mais memória e, no Java 17+, de acesso a
     // classes internas do JDK.
     maxHeapSize = "2g"

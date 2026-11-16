@@ -10,11 +10,16 @@ a folha calcula e escreve lá o que registas.
 App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
 ```
 
-- **Ponte** (`ponte/Codigo.gs`): aplicação Web do Google Apps Script, publicada a partir da folha.
-  `GET ?acao=dados` devolve a carteira em JSON; `POST` regista uma transação (tab Transações) ou um
-  dividendo (tab Dividendos Mensais). Todos os pedidos levam uma chave secreta.
-- **App** (Kotlin + Jetpack Compose): Resumo, Posições, Dividendos, Watchlist e Registar.
-  Guarda a última cópia dos dados para abrir sem rede.
+- **Ponte** (`ponte/Codigo.gs`, versão 2): aplicação Web do Google Apps Script, publicada a partir da folha.
+  `GET ?acao=dados` devolve a carteira em JSON (com a evolução mensal, os objetivos, o património, a
+  comparação com o S&P 500 e os setores); `GET ?acao=alertas` devolve só preços e sinais, para os
+  alertas; `POST` regista uma transação (tab Transações) ou um dividendo (tab Dividendos Mensais).
+  Todos os pedidos levam uma chave secreta. Se uma tab mudar de forma, a resposta traz o resto e um aviso.
+- **App** (Kotlin + Jetpack Compose): Início (visão geral), Posições, Dividendos, Watchlist, Registar e
+  Alertas. Guarda a última cópia dos dados para abrir sem rede.
+- **Alertas**: uma verificação em segundo plano (WorkManager) compara a folha com a verificação anterior
+  e avisa quando o **sinal** de uma posição passa a compra (o sinal já aplica as regras da folha), quando
+  uma empresa da watchlist passa a subvalorizada e quando há variações grandes de preço.
 
 ## Instalar a ponte (uma vez)
 
