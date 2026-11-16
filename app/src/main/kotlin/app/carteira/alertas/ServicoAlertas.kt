@@ -33,8 +33,9 @@ class ServicoAlertas(contexto: Context) {
     /** Alertas guardados, do mais recente para o mais antigo. */
     fun historico(): List<Alerta> = ArquivoAlertas.historicoDeJson(repo.lerHistoricoAlertas())
 
-    suspend fun processar(mercado: Mercado, agora: LocalDateTime = agoraEmLisboa()): List<Alerta> = trinco.withLock {
-        withContext(Dispatchers.IO) {
+    suspend fun processar(mercado: Mercado, agora: LocalDateTime = agoraEmLisboa()): List<Alerta> = withContext(Dispatchers.IO) {
+        // O trinco é apanhado e largado dentro do IO: quem o segura nunca fica à espera da thread principal.
+        trinco.withLock {
             val antes = ArquivoAlertas.estadoDeJson(repo.lerEstadoAlertas())
             val (novos, depois) = Detetor.comparar(antes, mercado, preferencias(), agora)
             repo.guardarEstadoAlertas(ArquivoAlertas.estadoParaJson(depois))
