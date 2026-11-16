@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Escrita só para publicar o APK no ramo "apk" (nunca no main).
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Testes e APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Testes unitários e APK
+        run: |
+          set -o pipefail
+          ./gradlew testDebugUnitTest assembleDebug --stacktrace 2>&1 | tee build.log
+
+      # Os erros ficam como anotações do job, legíveis pela API do GitHub sem descarregar registos.
+      - name: Mostrar os erros como anotações
+        if: failure()
+        run: |
+          grep -E "^e: |error:|Error: |FAILED|What went wrong|AssertionError|Exception|Reason:|[Cc]ould not|expected:<" build.log \
+            | grep -v -E "^\s*at (java|jdk|kotlin|org|androidx|sun|com)\." | head -150 > erros.txt || true
+          [ -s erros.txt ] || tail -80 build.log > erros.txt
+          split -l 15 erros.txt parte_
+          for f in parte_*; do
+            msg=$(sed -e 's/%/%25/g' -e 's/\r//g' "$f" | awk 'BEGIN{ORS="%0A"} {print}')
+            echo "::error title=Erro da compilação::${msg}"
+          done
+
+      # Os avisos do Kotlin (por ex. APIs obsoletas) também ficam visíveis.
+      - name: Mostrar os avisos do Kotlin
+        if: always()
+        run: |
+          grep -E "^w: " build.log | sed 's|^w: file://.*/carteira/carteira/||' | sort -u | head -40 > avisos.txt || true
+          [ -s avisos.txt ] || exit 0
+          split -l 8 avisos.txt aviso_
+          for f in aviso_*; do
+            msg=$(sed -e 's/%/%25/g' -e 's/\r//g' "$f" | awk 'BEGIN{ORS="%0A"} {print}')
+            echo "::warning title=Kotlin::${msg}"
+          done
+
+      # As capturas dos testes de ecrã ficam num ramo à parte, para se verem sem descarregar artefactos.
+      - name: Publicar as capturas de ecrã
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -d app/build/screenshots ] || exit 0
+          cd app/build/screenshots
+          git init -q -b screenshots
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Capturas de ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" screenshots
+
+      # O APK também vai para o ramo "apk", para se poder obter sem a página do GitHub.
+      - name: Publicar o APK
+        if: success()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          mkdir -p apk-pub
+          cp app/build/outputs/apk/debug/app-debug.apk "apk-pub/carteira-${VERSION}.apk"
+          cd apk-pub
+          git init -q -b apk
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "APK ${VERSION} de ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" apk
+
+      - name: Guardar o APK
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: carteira-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: Guardar os relatórios
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: relatorios
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          retention-days: 7

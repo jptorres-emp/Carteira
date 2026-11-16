@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Azul-escuro dos quadros da folha. -->
+    <color name="ic_launcher_background">#1F2A44</color>
+    <color name="fundo_arranque">#FFF8F9FC</color>
+</resources>

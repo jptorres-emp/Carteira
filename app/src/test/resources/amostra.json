@@ -1,0 +1,721 @@
+{
+ "ok": true,
+ "versaoPonte": 1,
+ "dados": {
+  "meta": {
+   "folha": "Carteira de teste",
+   "atualizadoEm": "2026-11-16T09:40:00+00:00",
+   "hoje": "2026-11-16"
+  },
+  "cambio": {
+   "usdEur": 0.865,
+   "gbpUsd": 1.315
+  },
+  "totaisAcoes": {
+   "custoUsd": 11169.6,
+   "valorUsd": 14509.55,
+   "ganhoUsd": 3339.95,
+   "ganhoPct": 0.299021,
+   "dividendosAnoUsd": 305.25,
+   "custoEur": 10164.336,
+   "valorEur": 12550.76075,
+   "ajusteSugeridoEur": -436.45
+  },
+  "totaisEtfs": {
+   "custoEur": 4543.0,
+   "valorEur": 5343.65,
+   "ganhoEur": 800.65,
+   "ganhoPct": 0.176238
+  },
+  "camadas": [
+   {
+    "camada": "Core A",
+    "numero": 3,
+    "numeroIdeal": 5,
+    "pesoHoje": 0.287306,
+    "pesoIdeal": 0.3,
+    "valorEur": 5141.17075,
+    "diferencaEur": -227.152475
+   },
+   {
+    "camada": "Core B",
+    "numero": 3,
+    "numeroIdeal": 6,
+    "pesoHoje": 0.228893,
+    "pesoIdeal": 0.27,
+    "valorEur": 4095.90475,
+    "diferencaEur": -735.586152
+   },
+   {
+    "camada": "Satélite",
+    "numero": 3,
+    "numeroIdeal": 8,
+    "pesoHoje": 0.174391,
+    "pesoIdeal": 0.2,
+    "valorEur": 3120.61725,
+    "diferencaEur": -458.2649
+   },
+   {
+    "camada": "Residual",
+    "numero": 1,
+    "numeroIdeal": 0,
+    "pesoHoje": 0.010789,
+    "pesoIdeal": 0.0,
+    "valorEur": 193.068,
+    "diferencaEur": 193.068
+   },
+   {
+    "camada": "ETFs",
+    "numero": 3,
+    "numeroIdeal": 3,
+    "pesoHoje": 0.298621,
+    "pesoIdeal": 0.23,
+    "valorEur": 5343.65,
+    "diferencaEur": 1227.935527
+   }
+  ],
+  "indicadores": [
+   {
+    "rotulo": "VALOR TOTAL (EUR)",
+    "valor": 17894.41075,
+    "texto": "17 894"
+   },
+   {
+    "rotulo": "VALOR TOTAL (USD)",
+    "valor": 20687.180058,
+    "texto": "20 687"
+   },
+   {
+    "rotulo": "GANHO/PERDA (%)",
+    "valor": 0.2167,
+    "texto": "21,67%"
+   },
+   {
+    "rotulo": "GANHO/PERDA (EUR)",
+    "valor": 3187.07475,
+    "texto": "3 187"
+   },
+   {
+    "rotulo": "TAXA DE CÂMBIO (USD/EUR)",
+    "valor": 0.865,
+    "texto": "0,8650"
+   },
+   {
+    "rotulo": "DIVIDENDOS/ANO — AÇÕES (EUR)",
+    "valor": 264.04125,
+    "texto": "264"
+   },
+   {
+    "rotulo": "CUSTO TOTAL (EUR)",
+    "valor": 14707.336,
+    "texto": "14 707"
+   },
+   {
+    "rotulo": "MAIOR POSIÇÃO",
+    "valor": 0.100338,
+    "texto": "10,03%"
+   },
+   {
+    "rotulo": "TOP 5 = % CARTEIRA AÇÕES",
+    "valor": 0.633149,
+    "texto": "63,31%"
+   },
+   {
+    "rotulo": "P/E PONDERADO (AÇÕES)",
+    "valor": 22.807327,
+    "texto": "23"
+   },
+   {
+    "rotulo": "YIELD DAS AÇÕES",
+    "valor": 0.021038,
+    "texto": "2,10%"
+   },
+   {
+    "rotulo": "PATRIMÓNIO TOTAL (NET WORTH)",
+    "valor": 22094.41075,
+    "texto": "22 094"
+   },
+   {
+    "rotulo": "vs S&P 500 (VUAA, c/ dividendos)",
+    "valor": -1184.6,
+    "texto": "-1 185"
+   },
+   {
+    "rotulo": "POSIÇÕES EM ALERTA",
+    "valor": 3,
+    "texto": "3"
+   },
+   {
+    "rotulo": "DIVIDENDOS RECEBIDOS (TOTAL, USD)",
+    "valor": 1007.29,
+    "texto": "1 007"
+   },
+   {
+    "rotulo": "REFORÇO MÉDIO MENSAL",
+    "valor": 500,
+    "texto": "500"
+   },
+   {
+    "rotulo": "PORTEFÓLIO TOTAL (USD)",
+    "valor": 14509.55,
+    "texto": "14 510"
+   },
+   {
+    "rotulo": "TAXA DE CÂMBIO USADA (USD/EUR)",
+    "valor": 0.865,
+    "texto": "0,8650"
+   },
+   {
+    "rotulo": "TTWROR (acumulado, desde Set/22)",
+    "valor": 0.2846,
+    "texto": "28,46%"
+   },
+   {
+    "rotulo": "TTWROR Anualizado",
+    "valor": 0.0712,
+    "texto": "7,12%"
+   },
+   {
+    "rotulo": "Volatilidade Anualizada",
+    "valor": 0.1431,
+    "texto": "14,31%"
+   },
+   {
+    "rotulo": "Sharpe Ratio",
+    "valor": 0.62,
+    "texto": "0,62"
+   },
+   {
+    "rotulo": "Máximo Drawdown",
+    "valor": -0.1874,
+    "texto": "-18,74%"
+   },
+   {
+    "rotulo": "Beta vs S&P500",
+    "valor": 0.94,
+    "texto": "0,94"
+   },
+   {
+    "rotulo": "Retorno Rolling 12 Meses",
+    "valor": 0.1123,
+    "texto": "11,23%"
+   },
+   {
+    "rotulo": "TTWROR Anualizado c/ Dividendos",
+    "valor": 0.0834,
+    "texto": "8,34%"
+   }
+  ],
+  "regras": [
+   {
+    "regra": "Nº de posições contadas",
+    "hoje": "9",
+    "limite": "8–12",
+    "estado": "✓",
+    "nota": "Residuais e saídas não contam."
+   },
+   {
+    "regra": "Maior posição (% da carteira)",
+    "hoje": "10,0%",
+    "limite": "≤ 12%",
+    "estado": "✓",
+    "nota": null
+   },
+   {
+    "regra": "Peso do Core A nas ações",
+    "hoje": "41,0%",
+    "limite": "≥ 40%",
+    "estado": "✓",
+    "nota": null
+   },
+   {
+    "regra": "Posições acima do peso máximo, dentro da banda",
+    "hoje": "1",
+    "limite": "—",
+    "estado": "ℹ dilui",
+    "nota": "Sem compras nem vendas: as próximas entradas reduzem o peso."
+   },
+   {
+    "regra": "Posições acima do corte (1,25 × peso máximo)",
+    "hoje": "1",
+    "limite": "0",
+    "estado": "⚠ aparar",
+    "nota": "Aparar até ao peso máximo."
+   }
+  ],
+  "posicoes": [
+   {
+    "ticker": "ALFA",
+    "empresa": "Alfa Software Inc",
+    "setor": "Technology",
+    "camada": "Core A",
+    "quantidade": 7,
+    "precoCompraUsd": 182.4,
+    "precoUsd": 268.15,
+    "varDiaPct": 0.0112,
+    "pe": 31.2,
+    "custoUsd": 1276.8,
+    "valorUsd": 1877.05,
+    "ganhoUsd": 600.25,
+    "ganhoPct": 0.470121,
+    "divAnualPorAcaoUsd": 1.2,
+    "yieldPct": 0.004475,
+    "yieldCustoPct": 0.006579,
+    "frequencia": "Trimestral",
+    "risco": 1.12,
+    "rating": "Buy",
+    "custoEur": 1161.888,
+    "valorEur": 1623.64825,
+    "ganhoEur": 461.76025,
+    "pesoAlvo": 0.09,
+    "pesoMaximo": 0.1,
+    "zona": "⚪ Manter",
+    "sinal": "⚪ Manter (core)",
+    "avaliacao": {
+     "moeda": "USD",
+     "precoLocal": 268.15,
+     "rendImplicita": 0.0671,
+     "hurdle": 0.1,
+     "valorIntrinseco": 250.0,
+     "potencial": -0.067686,
+     "reforcarForteAbaixo": 187.5,
+     "reforcarAbaixo": 225.0,
+     "comprarAbaixo": 212.5,
+     "reduzirAcima": 287.5,
+     "venderAcima": 350.0,
+     "temaIa": true,
+     "tese": "Exemplo: receitas recorrentes, margens estáveis e balanço sem dívida líquida.",
+     "alarme": "Exemplo: rever se o crescimento das receitas ficar abaixo de 5% dois trimestres seguidos.",
+     "fiscalidade": "EUA: retenção 15% (W-8BEN)",
+     "fonte": "Dados de exemplo (inventados)",
+     "pesoVsMaximo": "✓ dentro"
+    },
+    "pesoAcoes": 0.129367,
+    "pesoTotal": 0.090735,
+    "ajusteSugeridoEur": null
+   },
+   {
+    "ticker": "CAST",
+    "empresa": "Castelo Telecom Inc",
+    "setor": "Communication Services",
+    "camada": "Satélite",
+    "quantidade": 25,
+    "precoCompraUsd": 39.8,
+    "precoUsd": 41.25,
+    "varDiaPct": 0.0031,
+    "pe": 9.4,
+    "custoUsd": 995.0,
+    "valorUsd": 1031.25,
+    "ganhoUsd": 36.25,
+    "ganhoPct": 0.036432,
+    "divAnualPorAcaoUsd": 2.71,
+    "yieldPct": 0.065697,
+    "yieldCustoPct": 0.06809,
+    "frequencia": "Trimestral",
+    "risco": 0.62,
+    "rating": "Hold",
+    "custoEur": 905.45,
+    "valorEur": 892.03125,
+    "ganhoEur": -13.41875,
+    "pesoAlvo": 0.05,
+    "pesoMaximo": 0.06,
+    "zona": "🟢 Reforçar",
+    "sinal": "🟡 Em zona · satélite só compra em 🟢🟢",
+    "avaliacao": {
+     "moeda": "USD",
+     "precoLocal": 41.25,
+     "rendImplicita": 0.1414,
+     "hurdle": 0.1,
+     "valorIntrinseco": 52.0,
+     "potencial": 0.260606,
+     "reforcarForteAbaixo": 39.0,
+     "reforcarAbaixo": 46.8,
+     "comprarAbaixo": 44.2,
+     "reduzirAcima": 59.8,
+     "venderAcima": 72.8,
+     "temaIa": false,
+     "tese": "Exemplo: receitas recorrentes, margens estáveis e balanço sem dívida líquida.",
+     "alarme": "Exemplo: rever se o crescimento das receitas ficar abaixo de 5% dois trimestres seguidos.",
+     "fiscalidade": "EUA: retenção 15% (W-8BEN)",
+     "fonte": "Dados de exemplo (inventados)",
+     "pesoVsMaximo": "✓ dentro"
+    },
+    "pesoAcoes": 0.071074,
+    "pesoTotal": 0.04985,
+    "ajusteSugeridoEur": 2.69
+   }
+  ],
+  "etfs": [
+   {
+    "ticker": "MUND",
+    "nome": "Mundo Ações Acumulação UCITS ETF",
+    "quantidade": 25,
+    "precoCompraEur": 98.4,
+    "precoEur": 131.25,
+    "varDiaPct": -0.0011,
+    "custoEur": 2460.0,
+    "valorEur": 3281.25,
+    "ganhoEur": 821.25,
+    "ganhoPct": 0.333841,
+    "pesoEtfs": 0.614047
+   }
+  ],
+  "tickers": [
+   {
+    "ticker": "ALFA",
+    "nome": "Alfa Software Inc",
+    "classe": "Ação",
+    "quantidade": 7
+   },
+   {
+    "ticker": "CAST",
+    "nome": "Castelo Telecom Inc",
+    "classe": "Ação",
+    "quantidade": 25
+   },
+   {
+    "ticker": "MUND",
+    "nome": "Mundo Ações Acumulação UCITS ETF",
+    "classe": "ETF",
+    "quantidade": 25
+   }
+  ],
+  "dividendos": {
+   "indicadores": [
+    {
+     "rotulo": "DIVIDENDO ANUAL ESTIMADO ($)",
+     "valor": 364.65,
+     "texto": "365"
+    },
+    {
+     "rotulo": "YIELD MÉDIO DA CARTEIRA",
+     "valor": 0.023116,
+     "texto": "2,31%"
+    },
+    {
+     "rotulo": "TOTAL RECEBIDO ATÉ HOJE ($)",
+     "valor": 1007.29,
+     "texto": "1 007"
+    },
+    {
+     "rotulo": "BRUTO 2027 ($)",
+     "valor": 379.24,
+     "texto": "379"
+    },
+    {
+     "rotulo": "BRUTO 2027 (€)",
+     "valor": 328.0426,
+     "texto": "328"
+    },
+    {
+     "rotulo": "LÍQUIDO 2027 (€)",
+     "valor": 232.93,
+     "texto": "233"
+    },
+    {
+     "rotulo": "SEM AS VENDAS DO PLANO ($)",
+     "valor": 417.64,
+     "texto": "418"
+    }
+   ],
+   "previsaoAno": 2027,
+   "calendario": [
+    {
+     "mes": "Janeiro",
+     "previstoBrutoUsd": 25.46,
+     "previstoLiquidoEur": 15.64,
+     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, BORE, DUNA"
+    },
+    {
+     "mes": "Fevereiro",
+     "previstoBrutoUsd": 42.58,
+     "previstoLiquidoEur": 26.15,
+     "recebidoAnoAnteriorUsd": 39.71,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, CAST, GIRA, HORT"
+    },
+    {
+     "mes": "Março",
+     "previstoBrutoUsd": 12.16,
+     "previstoLiquidoEur": 7.47,
+     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, ALFA, ILHA, JADE"
+    },
+    {
+     "mes": "Abril",
+     "previstoBrutoUsd": 25.46,
+     "previstoLiquidoEur": 15.64,
+     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, BORE, DUNA"
+    },
+    {
+     "mes": "Maio",
+     "previstoBrutoUsd": 75.34,
+     "previstoLiquidoEur": 46.27,
+     "recebidoAnoAnteriorUsd": 70.27,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, CAST, GIRA, HORT, LON:ESTR, AMS:FARO"
+    },
+    {
+     "mes": "Junho",
+     "previstoBrutoUsd": 12.16,
+     "previstoLiquidoEur": 7.47,
+     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, ALFA, ILHA, JADE"
+    },
+    {
+     "mes": "Julho",
+     "previstoBrutoUsd": 25.46,
+     "previstoLiquidoEur": 15.64,
+     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, BORE, DUNA"
+    },
+    {
+     "mes": "Agosto",
+     "previstoBrutoUsd": 42.58,
+     "previstoLiquidoEur": 26.15,
+     "recebidoAnoAnteriorUsd": 39.71,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, CAST, GIRA, HORT"
+    },
+    {
+     "mes": "Setembro",
+     "previstoBrutoUsd": 12.16,
+     "previstoLiquidoEur": 7.47,
+     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, ALFA, ILHA, JADE"
+    },
+    {
+     "mes": "Outubro",
+     "previstoBrutoUsd": 25.46,
+     "previstoLiquidoEur": 15.64,
+     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, BORE, DUNA"
+    },
+    {
+     "mes": "Novembro",
+     "previstoBrutoUsd": 68.26,
+     "previstoLiquidoEur": 41.92,
+     "recebidoAnoAnteriorUsd": 21.23,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, CAST, GIRA, HORT, LON:ESTR"
+    },
+    {
+     "mes": "Dezembro",
+     "previstoBrutoUsd": 12.16,
+     "previstoLiquidoEur": 7.47,
+     "recebidoAnoAnteriorUsd": 0.0,
+     "recebidoAnoUsd": 0.0,
+     "quemPaga": "EMRG, ALFA, ILHA, JADE"
+    }
+   ],
+   "anos": [
+    {
+     "ano": 2022,
+     "meses": [
+      2.94,
+      4.91,
+      1.4,
+      2.94,
+      8.69,
+      1.4,
+      2.94,
+      4.91,
+      1.4,
+      2.94,
+      7.88,
+      1.4
+     ],
+     "totalUsd": 43.75
+    },
+    {
+     "ano": 2023,
+     "meses": [
+      9.3,
+      15.56,
+      4.44,
+      9.3,
+      27.53,
+      4.44,
+      9.3,
+      15.56,
+      4.44,
+      9.3,
+      24.94,
+      4.44
+     ],
+     "totalUsd": 138.55
+    },
+    {
+     "ano": 2024,
+     "meses": [
+      14.94,
+      24.97,
+      7.13,
+      14.94,
+      44.19,
+      7.13,
+      14.94,
+      24.97,
+      7.13,
+      14.94,
+      40.04,
+      7.13
+     ],
+     "totalUsd": 222.45
+    },
+    {
+     "ano": 2025,
+     "meses": [
+      20.32,
+      33.98,
+      9.7,
+      20.32,
+      60.12,
+      9.7,
+      20.32,
+      33.98,
+      9.7,
+      20.32,
+      54.48,
+      9.7
+     ],
+     "totalUsd": 302.64
+    },
+    {
+     "ano": 2026,
+     "meses": [
+      23.74,
+      39.71,
+      11.34,
+      23.74,
+      70.27,
+      11.34,
+      23.74,
+      39.71,
+      11.34,
+      23.74,
+      21.23,
+      0.0
+     ],
+     "totalUsd": 299.9
+    }
+   ],
+   "esteAno": {
+    "ano": 2026,
+    "empresas": [
+     {
+      "ticker": "CAST",
+      "empresa": "Castelo Telecom Inc",
+      "meses": [
+       0.0,
+       16.43,
+       0.0,
+       0.0,
+       16.43,
+       0.0,
+       0.0,
+       16.43,
+       0.0,
+       0.0,
+       16.43,
+       0.0
+      ],
+      "totalUsd": 65.72
+     },
+     {
+      "ticker": "EMRG",
+      "empresa": "Emergentes Obrigações UCITS ETF Dist",
+      "meses": [
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       4.8,
+       0.0
+      ],
+      "totalUsd": 52.8
+     }
+    ]
+   }
+  },
+  "watchlist": [
+   {
+    "tabela": "POTENCIAL CORE A",
+    "ticker": "KAPA",
+    "empresa": "Kapa Cloud Inc",
+    "nota": "Exemplo: negócio com receitas recorrentes e poucos concorrentes diretos.",
+    "preco": 152.3,
+    "intervalo52s": "5% do intervalo",
+    "pe": 41.0,
+    "peJusto": 35,
+    "valorJusto": 175.0,
+    "margem": 0.149048,
+    "sinal": "🟡 Perto do justo",
+    "prioridade": "Prioridade 1",
+    "moat": "Larga",
+    "camadaPotencial": "Core A",
+    "crescimento": 0.04,
+    "fcfYield": 0.02
+   },
+   {
+    "tabela": "POTENCIAL CORE A",
+    "ticker": "LUAR",
+    "empresa": "Luar Dados Inc",
+    "nota": "Exemplo: negócio com receitas recorrentes e poucos concorrentes diretos.",
+    "preco": 410.0,
+    "intervalo52s": "42% do intervalo",
+    "pe": 58.2,
+    "peJusto": 40,
+    "valorJusto": 300.0,
+    "margem": -0.268293,
+    "sinal": "🔴 Sobrevalorizada",
+    "prioridade": "Em observação",
+    "moat": "Larga",
+    "camadaPotencial": "Core A",
+    "crescimento": 0.065,
+    "fcfYield": 0.028
+   }
+  ],
+  "transacoes": [
+   {
+    "linha": 140,
+    "data": "2026-11-12",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "JADE",
+    "unidades": 1,
+    "preco": 186.2,
+    "moeda": "USD",
+    "valor": 186.2,
+    "comissao": 0.0
+   },
+   {
+    "linha": 139,
+    "data": "2026-11-03",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "MUND",
+    "unidades": 2,
+    "preco": 130.1,
+    "moeda": "EUR",
+    "valor": 260.2,
+    "comissao": 0.0
+   }
+  ]
+ }
+}

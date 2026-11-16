@@ -1,0 +1,24 @@
+# Gradle e builds
+.gradle/
+build/
+.kotlin/
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Chaves e segredos: nunca no repositório
+*.jks
+*.keystore
+# Exceção: a chave de depuração pública, para os APK de teste se atualizarem uns aos outros.
+!app/debug.keystore
+keystore.properties
+google-services.json
+
+# Python (ferramentas de referência)
+__pycache__/

@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Três barras a subir e uma seta: a carteira a crescer. Tudo dentro da zona segura (66 dp). -->
+    <path android:fillColor="#B3FFFFFF" android:pathData="M33,62h9v13h-9z" />
+    <path android:fillColor="#D9FFFFFF" android:pathData="M47,54h9v21h-9z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M61,45h9v30h-9z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFF2C14E"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M31,55L45,44L55,49L73,33" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFF2C14E"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M64,33L73,33L73,42" />
+</vector>

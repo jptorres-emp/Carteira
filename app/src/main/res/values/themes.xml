@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- O aspeto vem do Compose (TemaCarteira); este tema só cobre a janela antes do primeiro ecrã. -->
+    <style name="Theme.Carteira" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fundo_arranque</item>
+    </style>
+</resources>
