@@ -19,7 +19,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
@@ -173,28 +172,31 @@ class EcrasTest {
         abrir()
         esperar("Valor da carteira")
         foto("01-inicio")
-        // Cada cartão tem de existir (e não rebentar ao desenhar).
-        listOf(
-            "Evolução", "Últimos 12 meses", "Estou no caminho?", "Precisa de atenção", "Hoje", "Alocação",
-            "Dividendos", "Oportunidades na watchlist", "Património total", "Desempenho e risco", "Últimos movimentos",
-        ).forEach { titulo ->
-            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(titulo))
-            assentar()
-        }
+        // Um texto de cada cartão: todos têm de aparecer (e nenhum pode rebentar ao desenhar).
+        val marcas = listOf(
+            "Evolução", "Últimos 12 meses", "Estou no caminho?", "Precisa de atenção", "Sobem mais", "Alocação",
+            "Recebido em 2026", "Oportunidades na watchlist", "Património total", "Desempenho e risco", "Últimos movimentos",
+        )
+        val vistas = mutableSetOf<String>()
         // Itens: 0 principal, 1 convite dos alertas, 2 evolução, 3 indicadores, 4 objetivos, 5 atenção,
-        // 6 hoje, 7 alocação, 8 dividendos, 9 oportunidades, 10 património, 11 desempenho, 12 movimentos.
-        deslizarPara(2)
-        foto("01b-inicio-evolucao")
-        deslizarPara(4)
-        foto("01c-inicio-objetivos")
-        deslizarPara(6)
-        foto("01d-inicio-alocacao")
-        tocar("Setores")
-        foto("01e-inicio-setores")
-        deslizarPara(8)
-        foto("01f-inicio-dividendos")
-        deslizarPara(10)
-        foto("01g-inicio-patrimonio")
+        // 6 hoje, 7 alocação, 8 dividendos, 9 oportunidades, 10 património, 11 desempenho, 12 movimentos, 13 rodapé.
+        // (Desliza por índice: o deslizar "até um texto" anima e, com o relógio parado, não acaba.)
+        for (k in 0..13) {
+            deslizarPara(k)
+            marcas.filterTo(vistas) { compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty() }
+            when (k) {
+                2 -> foto("01b-inicio-evolucao")
+                4 -> foto("01c-inicio-objetivos")
+                6 -> {
+                    foto("01d-inicio-alocacao")
+                    tocar("Setores")
+                    foto("01e-inicio-setores")
+                }
+                8 -> foto("01f-inicio-dividendos")
+                10 -> foto("01g-inicio-patrimonio")
+            }
+        }
+        assertEquals(marcas.toSet(), vistas)
     }
 
     @Test

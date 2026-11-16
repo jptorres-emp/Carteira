@@ -90,7 +90,8 @@ tasks.withType<Test>().configureEach {
         "--add-opens=java.base/java.io=ALL-UNNAMED",
     )
     testLogging {
-        events("failed")
+        // Cada teste no registo do CI: se algum encravar, vê-se qual foi.
+        events("started", "passed", "skipped", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
