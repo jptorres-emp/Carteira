@@ -45,10 +45,12 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel()) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     val avisos = remember { SnackbarHostState() }
 
+    // A mensagem só é apagada depois de o aviso fechar. Apagá-la antes mudava a chave deste efeito,
+    // que era cancelado e levava o aviso consigo logo a seguir a aparecer.
     LaunchedEffect(estado.mensagem) {
         val m = estado.mensagem ?: return@LaunchedEffect
-        vm.mensagemMostrada()
         avisos.showSnackbar(m, withDismissAction = true, duration = SnackbarDuration.Long)
+        vm.mensagemMostrada(m)
     }
 
     BackHandler(enabled = estado.pilha.size > 1) { vm.voltar() }

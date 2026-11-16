@@ -86,7 +86,9 @@ class CarteiraViewModel(
         return true
     }
 
-    fun mensagemMostrada() = _estado.update { it.copy(mensagem = null) }
+    /** Só apaga se ainda for a mesma mensagem (entretanto pode ter chegado outra). */
+    fun mensagemMostrada(mensagem: String) =
+        _estado.update { if (it.mensagem == mensagem) it.copy(mensagem = null) else it }
 
     fun mostrar(mensagem: String) = _estado.update { it.copy(mensagem = mensagem) }
 

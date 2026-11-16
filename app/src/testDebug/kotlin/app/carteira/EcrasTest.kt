@@ -127,6 +127,15 @@ class EcrasTest {
         abrir(configurado = false)
         esperar("Como ligar a app à folha")
         foto("00-primeira-vez")
+        val campos = compose.onAllNodes(hasSetTextAction())
+        campos[0].performTextInput("https://script.google.com/macros/s/teste/exec")
+        campos[1].performTextInput("chave-de-teste")
+        assentar()
+        tocar("Testar e guardar")
+        // A ligação fica guardada, a app volta ao Resumo e mostra os dados da folha.
+        esperar("Ligada à folha")
+        esperar("Valor da carteira")
+        foto("00b-ligada")
     }
 
     @Test
