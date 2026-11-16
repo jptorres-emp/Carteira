@@ -526,13 +526,14 @@ private fun CartaoAlocacao(d: Dados) {
             val escala = camadas.maxOf { max(it.pesoHoje ?: 0.0, it.pesoIdeal ?: 0.0) }.coerceAtLeast(0.01) * 1.05
             camadas.forEachIndexed { k, c ->
                 val hoje = c.pesoHoje ?: 0.0
-                val ideal = c.pesoIdeal
+                // Saídas e residuais têm ideal 0 (é para irem saindo): aí não há alvo a mostrar.
+                val ideal = c.pesoIdeal?.takeIf { it > 0 }
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(8.dp).clip(CircleShape).background(Paleta.categoria(k)))
                         Spacer(Modifier.width(6.dp))
                         val n = c.numero?.toInt()?.toString() ?: "—"
-                        val nIdeal = c.numeroIdeal?.toInt()?.let { "/$it" } ?: ""
+                        val nIdeal = c.numeroIdeal?.toInt()?.takeIf { it > 0 }?.let { "/$it" } ?: ""
                         Text("${c.camada} · $n$nIdeal", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         Text(
                             Formatos.pct(hoje) + if (ideal != null) " · ideal ${Formatos.pct(ideal)}" else "",
@@ -690,7 +691,8 @@ private fun agruparClasses(classes: List<ClassePatrimonio>): List<Pair<String, D
             "ppr" in n -> "PPR"
             "p2p" in n -> "P2P"
             "cripto" in n -> "Cripto"
-            "saldo" in n || "cash" in n || "revolut" in n || "depósito" in n || "deposito" in n -> "Liquidez"
+            // Os saldos das corretoras podem ter mais do que dinheiro (a Trading Republic tem cripto e ETFs).
+            "saldo" in n || "cash" in n || "revolut" in n || "depósito" in n || "deposito" in n -> "Corretoras e liquidez"
             else -> c.classe
         }
         grupos[g] = (grupos[g] ?: 0.0) + c.valorEur

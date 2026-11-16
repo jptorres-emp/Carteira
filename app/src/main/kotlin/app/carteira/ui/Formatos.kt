@@ -67,9 +67,9 @@ object Formatos {
         if (x == null) return "—"
         val a = abs(x)
         return when {
-            a >= 1_000_000 -> numero(x / 1_000_000, 1) + " M"
+            a >= 1_000_000 -> numeroLivre(x / 1_000_000, 1) + " M"
             a >= 10_000 -> numero(x / 1_000, 0) + " k"
-            a >= 1_000 -> numero(x / 1_000, 1) + " k"
+            a >= 1_000 -> numeroLivre(x / 1_000, 1) + " k"
             else -> numero(x, 0)
         }
     }

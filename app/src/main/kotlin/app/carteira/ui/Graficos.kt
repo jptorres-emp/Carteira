@@ -105,7 +105,7 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
     val corCarteira = MaterialTheme.colorScheme.primary
     val corGrelha = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
     val corFundo = corCartao()
-    val maximo = visiveis.maxOf { maxOf(it.carteiraUsd, it.sp500Usd ?: 0.0, it.investidoUsd ?: 0.0) } * 1.08
+    val maximo = escalaRedonda(visiveis.maxOf { maxOf(it.carteiraUsd, it.sp500Usd ?: 0.0, it.investidoUsd ?: 0.0) } * 1.04)
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -212,6 +212,15 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
         }
         TextoPequeno("Em dólares, como na tab Evolução Patrimonial. O último mês usa os valores de agora.")
     }
+}
+
+/** Topo do eixo com três intervalos "redondos" (0, 8 k, 16 k, 24 k em vez de 0, 7,9 k, 15,8 k...). */
+private fun escalaRedonda(maximo: Double): Double {
+    if (maximo <= 0) return 1.0
+    val bruto = maximo / 3
+    val potencia = Math.pow(10.0, Math.floor(Math.log10(bruto)))
+    val passo = listOf(1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0).first { it * potencia >= bruto } * potencia
+    return passo * 3
 }
 
 private fun indiceEm(px: Float, largura: Float, n: Int): Int =
