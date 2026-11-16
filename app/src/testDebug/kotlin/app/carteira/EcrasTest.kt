@@ -26,6 +26,7 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import app.carteira.alertas.VerificadorAlertas
 import app.carteira.dados.FonteDados
+import app.carteira.dados.Ponte
 import app.carteira.ui.AppCarteira
 import app.carteira.ui.CarteiraViewModel
 import app.carteira.ui.TemaCarteira
@@ -78,7 +79,7 @@ class EcrasTest {
 
     @After
     fun repor() {
-        VerificadorAlertas.criarFonte = { url, chave -> app.carteira.dados.Ponte(url, chave) }
+        VerificadorAlertas.criarFonte = { url, chave -> Ponte(url, chave) }
     }
 
     private fun abrir(configurado: Boolean = true): FonteFalsa {

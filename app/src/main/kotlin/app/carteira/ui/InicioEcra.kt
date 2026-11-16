@@ -610,7 +610,7 @@ private fun CartaoDividendosResumo(d: Dados, vm: CarteiraViewModel) {
             Column(Modifier.weight(1f)) {
                 TextoPequeno("Recebido em ${anoAtual ?: ""}")
                 Text(Formatos.usd(esteAno, 0), style = MaterialTheme.typography.titleMedium.numeros(), fontWeight = FontWeight.SemiBold)
-                if (anoPassado != null && anoAtual != null) TextoPequeno("${anoAtual - 1}: ${Formatos.usd(anoPassado, 0)}")
+                if (anoAtual != null && anoPassado != null) TextoPequeno("${anoAtual - 1}: ${Formatos.usd(anoPassado, 0)}")
             }
             if (ano != null && (bruto != null || liquido != null)) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
@@ -635,7 +635,7 @@ private fun CartaoDividendosResumo(d: Dados, vm: CarteiraViewModel) {
                 Legenda(Paleta.dourado, "Recebido em ${(ano ?: 1) - 1}")
             }
             val quem = mes?.let { div.calendario.getOrNull(it)?.quemPaga }
-            if (!quem.isNullOrBlank() && mes != null) TextoPequeno("Costumam pagar em ${div.calendario[mes].mes.lowercase()}: $quem")
+            if (mes != null && !quem.isNullOrBlank()) TextoPequeno("Costumam pagar em ${div.calendario[mes].mes.lowercase()}: $quem")
         }
     }
 }
