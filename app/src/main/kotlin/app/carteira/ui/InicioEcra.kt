@@ -54,7 +54,9 @@ import kotlin.math.max
 fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
     val d = estado.dados ?: return SemDados(estado, vm)
     val atencao = itensAtencao(d)
-    val oportunidades = d.watchlist.filter { Sinais.compra(it.sinal) }.sortedByDescending { it.margem ?: 0.0 }
+    // Primeiro as que passam o teste de troca da folha (pelo ganho por ano); depois pela margem.
+    val oportunidades = d.watchlist.filter { Sinais.compra(it.sinal) }
+        .sortedWith(compareByDescending<ItemWatchlist> { ganhoDaTroca(it) ?: -1.0 }.thenByDescending { it.margem ?: 0.0 })
     val recentes = estado.alertas.filter { recente(it.quando, 3) }.take(3)
 
     ListaAtualizavel(estado, vm) {
@@ -84,6 +86,13 @@ fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
             )
         }
     }
+}
+
+/** "✓ Avaliar troca com DUNA: +15,3%/ano" → 15,3. Só conta se o teste passou (✓). */
+private fun ganhoDaTroca(w: ItemWatchlist): Double? {
+    val t = w.testeTroca ?: return null
+    if (!t.startsWith("✓")) return null
+    return Regex("""\+(\d+(?:,\d+)?)%/ano""").find(t)?.groupValues?.get(1)?.replace(',', '.')?.toDoubleOrNull()
 }
 
 private fun recente(quando: String, dias: Long): Boolean {
@@ -646,7 +655,10 @@ private fun CartaoDividendosResumo(d: Dados, vm: CarteiraViewModel) {
 @Composable
 private fun CartaoOportunidades(lista: List<ItemWatchlist>, vm: CarteiraViewModel) {
     Cartao("Oportunidades na watchlist", acao = "Ver todas", aoAcao = { vm.irPara(Ecra.Watchlist) }) {
-        TextoPequeno("${lista.size} empresas abaixo do valor justo da folha (🟢 Subvalorizada).")
+        TextoPequeno(
+            "${lista.size} abaixo do valor justo (🟢 Subvalorizada). Primeiro as que passam o teste de troca da folha, " +
+                "pelo ganho por ano.",
+        )
         lista.take(3).forEachIndexed { k, w ->
             if (k > 0) HorizontalDivider(color = corBordaCartao())
             Row(
