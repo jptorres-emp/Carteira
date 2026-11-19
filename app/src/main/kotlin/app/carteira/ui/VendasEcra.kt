@@ -200,11 +200,11 @@ private fun CartaoFechada(r: Rentabilidade) {
                     }
                 }
                 r.nome?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                TextoPequeno("${Formatos.data(r.primeiraCompra)} a ${Formatos.data(r.ultimaVenda)}")
                 TextoPequeno(
-                    "${Formatos.data(r.primeiraCompra)} a ${Formatos.data(r.ultimaVenda)} · " +
-                        "${plural(r.compras, "compra", "compras")}, ${plural(r.vendas, "venda", "vendas")}",
+                    "${plural(r.compras, "compra", "compras")}, ${plural(r.vendas, "venda", "vendas")}" +
+                        if (r.dividendosEur >= 0.5) " · ${Formatos.eur(r.dividendosEur, 0)} de dividendos" else "",
                 )
-                if (r.dividendosEur >= 0.5) TextoPequeno("com ${Formatos.eur(r.dividendosEur, 0)} de dividendos")
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
