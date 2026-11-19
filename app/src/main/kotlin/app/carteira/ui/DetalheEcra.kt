@@ -248,17 +248,27 @@ private fun CartaoGatilhos(g: Gatilhos) {
             )
         }
         g.reduzir?.let {
-            LinhaValor("Reduzir acima de", nivelComDistancia(it, g), cor = if (g.acimaDeReduzir) Paleta.ambar else Color.Unspecified)
+            LinhaValor(
+                "Reduzir acima de",
+                nivelComDistancia(it, g, if (g.acimaDeReduzir) "já passou" else null),
+                cor = if (g.acimaDeReduzir) Paleta.ambar else Color.Unspecified,
+            )
         }
-        g.reforcar?.let { LinhaValor("Reforçar abaixo de", nivelComDistancia(it, g)) }
-        g.reforcarForte?.let { LinhaValor("Reforçar forte abaixo de", nivelComDistancia(it, g)) }
+        g.reforcar?.let { LinhaValor("Reforçar abaixo de", nivelComDistancia(it, g, if (preco != null && preco <= it) "já lá está" else null)) }
+        g.reforcarForte?.let {
+            LinhaValor("Reforçar forte abaixo de", nivelComDistancia(it, g, if (preco != null && preco <= it) "já lá está" else null))
+        }
         TextoPequeno(g.notaCompra)
         TextoPequeno(g.notaVenda)
     }
 }
 
-private fun nivelComDistancia(nivel: Double, g: Gatilhos): String =
-    Formatos.preco(nivel, g.moeda) + (g.distancia(nivel)?.let { " (${Formatos.pctSinal(it, 0)})" } ?: "")
+/** "120,75 $ (+6%)", ou "120,75 $ · já passou" quando o preço de hoje já lá chegou. */
+private fun nivelComDistancia(nivel: Double, g: Gatilhos, atingido: String?): String =
+    Formatos.preco(nivel, g.moeda) + when {
+        atingido != null -> " · $atingido"
+        else -> g.distancia(nivel)?.let { " (${Formatos.pctSinal(it, 0)})" } ?: ""
+    }
 
 /** Um preço de decisão em destaque; com contorno quando o preço de hoje já lá chegou. */
 @Composable
