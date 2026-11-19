@@ -27,7 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.carteira.dados.Dados
 import app.carteira.dados.Gatilhos
+import app.carteira.dados.Historico
 import app.carteira.dados.Sinais
 
 /** Linha da lista: uma ação ou um ETF, já com os números em euros. */
@@ -45,9 +47,11 @@ private data class Linha(
     val etf: Boolean,
     /** Os preços de comprar e vender pela camada (só nas ações com avaliação). */
     val gatilhos: Gatilhos? = null,
+    /** Rentabilidade total em euros: valor de hoje + vendas + dividendos − compras (ponte v4). */
+    val total: Double? = null,
 )
 
-private val ordens = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo")
+private val ordens = listOf("Valor", "Ganho", "Total", "Hoje", "Peso vs alvo")
 
 @Composable
 fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
@@ -57,16 +61,19 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     var ordem by rememberSaveable { mutableStateOf("Valor") }
 
     val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
+    val historico = d.historico
     val linhas = d.posicoes.map {
         // O valor da lista está em euros, por isso o ganho também.
         Linha(
             it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPctEur ?: it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, it.sinal, false,
             gatilhos = Gatilhos.de(it.camada, it.avaliacao),
+            total = historico.de(it.ticker)?.pctEur,
         )
     } + d.etfs.map {
         Linha(
             it.ticker, it.nome ?: it.ticker, "ETFs", it.valorEur, it.ganhoPct, it.varDiaPct,
             if (totalCarteira > 0 && it.valorEur != null) it.valorEur / totalCarteira else null, null, null, true,
+            total = historico.de(it.ticker)?.pctEur,
         )
     }
     val alvos = d.posicoes.associate { it.ticker to it.pesoAlvo }
@@ -89,6 +96,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     }.let { lista ->
         when (ordem) {
             "Ganho" -> lista.sortedByDescending { it.ganhoPct ?: Double.NEGATIVE_INFINITY }
+            "Total" -> lista.sortedByDescending { it.total ?: Double.NEGATIVE_INFINITY }
             "Hoje" -> lista.sortedByDescending { it.varDia ?: Double.NEGATIVE_INFINITY }
             "Peso vs alvo" -> lista.sortedByDescending { l ->
                 val alvo = alvos[l.ticker]
@@ -99,6 +107,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     }
 
     ListaAtualizavel(estado, vm) {
+        item { EntradaVendas(d, historico) { vm.irPara(Ecra.Vendas) } }
         item {
             OutlinedTextField(
                 value = procura,
@@ -162,6 +171,14 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                     color = corDoSinal(l.ganhoPct),
                     style = MaterialTheme.typography.bodySmall,
                 )
+                // Com o que já vendeste e os dividendos (o detalhe mostra as contas).
+                l.total?.let {
+                    Text(
+                        "total ${Formatos.pctSinal(it)}",
+                        color = corDoSinal(it),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
                 Text(
                     "hoje ${Formatos.pctSinal(l.varDia, 2)}",
                     color = corDoSinal(l.varDia),
@@ -170,6 +187,29 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                 val peso = "peso ${Formatos.pct(l.peso)}" + if (alvo != null && alvo > 0) " / ${Formatos.pct(alvo)}" else ""
                 Text(peso, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.End)
             }
+        }
+    }
+}
+
+/** Atalho para as vendas: quantas há e as mais-valias deste ano. */
+@Composable
+private fun EntradaVendas(d: Dados, h: Historico, aoTocar: () -> Unit) {
+    CartaoClicavel(aoTocar) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Vendas e posições fechadas", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                val ano = d.meta.hoje.take(4).toIntOrNull()
+                val esteAno = h.anos.firstOrNull { it.ano == ano }
+                TextoPequeno(
+                    when {
+                        !h.temDados -> "Precisa da ponte da folha na versão 4"
+                        esteAno != null -> "${h.vendas.size} vendas · mais-valias em ${esteAno.ano}: ${Formatos.eurSinal(esteAno.maisValiasEur)}"
+                        else -> "${h.vendas.size} vendas · ${h.fechadas.size} posições fechadas"
+                    },
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Ver", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
 }

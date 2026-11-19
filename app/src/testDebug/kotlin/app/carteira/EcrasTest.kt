@@ -56,7 +56,7 @@ import org.robolectric.annotation.GraphicsMode
 private class FonteFalsa(var dados: String) : FonteDados {
     var ultimoPedido: JSONObject? = null
     override suspend fun dados(): String = dados
-    override suspend fun ping(): String = """{"ok":true,"versaoPonte":3,"folha":"Carteira de teste"}"""
+    override suspend fun ping(): String = """{"ok":true,"versaoPonte":4,"folha":"Carteira de teste"}"""
     override suspend fun enviar(pedido: JSONObject): String {
         ultimoPedido = pedido
         return """{"ok":true,"mensagem":"Compra registada na linha 141 de Transações: 2 ALFA a 300,50 $.","aviso":null}"""
@@ -418,6 +418,47 @@ class EcrasTest {
         tocarDescricao("Mostrar valores")
         assertTrue(!Formatos.privado)
         esperar("ALFA")
+    }
+
+    /** Vendas (ponte v4): a rentabilidade total na lista e no detalhe, e o ecrã das vendas e posições fechadas. */
+    @Test
+    fun vendasERentabilidade() {
+        abrir()
+        esperar("Valor da carteira")
+        tocar("Posições")
+        esperar("Vendas e posições fechadas")
+        // Cada posição mostra a rentabilidade total (com as vendas e os dividendos).
+        esperar("total +")
+        foto("07-posicoes-total")
+        tocar("ALFA")
+        esperar("Quando comprar e vender")
+        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 rentabilidade total.
+        deslizarPara(4)
+        esperar("Rentabilidade total")
+        esperar("Recebeste nas vendas")
+        esperar("Mais-valias das vendas")
+        foto("07b-posicao-rentabilidade")
+        tocarDescricao("Voltar")
+        tocar("Vendas e posições fechadas")
+        esperar("Mais-valias em 2026")
+        foto("07c-vendas")
+        tocar("2025")
+        esperar("MARE")
+        foto("07d-vendas-2025")
+        tocar("Todas")
+        val marcas = listOf("Mais-valias por ano", "Posições fechadas", "ZETA", "MARE", "NORA", "Vendeste bem", "Devias ter mantido")
+        val vistas = mutableSetOf<String>()
+        for (k in 0 until 30) {
+            try {
+                compose.onNode(hasScrollToIndexAction()).performScrollToIndex(k)
+            } catch (e: IllegalArgumentException) {
+                break // passou do último item
+            }
+            assentar()
+            marcas.filterTo(vistas) { compose.onAllNodes(hasText(it, substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            foto("07e-vendas-${k.toString().padStart(2, '0')}")
+        }
+        assertEquals(marcas.toSet(), vistas)
     }
 
     /** Tema escuro (a app segue o do telemóvel): os ecrãs principais, para rever cores e contraste. */

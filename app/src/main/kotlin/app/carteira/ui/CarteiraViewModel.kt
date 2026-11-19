@@ -29,6 +29,9 @@ sealed interface Ecra {
     data object Watchlist : Ecra
     data class Posicao(val ticker: String) : Ecra
     data class Etf(val ticker: String) : Ecra
+
+    /** Vendas, mais-valias por ano e posições fechadas (ponte v4). */
+    data object Vendas : Ecra
     data class Registar(val modo: ModoRegisto, val ticker: String? = null, val tipo: String? = null) : Ecra
 
     /** Gravar o património de um mês na folha (mes: "aaaa-mm"; null = o que a app sugere). */

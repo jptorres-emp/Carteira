@@ -28,7 +28,16 @@ data class Dados(
     val patrimonio: Patrimonio? = null,
     val comparacoes: List<Comparacao> = emptyList(),
     val setores: List<Setor> = emptyList(),
+    /** Todas as compras e vendas da tab Transações (ponte v4). */
+    val movimentos: List<Movimento> = emptyList(),
+    /** Dividendos brutos recebidos por empresa (ponte v4). */
+    val dividendosPorEmpresa: DividendosPorEmpresa? = null,
+    /** A tab Vendas: cada venda comparada com o que valeria hoje (ponte v4). */
+    val analiseVendas: List<AnaliseVenda> = emptyList(),
 ) {
+    /** Rentabilidade total de cada ação e mais-valias das vendas, calculadas uma vez por leitura. */
+    val historico: Historico by lazy { Historico.de(this) }
+
     /** Indicador do Dashboard pelo rótulo exato da folha. */
     fun indicador(rotulo: String): Indicador? = indicadores.firstOrNull { it.rotulo == rotulo }
 
@@ -291,6 +300,50 @@ data class Transacao(
     val moeda: String?,
     val valor: Double?,
     val comissao: Double?,
+)
+
+/**
+ * Uma compra ou venda da tab Transações (ponte v4). valor: na moeda da linha (dólares nas ações, euros
+ * nos ETF). valorEur: a coluna Custo em EUR, com o câmbio desse dia. cambio: euros por dólar.
+ */
+data class Movimento(
+    val linha: Int,
+    val data: String,
+    val tipo: String,
+    val classe: String?,
+    val ticker: String,
+    val unidades: Double,
+    val preco: Double?,
+    val moeda: String?,
+    val valor: Double,
+    val cambio: Double?,
+    val valorEur: Double,
+    val comissaoEur: Double,
+) {
+    val compra: Boolean get() = tipo == "Compra"
+    val etf: Boolean get() = classe == "ETF"
+}
+
+/** Dividendos brutos por empresa (Dividendos Anuais). periodos: "2023 (Mai-Dez)", "2024", ... */
+data class DividendosPorEmpresa(val periodos: List<String>, val empresas: List<DividendosDaEmpresa>)
+
+data class DividendosDaEmpresa(val ticker: String, val totalUsd: Double, val porPeriodo: List<Double>)
+
+/** Uma linha da tab Vendas: a venda comparada com o que as ações valeriam hoje (na moeda da linha). */
+data class AnaliseVenda(
+    val data: String?,
+    val ticker: String,
+    val empresa: String?,
+    val unidades: Double?,
+    val precoVenda: Double?,
+    val valorRecebido: Double?,
+    val precoAtual: Double?,
+    val valorSeMantivesse: Double?,
+    val dividendosPerdidos: Double?,
+    val diferenca: Double?,
+    val diferencaPct: Double?,
+    /** "🟢 Vendeste bem", "🔴 Devias ter mantido" ou "sem dados". */
+    val veredito: String?,
 )
 
 /** Resposta da ponte a um registo (compra, venda ou dividendo). */

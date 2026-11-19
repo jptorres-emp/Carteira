@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.carteira.dados.Gatilhos
 import app.carteira.dados.Posicao
+import app.carteira.dados.Rentabilidade
 
 @Composable
 fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
@@ -94,6 +95,7 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 }
             }
         }
+        d.historico.de(p.ticker)?.let { r -> item { CartaoRentabilidade(r, d.historico.dividendosDesde) } }
         if (a != null) {
             item {
                 Cartao("Avaliação (${moedaLocal})") {
@@ -214,8 +216,52 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 LinhaValor("Peso nos ETF", Formatos.pct(e.pesoEtfs))
             }
         }
+        d.historico.de(e.ticker)?.let { r -> item { CartaoRentabilidade(r, d.historico.dividendosDesde) } }
     }
 }
+
+// ───────────────────────────── Rentabilidade total ─────────────────────────────
+
+/**
+ * Tudo o que a posição deu desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os
+ * dividendos, contra tudo o que pagaste. Também serve para as posições já fechadas (ecrã Vendas).
+ */
+@Composable
+fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
+    Cartao("Rentabilidade total") {
+        LinhaValor("Pagaste nas compras", "${Formatos.eur(r.compradoEur, 0)} · ${plural(r.compras, "compra", "compras")}")
+        if (r.vendas > 0) {
+            LinhaValor("Recebeste nas vendas", "${Formatos.eur(r.vendidoEur, 0)} · ${plural(r.vendas, "venda", "vendas")}")
+        }
+        if (r.dividendosEur >= 0.5) LinhaValor("Dividendos (brutos)", Formatos.eur(r.dividendosEur, 0))
+        if (r.aberta) LinhaValor("Vale hoje", Formatos.eur(r.valorEur, 0))
+        LinhaValor(
+            "Lucro total",
+            "${Formatos.eurSinal(r.lucroEur)} (${Formatos.pctSinal(r.pctEur)})",
+            cor = corDoSinal(r.lucroEur),
+            destaque = true,
+        )
+        if (!r.etf) {
+            LinhaValor(
+                "Em dólares (sem o câmbio)",
+                "${Formatos.usdSinal(r.lucroMoeda)} (${Formatos.pctSinal(r.pctMoeda)})",
+                cor = corDoSinal(r.lucroMoeda),
+            )
+        }
+        r.maisValiasEur?.let { LinhaValor("Mais-valias das vendas", Formatos.eurSinal(it), cor = corDoSinal(it)) }
+        TextoPequeno(
+            "Desde a primeira compra (${Formatos.data(r.primeiraCompra)}): " +
+                (if (r.aberta) "o que vale hoje + " else "") +
+                "o que recebeste nas vendas + dividendos − o que pagaste, com as comissões. " +
+                "Em euros, cada compra e venda conta com o câmbio do seu dia." +
+                (if (dividendosDesde != null) " Dividendos desde $dividendosDesde, ao câmbio de hoje." else "") +
+                (if (r.maisValiasEur != null) " Mais-valias pelo FIFO, como no IRS." else ""),
+        )
+    }
+}
+
+/** "1 compra", "3 compras". */
+internal fun plural(n: Int, um: String, varios: String): String = if (n == 1) "1 $um" else "$n $varios"
 
 // ───────────────────────────── Quando comprar e vender ─────────────────────────────
 

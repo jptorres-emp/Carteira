@@ -84,7 +84,7 @@ class LeitorTest {
     @Test
     fun leAsSeccoesDaPonteV2() {
         val d = Leitor.lerResposta(amostra())
-        assertEquals(3, d.versaoPonte)
+        assertEquals(4, d.versaoPonte)
         assertTrue(d.meta.avisos.isEmpty())
         assertEquals("2022-09", d.evolucao.first().mes)
         assertEquals("2026-11", d.evolucao.last().mes)
@@ -119,6 +119,43 @@ class LeitorTest {
         assertEquals(d.evolucao[10].netWorthEur!!, d.evolucao[10].netWorthFolhaEur!!, 1e-9)
         assertNull(d.evolucao.last().netWorthFolhaEur)
         assertNotNull(d.evolucao.last().netWorthEur)
+    }
+
+    @Test
+    fun leAsVendasDaPonteV4() {
+        val d = Leitor.lerResposta(amostra())
+        assertEquals(11, d.movimentos.size)
+        val m = d.movimentos.first()
+        assertEquals("ALFA", m.ticker)
+        assertEquals("Compra", m.tipo)
+        assertEquals(6.0, m.unidades, 1e-9)
+        assertEquals(0.93, m.cambio!!, 1e-9)
+        assertEquals(669.6, m.valorEur, 1e-9)
+        assertEquals(4, d.dividendosPorEmpresa!!.periodos.size)
+        assertEquals(2, d.analiseVendas.size)
+        val h = d.historico
+        assertTrue(h.temDados)
+        assertEquals(listOf("ZETA"), h.fechadas.map { it.ticker })
+        assertEquals("mai/2023", h.dividendosDesde)
+        assertTrue(h.vendas.all { it.analise != null && it.custoEur != null })
+        assertEquals("Alfa Software Inc", h.de("ALFA")!!.nome)
+        assertTrue(h.de("ALFA")!!.aberta)
+    }
+
+    @Test
+    fun ponteV3NaoTemVendas() {
+        val v3 = org.json.JSONObject(amostra()).apply {
+            put("versaoPonte", 3)
+            getJSONObject("dados").apply {
+                remove("movimentos")
+                remove("dividendosPorEmpresa")
+                remove("analiseVendas")
+            }
+        }
+        val d = Leitor.lerResposta(v3.toString())
+        assertTrue(d.movimentos.isEmpty())
+        assertNull(d.dividendosPorEmpresa)
+        assertFalse(d.historico.temDados)
     }
 
     @Test

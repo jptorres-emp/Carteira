@@ -108,8 +108,8 @@ fun DefinicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         }
         Cartao("Atualizar a ponte") {
             Text(
-                "Quando receberes uma versão nova do código da ponte (a versão 3 traz o plano do património até 2030 e " +
-                    "deixa gravar o património do mês, no separador Evolução):",
+                "Quando receberes uma versão nova do código da ponte (a versão 4 traz as vendas, as mais-valias e a " +
+                    "rentabilidade total de cada ação, nas Posições):",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextoPequeno("1. Na folha: Extensões > Apps Script. Apaga o código antigo, cola o novo e guarda.")

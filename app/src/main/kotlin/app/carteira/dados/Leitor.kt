@@ -273,6 +273,53 @@ object Leitor {
                     comissao = it.num("comissao"),
                 )
             },
+            movimentos = d.lista("movimentos", ::lerMovimento).filterNotNull(),
+            dividendosPorEmpresa = d.optJSONObject("dividendosPorEmpresa")?.let { o ->
+                DividendosPorEmpresa(
+                    periodos = o.textos("periodos"),
+                    empresas = o.lista("empresas") { e ->
+                        e.texto("ticker")?.let { t -> DividendosDaEmpresa(t, e.num("totalUsd") ?: 0.0, e.numeros("porPeriodo")) }
+                    }.filterNotNull(),
+                )
+            },
+            analiseVendas = d.lista("analiseVendas") { a ->
+                a.texto("ticker")?.let { t ->
+                    AnaliseVenda(
+                        data = a.texto("data"),
+                        ticker = t,
+                        empresa = a.texto("empresa"),
+                        unidades = a.num("unidades"),
+                        precoVenda = a.num("precoVenda"),
+                        valorRecebido = a.num("valorRecebido"),
+                        precoAtual = a.num("precoAtual"),
+                        valorSeMantivesse = a.num("valorSeMantivesse"),
+                        dividendosPerdidos = a.num("dividendosPerdidos"),
+                        diferenca = a.num("diferenca"),
+                        diferencaPct = a.num("diferencaPct"),
+                        veredito = a.texto("veredito"),
+                    )
+                }
+            }.filterNotNull(),
+        )
+    }
+
+    /** Uma compra ou venda; fica de fora se faltar o essencial (data, ticker, unidades ou valores). */
+    private fun lerMovimento(o: JSONObject): Movimento? {
+        val tipo = o.texto("tipo")?.takeIf { it == "Compra" || it == "Venda" } ?: return null
+        val unidades = o.num("unidades")?.takeIf { it > 0 } ?: return null
+        return Movimento(
+            linha = o.num("linha")?.toInt() ?: 0,
+            data = o.texto("data") ?: return null,
+            tipo = tipo,
+            classe = o.texto("classe"),
+            ticker = o.texto("ticker") ?: return null,
+            unidades = unidades,
+            preco = o.num("preco"),
+            moeda = o.texto("moeda"),
+            valor = o.num("valor") ?: return null,
+            cambio = o.num("cambio"),
+            valorEur = o.num("valorEur") ?: return null,
+            comissaoEur = o.num("comissaoEur") ?: 0.0,
         )
     }
 

@@ -16,7 +16,8 @@
  * A chave impede que alguém com o URL leia a carteira. Se a mudares aqui, muda-a também na app.
  */
 const CHAVE = '__CHAVE__';
-const VERSAO_PONTE = 3;
+// v4: todas as compras e vendas, os dividendos por empresa e a tab Vendas (vendas e rentabilidade na app).
+const VERSAO_PONTE = 4;
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto',
   'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -185,6 +186,10 @@ function lerTudo_() {
   const patrimonio = opcional_(avisos, 'Investimentos', lerPatrimonio_, null);
   const comparacoes = opcional_(avisos, 'Validação S&P 500', lerComparacoes_, []);
   const setores = opcional_(avisos, 'Distribuição', lerSetores_, []);
+  // Ponte v4: a app calcula a rentabilidade de cada ação e as mais-valias de cada venda.
+  const movimentos = opcional_(avisos, 'Transações (compras e vendas)', lerMovimentos_, []);
+  const dividendosPorEmpresa = opcional_(avisos, 'Dividendos Anuais (por empresa)', lerDividendosPorEmpresa_, null);
+  const analiseVendas = opcional_(avisos, 'Vendas', lerAnaliseVendas_, []);
   return {
     meta: {
       folha: ss.getName(),
@@ -209,7 +214,10 @@ function lerTudo_() {
     tickers: cart.tickers,
     dividendos: lerDividendos_(),
     watchlist: lerWatchlist_(),
-    transacoes: lerTransacoes_(15)
+    transacoes: lerTransacoes_(15),
+    movimentos: movimentos,
+    dividendosPorEmpresa: dividendosPorEmpresa,
+    analiseVendas: analiseVendas
   };
 }
 
@@ -798,6 +806,95 @@ function lerTransacoes_(quantas) {
       moeda: campo_(l, b.mapa, 'Moeda'),
       valor: num_(campo_(l, b.mapa, 'Valor Total')),
       comissao: num_(campo_(l, b.mapa, 'Comissão'))
+    });
+  }
+  return out;
+}
+
+/**
+ * Todas as compras e vendas da tab Transações, pela ordem da folha (ponte v4). "valor" vem na moeda da
+ * linha (dólares nas ações, euros nos ETF); "valorEur" é a coluna Custo em EUR (com o câmbio desse dia).
+ */
+function lerMovimentos_() {
+  const b = blocoTransacoes_(folha_('Transações'));
+  const out = [];
+  for (let r = b.cab; r < b.fim; r++) {
+    const l = b.dados[r];
+    const tipo = campo_(l, b.mapa, 'Tipo');
+    const ticker = campo_(l, b.mapa, 'Ticker');
+    if (!ticker || (tipo !== 'Compra' && tipo !== 'Venda')) continue;
+    out.push({
+      linha: r + 1,
+      data: campo_(l, b.mapa, 'Data'),
+      tipo: tipo,
+      classe: campo_(l, b.mapa, 'Classe'),
+      ticker: String(ticker),
+      unidades: num_(campo_(l, b.mapa, 'Nº Unidades')),
+      preco: num_(campo_(l, b.mapa, 'Preço Unitário')),
+      moeda: campo_(l, b.mapa, 'Moeda'),
+      valor: num_(campo_(l, b.mapa, 'Valor Total')),
+      cambio: num_(campo_(l, b.mapa, 'Câmbio USD/EUR')),
+      valorEur: num_(campo_(l, b.mapa, 'Custo em EUR')),
+      comissaoEur: num_(campo_(l, b.mapa, 'Comissão'))
+    });
+  }
+  return out;
+}
+
+/**
+ * Dividendos recebidos por empresa, em dólares brutos (tabela da direita de Dividendos Anuais, ponte v4).
+ * "periodos" são os cabeçalhos das colunas de cada ano, como "2023 (Mai-Dez)".
+ */
+function lerDividendosPorEmpresa_() {
+  const d = grelha_(folha_('Dividendos Anuais'), 150).valores;
+  const h = acharLinha_(d, ['Ticker', 'Total']);
+  if (h < 0) throw new Error('Não encontrei a tabela de dividendos por empresa');
+  const m = indice_(d[h]);
+  const cTicker = m.Ticker;
+  const cTotal = m.Total;
+  const colunas = [];
+  for (let c = cTicker + 1; c < cTotal; c++) colunas.push(c);
+  const empresas = [];
+  for (let r = h + 1; r < d.length; r++) {
+    const ticker = norm_(d[r][cTicker]);
+    const total = num_(d[r][cTotal]);
+    if (!ticker || total === null) break; // acaba na linha vazia ou na nota de baixo
+    empresas.push({
+      ticker: ticker,
+      totalUsd: total,
+      porPeriodo: colunas.map(function (c) { return num_(d[r][c]) || 0; })
+    });
+  }
+  return { periodos: colunas.map(function (c) { return norm_(d[h][c]); }), empresas: empresas };
+}
+
+/** A tab Vendas: cada venda comparada com o preço de hoje ("Vendeste bem" / "Devias ter mantido"), ponte v4. */
+function lerAnaliseVendas_() {
+  const d = grelha_(folha_('Vendas'), 600).valores;
+  const h = acharLinha_(d, ['Data Venda', 'Ticker', 'Veredito']);
+  if (h < 0) throw new Error('Não encontrei o cabeçalho da tab Vendas');
+  const m = indice_(d[h]);
+  // "Dividendos Perdidos (preenche tu, opcional)": procura pelo início, o resto do nome pode mudar.
+  let cDiv = -1;
+  Object.keys(m).forEach(function (k) { if (k.indexOf('Dividendos Perdidos') === 0) cDiv = m[k]; });
+  const out = [];
+  for (let r = h + 1; r < d.length; r++) {
+    if (norm_(d[r][0]).indexOf('TOTAL') === 0) break;
+    const ticker = campo_(d[r], m, 'Ticker');
+    if (!ticker) continue;
+    out.push({
+      data: campo_(d[r], m, 'Data Venda'),
+      ticker: String(ticker),
+      empresa: campo_(d[r], m, 'Empresa'),
+      unidades: num_(campo_(d[r], m, 'Unidades')),
+      precoVenda: num_(campo_(d[r], m, 'Preço Venda')),
+      valorRecebido: num_(campo_(d[r], m, 'Valor Recebido')),
+      precoAtual: num_(campo_(d[r], m, 'Preço Atual')),
+      valorSeMantivesse: num_(campo_(d[r], m, 'Valor se Tivesse Mantido')),
+      dividendosPerdidos: cDiv >= 0 ? num_(d[r][cDiv]) : null,
+      diferenca: num_(campo_(d[r], m, 'Diferença')),
+      diferencaPct: num_(campo_(d[r], m, 'Diferença %')),
+      veredito: campo_(d[r], m, 'Veredito')
     });
   }
   return out;

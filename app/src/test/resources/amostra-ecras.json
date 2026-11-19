@@ -1,6 +1,6 @@
 {
  "ok": true,
- "versaoPonte": 3,
+ "versaoPonte": 4,
  "dados": {
   "meta": {
    "folha": "Carteira de exemplo",
@@ -2389,6 +2389,24 @@
     "nome": "Obrigações do Tesouro 7-10 UCITS ETF",
     "classe": "ETF",
     "quantidade": 10
+   },
+   {
+    "ticker": "ZETA",
+    "nome": "Zeta Química Inc",
+    "classe": "Ação",
+    "quantidade": 0
+   },
+   {
+    "ticker": "MARE",
+    "nome": "Maré Transportes Inc",
+    "classe": "Ação",
+    "quantidade": 0
+   },
+   {
+    "ticker": "NORA",
+    "nome": "Nora Farmacêutica Inc",
+    "classe": "Ação",
+    "quantidade": 0
    }
   ],
   "dividendos": {
@@ -3353,6 +3371,762 @@
     "moeda": "USD",
     "valor": 374.5,
     "comissao": 0.0
+   }
+  ],
+  "movimentos": [
+   {
+    "linha": 7,
+    "data": "2023-03-14",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ALFA",
+    "unidades": 6,
+    "preco": 120.0,
+    "moeda": "USD",
+    "valor": 720.0,
+    "cambio": 0.93,
+    "valorEur": 669.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 8,
+    "data": "2023-05-02",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "MUND",
+    "unidades": 15,
+    "preco": 92.0,
+    "moeda": "EUR",
+    "valor": 1380.0,
+    "cambio": 0.9,
+    "valorEur": 1380.0,
+    "comissaoEur": 0.0
+   },
+   {
+    "linha": 9,
+    "data": "2023-06-12",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ZETA",
+    "unidades": 10,
+    "preco": 48.0,
+    "moeda": "USD",
+    "valor": 480.0,
+    "cambio": 0.92,
+    "valorEur": 441.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 10,
+    "data": "2023-08-01",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "JADE",
+    "unidades": 6,
+    "preco": 70.0,
+    "moeda": "USD",
+    "valor": 420.0,
+    "cambio": 0.91,
+    "valorEur": 382.2,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 11,
+    "data": "2023-09-04",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "MARE",
+    "unidades": 25,
+    "preco": 22.0,
+    "moeda": "USD",
+    "valor": 550.0,
+    "cambio": 0.935,
+    "valorEur": 514.25,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 12,
+    "data": "2023-11-20",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "GIRA",
+    "unidades": 12,
+    "preco": 66.0,
+    "moeda": "USD",
+    "valor": 792.0,
+    "cambio": 0.92,
+    "valorEur": 728.64,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 13,
+    "data": "2024-01-16",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "BORE",
+    "unidades": 10,
+    "preco": 92.0,
+    "moeda": "USD",
+    "valor": 920.0,
+    "cambio": 0.92,
+    "valorEur": 846.4,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 14,
+    "data": "2024-02-26",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "OBRG",
+    "unidades": 14,
+    "preco": 101.0,
+    "moeda": "EUR",
+    "valor": 1414.0,
+    "cambio": 0.9,
+    "valorEur": 1414.0,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 15,
+    "data": "2024-03-05",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ILHA",
+    "unidades": 4,
+    "preco": 210.0,
+    "moeda": "USD",
+    "valor": 840.0,
+    "cambio": 0.92,
+    "valorEur": 772.8,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 16,
+    "data": "2024-04-22",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "MARE",
+    "unidades": 15,
+    "preco": 18.0,
+    "moeda": "USD",
+    "valor": 270.0,
+    "cambio": 0.94,
+    "valorEur": 253.8,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 17,
+    "data": "2024-05-20",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ALFA",
+    "unidades": 3,
+    "preco": 160.0,
+    "moeda": "USD",
+    "valor": 480.0,
+    "cambio": 0.925,
+    "valorEur": 444.0,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 18,
+    "data": "2024-06-14",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "LON:ESTR",
+    "unidades": 60,
+    "preco": 15.1,
+    "moeda": "USD",
+    "valor": 906.0,
+    "cambio": 0.93,
+    "valorEur": 842.58,
+    "comissaoEur": 1.5
+   },
+   {
+    "linha": 19,
+    "data": "2024-07-08",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "NORA",
+    "unidades": 6,
+    "preco": 75.0,
+    "moeda": "USD",
+    "valor": 450.0,
+    "cambio": 0.92,
+    "valorEur": 414.0,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 20,
+    "data": "2024-09-09",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "EMRG",
+    "unidades": 12,
+    "preco": 88.5,
+    "moeda": "EUR",
+    "valor": 1062.0,
+    "cambio": 0.9,
+    "valorEur": 1062.0,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 21,
+    "data": "2024-10-08",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "HORT",
+    "unidades": 8,
+    "preco": 142.0,
+    "moeda": "USD",
+    "valor": 1136.0,
+    "cambio": 0.91,
+    "valorEur": 1033.76,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 22,
+    "data": "2024-11-12",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "JADE",
+    "unidades": 4,
+    "preco": 110.0,
+    "moeda": "USD",
+    "valor": 440.0,
+    "cambio": 0.94,
+    "valorEur": 413.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 23,
+    "data": "2025-01-14",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "MUND",
+    "unidades": 8,
+    "preco": 104.0,
+    "moeda": "EUR",
+    "valor": 832.0,
+    "cambio": 0.9,
+    "valorEur": 832.0,
+    "comissaoEur": 0.0
+   },
+   {
+    "linha": 24,
+    "data": "2025-02-11",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "CAST",
+    "unidades": 15,
+    "preco": 41.0,
+    "moeda": "USD",
+    "valor": 615.0,
+    "cambio": 0.96,
+    "valorEur": 590.4,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 25,
+    "data": "2025-03-03",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "AMS:FARO",
+    "unidades": 8,
+    "preco": 31.5,
+    "moeda": "USD",
+    "valor": 252.0,
+    "cambio": 0.95,
+    "valorEur": 239.4,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 26,
+    "data": "2025-04-10",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "GIRA",
+    "unidades": 8,
+    "preco": 54.0,
+    "moeda": "USD",
+    "valor": 432.0,
+    "cambio": 0.88,
+    "valorEur": 380.16,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 27,
+    "data": "2025-05-06",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "BORE",
+    "unidades": 6,
+    "preco": 104.0,
+    "moeda": "USD",
+    "valor": 624.0,
+    "cambio": 0.885,
+    "valorEur": 552.24,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 28,
+    "data": "2025-06-30",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "NORA",
+    "unidades": 3,
+    "preco": 81.0,
+    "moeda": "USD",
+    "valor": 243.0,
+    "cambio": 0.86,
+    "valorEur": 208.98,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 29,
+    "data": "2025-07-21",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "LON:ESTR",
+    "unidades": 35,
+    "preco": 12.66,
+    "moeda": "USD",
+    "valor": 443.1,
+    "cambio": 0.855,
+    "valorEur": 378.8505,
+    "comissaoEur": 1.5
+   },
+   {
+    "linha": 30,
+    "data": "2025-08-27",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "DUNA",
+    "unidades": 9,
+    "preco": 90.0,
+    "moeda": "USD",
+    "valor": 810.0,
+    "cambio": 0.86,
+    "valorEur": 696.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 31,
+    "data": "2025-09-18",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ILHA",
+    "unidades": 2,
+    "preco": 264.0,
+    "moeda": "USD",
+    "valor": 528.0,
+    "cambio": 0.85,
+    "valorEur": 448.8,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 32,
+    "data": "2025-10-15",
+    "tipo": "Venda",
+    "classe": "ETF",
+    "ticker": "OBRG",
+    "unidades": 4,
+    "preco": 97.5,
+    "moeda": "EUR",
+    "valor": 390.0,
+    "cambio": 0.9,
+    "valorEur": 390.0,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 33,
+    "data": "2025-11-25",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "MARE",
+    "unidades": 40,
+    "preco": 14.8,
+    "moeda": "USD",
+    "valor": 592.0,
+    "cambio": 0.865,
+    "valorEur": 512.08,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 34,
+    "data": "2026-02-10",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "ALFA",
+    "unidades": 4,
+    "preco": 290.0,
+    "moeda": "USD",
+    "valor": 1160.0,
+    "cambio": 0.86,
+    "valorEur": 997.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 35,
+    "data": "2026-03-18",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "ZETA",
+    "unidades": 10,
+    "preco": 63.5,
+    "moeda": "USD",
+    "valor": 635.0,
+    "cambio": 0.87,
+    "valorEur": 552.45,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 36,
+    "data": "2026-06-03",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "ALFA",
+    "unidades": 2,
+    "preco": 240.0,
+    "moeda": "USD",
+    "valor": 480.0,
+    "cambio": 0.855,
+    "valorEur": 410.4,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 37,
+    "data": "2026-08-12",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "NORA",
+    "unidades": 3,
+    "preco": 79.2,
+    "moeda": "USD",
+    "valor": 237.6,
+    "cambio": 0.857,
+    "valorEur": 203.6232,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 38,
+    "data": "2026-09-15",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "DUNA",
+    "unidades": 5,
+    "preco": 84.4,
+    "moeda": "USD",
+    "valor": 422.0,
+    "cambio": 0.855,
+    "valorEur": 360.81,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 39,
+    "data": "2026-10-02",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "CAST",
+    "unidades": 10,
+    "preco": 38.0,
+    "moeda": "USD",
+    "valor": 380.0,
+    "cambio": 0.86,
+    "valorEur": 326.8,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 40,
+    "data": "2026-10-21",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "BORE",
+    "unidades": 3,
+    "preco": 126.5,
+    "moeda": "USD",
+    "valor": 379.5,
+    "cambio": 0.86,
+    "valorEur": 326.37,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 41,
+    "data": "2026-11-03",
+    "tipo": "Compra",
+    "classe": "ETF",
+    "ticker": "MUND",
+    "unidades": 2,
+    "preco": 115.0,
+    "moeda": "EUR",
+    "valor": 230.0,
+    "cambio": 0.9,
+    "valorEur": 230.0,
+    "comissaoEur": 0.0
+   },
+   {
+    "linha": 42,
+    "data": "2026-11-12",
+    "tipo": "Compra",
+    "classe": "Ação",
+    "ticker": "JADE",
+    "unidades": 1,
+    "preco": 180.0,
+    "moeda": "USD",
+    "valor": 180.0,
+    "cambio": 0.86,
+    "valorEur": 154.8,
+    "comissaoEur": 0.5
+   }
+  ],
+  "dividendosPorEmpresa": {
+   "periodos": [
+    "2023 (Mai-Dez)",
+    "2024",
+    "2025",
+    "2026 (até 16 Nov)"
+   ],
+   "empresas": [
+    {
+     "ticker": "ALFA",
+     "totalUsd": 15.42,
+     "porPeriodo": [
+      1.1,
+      3.4,
+      4.8,
+      6.12
+     ]
+    },
+    {
+     "ticker": "JADE",
+     "totalUsd": 8.51,
+     "porPeriodo": [
+      0.6,
+      1.9,
+      2.8,
+      3.21
+     ]
+    },
+    {
+     "ticker": "ILHA",
+     "totalUsd": 22.99,
+     "porPeriodo": [
+      0,
+      4.1,
+      8.6,
+      10.29
+     ]
+    },
+    {
+     "ticker": "HORT",
+     "totalUsd": 52.72,
+     "porPeriodo": [
+      0,
+      4.2,
+      22.9,
+      25.62
+     ]
+    },
+    {
+     "ticker": "GIRA",
+     "totalUsd": 81.12,
+     "porPeriodo": [
+      3.1,
+      21.4,
+      26.8,
+      29.82
+     ]
+    },
+    {
+     "ticker": "LON:ESTR",
+     "totalUsd": 53.86,
+     "porPeriodo": [
+      0,
+      9.8,
+      20.1,
+      23.96
+     ]
+    },
+    {
+     "ticker": "BORE",
+     "totalUsd": 125.06,
+     "porPeriodo": [
+      0,
+      31.2,
+      44.7,
+      49.16
+     ]
+    },
+    {
+     "ticker": "CAST",
+     "totalUsd": 104.12,
+     "porPeriodo": [
+      0,
+      0,
+      38.4,
+      65.72
+     ]
+    },
+    {
+     "ticker": "DUNA",
+     "totalUsd": 35.8,
+     "porPeriodo": [
+      0,
+      0,
+      9.2,
+      26.6
+     ]
+    },
+    {
+     "ticker": "AMS:FARO",
+     "totalUsd": 11.7,
+     "porPeriodo": [
+      0,
+      0,
+      5.1,
+      6.6
+     ]
+    },
+    {
+     "ticker": "EMRG",
+     "totalUsd": 112.7,
+     "porPeriodo": [
+      0,
+      12.6,
+      47.3,
+      52.8
+     ]
+    },
+    {
+     "ticker": "ZETA",
+     "totalUsd": 28.8,
+     "porPeriodo": [
+      4.8,
+      11.6,
+      12.4,
+      0
+     ]
+    },
+    {
+     "ticker": "MARE",
+     "totalUsd": 48.5,
+     "porPeriodo": [
+      7.2,
+      21.5,
+      19.8,
+      0
+     ]
+    },
+    {
+     "ticker": "NORA",
+     "totalUsd": 11.2,
+     "porPeriodo": [
+      0,
+      2.9,
+      5.1,
+      3.2
+     ]
+    }
+   ]
+  },
+  "analiseVendas": [
+   {
+    "data": "2025-06-30",
+    "ticker": "NORA",
+    "empresa": "Nora Farmacêutica Inc",
+    "unidades": 3,
+    "precoVenda": 81.0,
+    "valorRecebido": 243.0,
+    "precoAtual": 88.3,
+    "valorSeMantivesse": 264.9,
+    "dividendosPerdidos": 0,
+    "diferenca": -21.9,
+    "diferencaPct": -0.082673,
+    "veredito": "🔴 Devias ter mantido"
+   },
+   {
+    "data": "2025-10-15",
+    "ticker": "OBRG",
+    "empresa": "Obrigações do Tesouro 7-10 UCITS ETF",
+    "unidades": 4,
+    "precoVenda": 97.5,
+    "valorRecebido": 390.0,
+    "precoAtual": 96.8,
+    "valorSeMantivesse": 387.2,
+    "dividendosPerdidos": 0,
+    "diferenca": 2.8,
+    "diferencaPct": 0.007231,
+    "veredito": "🟢 Vendeste bem"
+   },
+   {
+    "data": "2025-11-25",
+    "ticker": "MARE",
+    "empresa": "Maré Transportes Inc",
+    "unidades": 40,
+    "precoVenda": 14.8,
+    "valorRecebido": 592.0,
+    "precoAtual": 12.1,
+    "valorSeMantivesse": 484.0,
+    "dividendosPerdidos": 0,
+    "diferenca": 108.0,
+    "diferencaPct": 0.22314,
+    "veredito": "🟢 Vendeste bem"
+   },
+   {
+    "data": "2026-02-10",
+    "ticker": "ALFA",
+    "empresa": "Alfa Software Inc",
+    "unidades": 4,
+    "precoVenda": 290.0,
+    "valorRecebido": 1160.0,
+    "precoAtual": 268.15,
+    "valorSeMantivesse": 1072.6,
+    "dividendosPerdidos": 0,
+    "diferenca": 87.4,
+    "diferencaPct": 0.081484,
+    "veredito": "🟢 Vendeste bem"
+   },
+   {
+    "data": "2026-03-18",
+    "ticker": "ZETA",
+    "empresa": "Zeta Química Inc",
+    "unidades": 10,
+    "precoVenda": 63.5,
+    "valorRecebido": 635.0,
+    "precoAtual": 71.2,
+    "valorSeMantivesse": 712.0,
+    "dividendosPerdidos": 0,
+    "diferenca": -77.0,
+    "diferencaPct": -0.108146,
+    "veredito": "🔴 Devias ter mantido"
+   },
+   {
+    "data": "2026-08-12",
+    "ticker": "NORA",
+    "empresa": "Nora Farmacêutica Inc",
+    "unidades": 3,
+    "precoVenda": 79.2,
+    "valorRecebido": 237.6,
+    "precoAtual": 88.3,
+    "valorSeMantivesse": 264.9,
+    "dividendosPerdidos": 0,
+    "diferenca": -27.3,
+    "diferencaPct": -0.103058,
+    "veredito": "🔴 Devias ter mantido"
+   },
+   {
+    "data": "2026-10-21",
+    "ticker": "BORE",
+    "empresa": "Boreal Energia Corp",
+    "unidades": 3,
+    "precoVenda": 126.5,
+    "valorRecebido": 379.5,
+    "precoAtual": 121.4,
+    "valorSeMantivesse": 364.2,
+    "dividendosPerdidos": 0,
+    "diferenca": 15.3,
+    "diferencaPct": 0.04201,
+    "veredito": "🟢 Vendeste bem"
    }
   ]
  }
