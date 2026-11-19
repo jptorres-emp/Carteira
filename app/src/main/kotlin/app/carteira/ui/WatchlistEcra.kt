@@ -138,7 +138,7 @@ private fun CartaoWatchlist(w: ItemWatchlist, aberto: Boolean, aoTocar: () -> Un
                         it,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
-                        color = if (it.startsWith("✓")) Paleta.verde else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (it.startsWith("✓")) legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 w.prioridade?.let { LinhaValor("Prioridade", it) }

@@ -398,6 +398,32 @@ class EcrasTest {
         esperar("ALFA")
     }
 
+    /** Tema escuro (a app segue o do telemóvel): os ecrãs principais, para rever cores e contraste. */
+    @Test
+    @Config(qualifiers = "+night")
+    fun temaEscuro() {
+        abrir()
+        esperar("Valor da carteira")
+        percorrer("30-escuro-inicio", maximo = 6)
+        tocarSeparador("Evolução")
+        esperar("Património total")
+        percorrer("31-escuro-evolucao", maximo = 4)
+        tocar("Posições")
+        esperar("ALFA")
+        foto("32-escuro-posicoes")
+        tocar("Dividendos")
+        esperar("Mês a mês em 2027")
+        deslizarPara(2)
+        // As setas mudam de mês: de novembro para outubro.
+        tocarDescricao("Mês anterior")
+        val titulos = listOf("Outubro", "Novembro").filter { compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty() }
+        assertEquals("mês mostrado depois da seta", listOf("Outubro"), titulos)
+        foto("33-escuro-dividendos")
+        tocar("Watchlist")
+        esperar("Core A")
+        foto("34-escuro-watchlist")
+    }
+
     /** Telemóvel estreito (360 dp) com letra grande (1,3): todos os ecrãs, item a item, para rever o layout. */
     @Test
     @Config(qualifiers = "pt-rPT-w360dp-h780dp-xhdpi")

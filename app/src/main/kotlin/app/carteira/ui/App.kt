@@ -184,7 +184,7 @@ private fun estiloQueCabe(rotulos: List<String>): TextStyle {
 }
 
 private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
-    Ecra.Resumo -> "Carteira"
+    Ecra.Resumo -> "Início"
     Ecra.Evolucao -> "Evolução"
     Ecra.Posicoes -> "Posições"
     Ecra.Dividendos -> "Dividendos"

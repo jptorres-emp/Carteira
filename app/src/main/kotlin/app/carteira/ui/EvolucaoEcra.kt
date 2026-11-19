@@ -129,7 +129,7 @@ private fun CartaoRegistoMensal(d: Dados, a: AnalisePatrimonio?, vm: CarteiraVie
                 "${maiuscula(mesLongo(anterior))} ainda não tem valor na folha.",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = Paleta.ambar,
+                color = legivel(Paleta.ambar),
             )
         }
         LinhaValor(maiuscula(mesLongo(hoje)), if (gravado != null) Formatos.eur(gravado, 0) else "por gravar")
@@ -321,7 +321,7 @@ private fun CartaoMovimentos(d: Dados) {
                 Text(
                     Formatos.moeda(t.valor, moeda, 0),
                     style = MaterialTheme.typography.bodyMedium.numeros(),
-                    color = if (t.tipo == "Venda") Paleta.verde else MaterialTheme.colorScheme.onSurface,
+                    color = if (t.tipo == "Venda") legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

@@ -113,6 +113,25 @@ object Paleta {
     fun categoria(i: Int): Color = categorias[i % categorias.size]
 }
 
+/**
+ * A cor da Paleta para TEXTO. As cores dos gráficos não chegam aos 4,5:1 que a letra pequena pede
+ * (o âmbar fica em 2,9:1 no branco; o verde e o vermelho em 3:1 no cartão escuro). Esta devolve um tom
+ * mais escuro no tema claro e mais claro no escuro (todos acima de 4,9:1, também nos selos com fundo
+ * tingido). Para traços, pontos e fundos, fica a cor original. Outras cores passam como estão.
+ */
+@Composable
+fun legivel(cor: Color): Color {
+    val escuro = isSystemInDarkTheme()
+    return when (cor) {
+        Paleta.ambar -> if (escuro) Color(0xFFF2C14E) else Color(0xFF8A5A00)
+        Paleta.verde -> if (escuro) Color(0xFF6FD08C) else Color(0xFF14724A)
+        Paleta.vermelho -> if (escuro) Color(0xFFFF8A80) else Color(0xFFB3261E)
+        Paleta.cinzento -> if (escuro) Color(0xFFAEB6C4) else Color(0xFF5F6878)
+        Paleta.dourado -> if (escuro) Color(0xFFE0C25A) else Color(0xFF7A6000)
+        else -> cor
+    }
+}
+
 /** Fundo dos cartões: branco no claro, um cinzento acima do fundo no escuro. */
 @Composable
 fun corCartao(): Color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White

@@ -21,7 +21,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   mês a mês face ao plano da folha, com o registo do mês, marcos e ano a ano; e a carteira face ao S&P 500,
   indicadores, objetivos e movimentos), Posições, Dividendos, Watchlist, Registar e Alertas. O olho no topo
   esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
-  ponte antiga, o que é novo fica de fora.
+  ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa
+  tons com contraste de pelo menos 4,5:1 (WCAG AA) nos dois temas, e os gráficos podem mudar de mês com
+  setas de 48 dp ou, no TalkBack, com as ações "Mês anterior" e "Mês seguinte".
 - **Alertas**: uma verificação em segundo plano (WorkManager) compara a folha com a verificação anterior
   e avisa quando o **sinal** de uma posição passa a compra (o sinal já aplica as regras da folha), quando
   uma empresa da watchlist passa a subvalorizada e quando há variações grandes de preço.
@@ -37,6 +39,6 @@ Para atualizar a ponte sem mudar o URL: **Implementar > Gerir implementações >
 ## APK
 
 Cada envio para o `main` corre os testes (com capturas de cada ecrã, também num ecrã estreito com letra
-grande, no ramo `screenshots`) e gera o APK no CI. O APK fica no ramo `apk` e nos artefactos
+grande e no tema escuro, no ramo `screenshots`) e gera o APK no CI. O APK fica no ramo `apk` e nos artefactos
 do workflow. Vem assinado com uma chave de depuração fixa (`app/debug.keystore`, pública), para cada
 versão se instalar por cima da anterior sem perder as definições.

@@ -224,7 +224,7 @@ fun LinhaAlerta(a: Alerta, aoTocar: () -> Unit) {
             Modifier.size(28.dp).clip(CircleShape).background(cor.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(simbolo, style = MaterialTheme.typography.labelMedium, color = cor)
+            Text(simbolo, style = MaterialTheme.typography.labelMedium, color = legivel(cor))
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -448,7 +448,7 @@ private fun CartaoAlocacao(d: Dados) {
                         Text(
                             Formatos.pct(s.pesoAcoes) + (s.limite?.let { " · limite ${Formatos.pct(it, 0)}" } ?: ""),
                             style = MaterialTheme.typography.bodySmall.numeros(),
-                            color = if (s.acima) Paleta.vermelho else MaterialTheme.colorScheme.onSurface,
+                            color = if (s.acima) legivel(Paleta.vermelho) else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     BarraComMarca(s.pesoAcoes ?: 0.0, s.limite, escala, cor)

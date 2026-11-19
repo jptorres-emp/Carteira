@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,9 +22,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.carteira.R
 import app.carteira.dados.Dados
 import app.carteira.dados.EsteAno
 
@@ -170,8 +174,18 @@ private fun CartaoMesAMes(d: Dados) {
             if (anterior != null) Legenda(Paleta.dourado, "Recebido em $anterior")
         }
         HorizontalDivider(color = corBordaCartao())
-        val m = cal[escolhido.coerceIn(0, 11)]
-        Text(m.mes, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        val k = escolhido.coerceIn(0, 11)
+        val m = cal[k]
+        // As barras são estreitas para um dedo (~25 dp): as setas (48 dp) mudam de mês sem acertar nelas.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(m.mes, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            IconButton(onClick = { escolhido = k - 1 }, enabled = k > 0) {
+                Icon(painterResource(R.drawable.ic_anterior), contentDescription = "Mês anterior")
+            }
+            IconButton(onClick = { escolhido = k + 1 }, enabled = k < 11) {
+                Icon(painterResource(R.drawable.ic_seguinte), contentDescription = "Mês seguinte")
+            }
+        }
         LinhaValor("Previsto (bruto)", Formatos.usd(m.previstoBrutoUsd, 0), destaque = true)
         LinhaValor("Líquido", Formatos.eur(m.previstoLiquidoEur, 0))
         if (anterior != null) {

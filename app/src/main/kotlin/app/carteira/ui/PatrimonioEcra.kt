@@ -171,7 +171,7 @@ internal fun CartaoPlano(a: AnalisePatrimonio) {
             Text(
                 if (falta > 0) "Faltam ${Formatos.eur(falta, 0)} até ao fim do mês." else "Já passaste a meta do fim do mês.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (falta > 0) MaterialTheme.colorScheme.onSurface else Paleta.verde,
+                color = if (falta > 0) MaterialTheme.colorScheme.onSurface else legivel(Paleta.verde),
             )
         }
         val reforcoPlano = plano?.reforcoMensalEur

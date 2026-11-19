@@ -76,7 +76,8 @@ fun AtualizarPatrimonioEcra(estado: Estado, vm: CarteiraViewModel, ecra: Ecra.At
                 cor = Paleta.ambar,
             )
         }
-        BotaoEnviar("Gravar na folha", v != null && v > 0, estado.aEnviar) {
+        // Se o mês já tem valor, o botão diz que o substitui (o valor antigo está no cartão acima).
+        BotaoEnviar(if (naFolha != null) "Substituir na folha" else "Gravar na folha", v != null && v > 0, estado.aEnviar) {
             vm.registarPatrimonio(mes, v!!) { ok -> if (ok) vm.voltar() }
         }
         TextoPequeno(

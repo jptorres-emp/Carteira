@@ -42,8 +42,10 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -155,6 +157,14 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
                         detectHorizontalDragGestures { mudanca, _ ->
                             escolhido = indiceEm(mudanca.position.x, size.width.toFloat(), visiveis.size)
                         }
+                    }
+                    // Tocar e arrastar não chegam a quem usa o TalkBack: as ações mudam de mês.
+                    .semantics {
+                        contentDescription = "Gráfico, ${mesLongo(p.mes)}"
+                        customActions = listOf(
+                            CustomAccessibilityAction("Mês anterior") { escolhido = (i - 1).coerceAtLeast(0); true },
+                            CustomAccessibilityAction("Mês seguinte") { escolhido = (i + 1).coerceAtMost(visiveis.lastIndex); true },
+                        )
                     },
             ) {
                 val w = size.width
@@ -520,6 +530,13 @@ fun GraficoPatrimonio(a: AnalisePatrimonio) {
                         detectHorizontalDragGestures { mudanca, _ ->
                             escolhido = indiceEm(mudanca.position.x, size.width.toFloat(), meses.size)
                         }
+                    }
+                    .semantics {
+                        contentDescription = "Gráfico, ${mesLongo(meses[i])}"
+                        customActions = listOf(
+                            CustomAccessibilityAction("Mês anterior") { escolhido = (i - 1).coerceAtLeast(0); true },
+                            CustomAccessibilityAction("Mês seguinte") { escolhido = (i + 1).coerceAtMost(meses.lastIndex); true },
+                        )
                     },
             ) {
                 val w = size.width

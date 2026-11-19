@@ -113,7 +113,7 @@ fun LinhaValor(rotulo: String, valor: String, cor: Color = Color.Unspecified, de
                 valor,
                 style = (if (destaque) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium).numeros(),
                 fontWeight = if (destaque) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else cor,
+                color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else legivel(cor),
                 textAlign = TextAlign.End,
             )
         },
@@ -203,7 +203,7 @@ fun SeloEstado(texto: String, cor: Color, modifier: Modifier = Modifier) {
             texto,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = cor,
+            color = legivel(cor),
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -260,7 +260,7 @@ fun TextoPequeno(texto: String, modifier: Modifier = Modifier, cor: Color = Colo
         texto,
         modifier = modifier,
         style = MaterialTheme.typography.bodySmall,
-        color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurfaceVariant else cor,
+        color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurfaceVariant else legivel(cor),
     )
 }
 
