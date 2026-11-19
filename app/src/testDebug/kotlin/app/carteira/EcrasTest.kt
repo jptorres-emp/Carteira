@@ -179,6 +179,17 @@ class EcrasTest {
         marcas.filterTo(vistas) { compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty() }
     }
 
+    /**
+     * Abre uma posição pela caixa de pesquisa das Posições: com o atalho das vendas no topo, uma linha a meio
+     * do ecrã pode ficar por baixo da barra dos separadores.
+     */
+    private fun abrirPosicao(ticker: String) {
+        compose.onAllNodes(hasSetTextAction())[0].performTextInput(ticker)
+        assentar()
+        compose.onAllNodes(hasText(ticker) and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
+        assentar()
+    }
+
     private fun tocarDescricao(descricao: String) {
         compose.onNodeWithContentDescription(descricao).performClick()
         assentar()
@@ -254,9 +265,12 @@ class EcrasTest {
         tocar("Posições")
         esperar("ALFA")
         // Cada posição mostra os preços de compra e venda que contam para a camada (ALFA é Core A: só compra).
-        esperar("compra ≤ 212,50")
         foto("02-posicoes")
-        tocar("ALFA")
+        compose.onAllNodes(hasSetTextAction())[0].performTextInput("ALFA")
+        assentar()
+        esperar("compra ≤ 212,50")
+        compose.onAllNodes(hasText("ALFA") and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
+        assentar()
         esperar("Quando comprar e vender")
         esperar("Não vende pelo preço")
         foto("03-posicao")
@@ -426,27 +440,43 @@ class EcrasTest {
         abrir()
         esperar("Valor da carteira")
         tocar("Posições")
-        esperar("Vendas e posições fechadas")
-        // Cada posição mostra a rentabilidade total (com as vendas e os dividendos).
-        esperar("total +")
-        foto("07-posicoes-total")
-        tocar("ALFA")
+        esperar("De borla e vendas")
+        // Cada posição mostra quanto do que pagaste já voltou em vendas e dividendos (JADE já está de borla).
+        esperar("🎁 de borla")
+        esperar("recuperado ")
+        foto("07-posicoes-recuperado")
+        tocar("🎁 De borla")
+        esperar("JADE")
+        foto("07a-posicoes-de-borla")
+        tocar("JADE")
         esperar("Quando comprar e vender")
-        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 rentabilidade total.
+        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 custo recuperado.
         deslizarPara(4)
-        esperar("Rentabilidade total")
+        esperar("Custo recuperado e rentabilidade")
+        esperar("De borla: as vendas e os dividendos já pagaram tudo")
+        foto("07b-posicao-de-borla")
+        tocarDescricao("Voltar")
+        abrirPosicao("ALFA")
+        esperar("Quando comprar e vender")
+        deslizarPara(4)
+        esperar("Já recuperaste")
         esperar("Recebeste nas vendas")
         esperar("Mais-valias das vendas")
-        foto("07b-posicao-rentabilidade")
+        foto("07b2-posicao-recuperado")
         tocarDescricao("Voltar")
-        tocar("Vendas e posições fechadas")
-        esperar("Mais-valias em 2026")
-        foto("07c-vendas")
+        tocar("De borla e vendas")
+        esperar("De borla?")
+        foto("07c-de-borla-e-vendas")
+        // Itens: 0 de borla, 1 título, 2 mais-valias, 3 por ano, 4 filtros dos anos.
+        deslizarPara(4)
         tocar("2025")
         esperar("MARE")
         foto("07d-vendas-2025")
         tocar("Todas")
-        val marcas = listOf("Mais-valias por ano", "Posições fechadas", "ZETA", "MARE", "NORA", "Vendeste bem", "Devias ter mantido")
+        val marcas = listOf(
+            "De borla?", "a mais do que pagaste", "faltam ", "Mais-valias por ano", "Posições fechadas", "ZETA", "MARE",
+            "NORA", "Vendeste bem", "Devias ter mantido",
+        )
         val vistas = mutableSetOf<String>()
         for (k in 0 until 30) {
             try {
@@ -513,19 +543,16 @@ class EcrasTest {
         esperar("Carteira vs S&P 500")
         percorrer("22-carteira")
         tocar("Posições")
-        esperar("Vendas e posições fechadas")
+        esperar("De borla e vendas")
         foto("23-posicoes")
         // Com letra grande, a ALFA fica abaixo do ecrã: procura-se pela caixa de pesquisa.
-        compose.onAllNodes(hasSetTextAction())[0].performTextInput("ALFA")
-        assentar()
-        compose.onAllNodes(hasText("ALFA") and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
-        assentar()
+        abrirPosicao("ALFA")
         esperar("Quando comprar e vender")
         percorrer("24-posicao", maximo = 8)
         tocarDescricao("Voltar")
-        tocar("Vendas e posições fechadas")
-        esperar("Desde o início")
-        percorrer("24b-vendas", maximo = 25)
+        tocar("De borla e vendas")
+        esperar("De borla?")
+        percorrer("24b-vendas", maximo = 30)
         tocarDescricao("Voltar")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")

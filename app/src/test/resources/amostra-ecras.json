@@ -3422,12 +3422,12 @@
     "tipo": "Compra",
     "classe": "Ação",
     "ticker": "JADE",
-    "unidades": 6,
+    "unidades": 20,
     "preco": 70.0,
     "moeda": "USD",
-    "valor": 420.0,
+    "valor": 1400.0,
     "cambio": 0.91,
-    "valorEur": 382.2,
+    "valorEur": 1274.0,
     "comissaoEur": 1.0
    },
    {
@@ -3586,20 +3586,6 @@
    },
    {
     "linha": 22,
-    "data": "2024-11-12",
-    "tipo": "Compra",
-    "classe": "Ação",
-    "ticker": "JADE",
-    "unidades": 4,
-    "preco": 110.0,
-    "moeda": "USD",
-    "valor": 440.0,
-    "cambio": 0.94,
-    "valorEur": 413.6,
-    "comissaoEur": 1.0
-   },
-   {
-    "linha": 23,
     "data": "2025-01-14",
     "tipo": "Compra",
     "classe": "ETF",
@@ -3613,7 +3599,7 @@
     "comissaoEur": 0.0
    },
    {
-    "linha": 24,
+    "linha": 23,
     "data": "2025-02-11",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3627,7 +3613,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 25,
+    "linha": 24,
     "data": "2025-03-03",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3641,7 +3627,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 26,
+    "linha": 25,
     "data": "2025-04-10",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3655,7 +3641,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 27,
+    "linha": 26,
     "data": "2025-05-06",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3669,7 +3655,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 28,
+    "linha": 27,
     "data": "2025-06-30",
     "tipo": "Venda",
     "classe": "Ação",
@@ -3683,7 +3669,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 29,
+    "linha": 28,
     "data": "2025-07-21",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3697,7 +3683,7 @@
     "comissaoEur": 1.5
    },
    {
-    "linha": 30,
+    "linha": 29,
     "data": "2025-08-27",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3711,7 +3697,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 31,
+    "linha": 30,
     "data": "2025-09-18",
     "tipo": "Compra",
     "classe": "Ação",
@@ -3725,7 +3711,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 32,
+    "linha": 31,
     "data": "2025-10-15",
     "tipo": "Venda",
     "classe": "ETF",
@@ -3739,7 +3725,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 33,
+    "linha": 32,
     "data": "2025-11-25",
     "tipo": "Venda",
     "classe": "Ação",
@@ -3753,7 +3739,7 @@
     "comissaoEur": 1.0
    },
    {
-    "linha": 34,
+    "linha": 33,
     "data": "2026-02-10",
     "tipo": "Venda",
     "classe": "Ação",
@@ -3764,6 +3750,20 @@
     "valor": 1160.0,
     "cambio": 0.86,
     "valorEur": 997.6,
+    "comissaoEur": 1.0
+   },
+   {
+    "linha": 34,
+    "data": "2026-03-02",
+    "tipo": "Venda",
+    "classe": "Ação",
+    "ticker": "JADE",
+    "unidades": 10,
+    "preco": 180.0,
+    "moeda": "USD",
+    "valor": 1800.0,
+    "cambio": 0.86,
+    "valorEur": 1548.0,
     "comissaoEur": 1.0
    },
    {
@@ -4085,6 +4085,20 @@
     "diferenca": 87.4,
     "diferencaPct": 0.081484,
     "veredito": "🟢 Vendeste bem"
+   },
+   {
+    "data": "2026-03-02",
+    "ticker": "JADE",
+    "empresa": "Jade Semicondutores Inc",
+    "unidades": 10,
+    "precoVenda": 180.0,
+    "valorRecebido": 1800.0,
+    "precoAtual": 188.7,
+    "valorSeMantivesse": 1887.0,
+    "dividendosPerdidos": 0,
+    "diferenca": -87.0,
+    "diferencaPct": -0.046105,
+    "veredito": "🔴 Devias ter mantido"
    },
    {
     "data": "2026-03-18",

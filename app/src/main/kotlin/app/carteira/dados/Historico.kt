@@ -42,6 +42,30 @@ data class Rentabilidade(
     val lucroMoeda: Double get() = valorMoeda + vendidoMoeda + dividendosMoeda - compradoMoeda
     val pctEur: Double? get() = if (compradoEur > 0) lucroEur / compradoEur else null
     val pctMoeda: Double? get() = if (compradoMoeda > 0) lucroMoeda / compradoMoeda else null
+
+    /** O que já voltou do que pagaste: vendas (menos comissões) e dividendos. */
+    val recuperadoEur: Double get() = vendidoEur + dividendosEur
+
+    /** Parte do que pagaste que já voltou (1 = tudo). */
+    val pctRecuperado: Double? get() = if (compradoEur > 0) recuperadoEur / compradoEur else null
+
+    /** O que falta voltar para cobrir o que pagaste (0 quando já está de borla). */
+    val faltaRecuperarEur: Double get() = (compradoEur - recuperadoEur).coerceAtLeast(0.0)
+
+    /** As vendas e os dividendos já cobrem tudo o que pagaste: as ações que ainda tens são lucro. */
+    val deBorla: Boolean get() = aberta && compradoEur > 0 && recuperadoEur >= compradoEur - 0.005
+
+    /**
+     * Quantas ações terias de vender ao preço de hoje para ficar de borla, ficando ainda com alguma; null se
+     * já está de borla ou se nem vendendo quase tudo chegava.
+     */
+    val acoesParaFicarDeBorla: Int?
+        get() {
+            if (!aberta || deBorla || valorEur <= 0) return null
+            val porAcao = valorEur / unidadesHoje
+            val n = kotlin.math.ceil(faltaRecuperarEur / porAcao - 1e-9).toInt().coerceAtLeast(1)
+            return if (n < unidadesHoje - EPS) n else null
+        }
 }
 
 /** Uma venda com o custo pelo FIFO. */
@@ -78,6 +102,13 @@ class Historico(
     val temDados: Boolean get() = porTicker.isNotEmpty()
 
     fun de(ticker: String): Rentabilidade? = porTicker[ticker]
+
+    /** Posições que tens em que as vendas e os dividendos já cobrem o que pagaste. */
+    val deBorla: List<Rentabilidade> get() = porTicker.values.filter { it.deBorla }.sortedByDescending { it.pctRecuperado }
+
+    /** Posições que tens e que já recuperaram alguma coisa, da que está mais perto de ficar de borla à mais longe. */
+    val recuperacao: List<Rentabilidade>
+        get() = porTicker.values.filter { it.aberta && (it.pctRecuperado ?: 0.0) >= 0.005 }.sortedByDescending { it.pctRecuperado }
 
     /** Tickers já vendidos por inteiro, do que deu mais lucro para o que deu menos. */
     val fechadas: List<Rentabilidade> get() = porTicker.values.filter { !it.aberta }.sortedByDescending { it.lucroEur }

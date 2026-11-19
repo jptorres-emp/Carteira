@@ -1,6 +1,7 @@
 package app.carteira.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -16,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +35,10 @@ import app.carteira.dados.Venda
 
 private const val TODAS = "Todas"
 
-/** As vendas da tab Transações com a mais-valia de cada uma (FIFO), por ano, e as posições já fechadas. */
+/**
+ * De borla e vendas: que posições já se pagaram com as vendas e os dividendos (e quanto falta às outras),
+ * as vendas da tab Transações com a mais-valia de cada uma (FIFO), por ano, e as posições já fechadas.
+ */
 @Composable
 fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
     val d = estado.dados ?: return SemDados(estado, vm)
@@ -59,6 +64,15 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
             return@ListaAtualizavel
         }
         val anoAtual = d.meta.hoje.take(4).toIntOrNull()
+        item { CartaoDeBorla(h) { r -> vm.irPara(if (r.etf) Ecra.Etf(r.ticker) else Ecra.Posicao(r.ticker)) } }
+        item {
+            Text(
+                "Vendas",
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
         item { MosaicosMaisValias(h, anoAtual) }
         if (h.anos.size > 1) item { CartaoPorAno(h) }
         item { Filtros(listOf(TODAS) + h.anos.map { it.ano.toString() }, ano) { ano = it } }
@@ -89,6 +103,63 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
                     "e cada compra e venda conta com o câmbio do seu dia. Valores antes de impostos.",
             )
         }
+    }
+}
+
+/** As posições que tens, da mais perto de ficar de borla à mais longe (as 8 primeiras, ou todas). */
+@Composable
+private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
+    var todas by rememberSaveable { mutableStateOf(false) }
+    val lista = h.recuperacao
+    val livres = h.deBorla
+    Cartao("De borla?") {
+        Text(
+            when {
+                livres.isNotEmpty() -> "🎁 " + plural(livres.size, "posição já está de borla", "posições já estão de borla") +
+                    ": " + livres.joinToString(", ") { it.ticker }
+                lista.isNotEmpty() -> "Ainda nenhuma. A mais perto é a ${lista.first().ticker}, com ${Formatos.pct(lista.first().pctRecuperado, 0)} do custo recuperado."
+                else -> "Ainda nenhuma: nenhuma posição teve vendas ou dividendos."
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        TextoPequeno(
+            "Uma posição fica de borla quando o que recebeste nas vendas e em dividendos já cobre tudo o que pagaste " +
+                "por ela: as ações que ainda tens são lucro.",
+        )
+        (if (todas) lista else lista.take(8)).forEach { r -> LinhaRecuperado(r) { abrir(r) } }
+        if (lista.size > 8) {
+            TextButton(onClick = { todas = !todas }) {
+                Text(if (todas) "Mostrar menos" else "Mostrar todas (${lista.size})")
+            }
+        }
+    }
+}
+
+@Composable
+private fun LinhaRecuperado(r: Rentabilidade, aoTocar: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().clickable(onClick = aoTocar).padding(vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(r.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(
+                (if (r.deBorla) "🎁 " else "") + Formatos.pct(r.pctRecuperado, 0),
+                style = MaterialTheme.typography.titleSmall.numeros(),
+                fontWeight = FontWeight.SemiBold,
+                color = if (r.deBorla) legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        BarraRecuperado(r.pctRecuperado ?: 0.0, r.deBorla)
+        TextoPequeno(
+            if (r.deBorla) {
+                "${Formatos.eur(r.recuperadoEur - r.compradoEur, 0)} a mais do que pagaste · as que tens valem ${Formatos.eur(r.valorEur, 0)}"
+            } else {
+                "faltam ${Formatos.eur(r.faltaRecuperarEur, 0)}" +
+                    (r.acoesParaFicarDeBorla?.let { " · cerca de ${plural(it, "ação vendida", "ações vendidas")} ao preço de hoje" } ?: "")
+            },
+        )
     }
 }
 

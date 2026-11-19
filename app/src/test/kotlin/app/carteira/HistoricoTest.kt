@@ -114,6 +114,36 @@ class HistoricoTest {
     }
 
     @Test
+    fun deBorlaQuandoVendasEDividendosCobremOQuePagaste() {
+        val mov = listOf(
+            acao(1, "2023-01-10", "Compra", "DELTA", 10.0, 50.0, 0.90, 0.0), // 450 €
+            acao(2, "2025-01-10", "Venda", "DELTA", 6.0, 100.0, 0.90, 0.0), // 540 €
+        )
+        val h = Historico.calcular(mov, mapOf("DELTA" to ValorHoje(4.0, 360.0, 400.0)), mapOf("DELTA" to 10.0), usdEur = 0.9)
+        val r = h.de("DELTA")!!
+        assertTrue(r.deBorla)
+        assertEquals(549.0, r.recuperadoEur, 1e-9) // 540 + 10 $ × 0,9
+        assertEquals(549.0 / 450.0, r.pctRecuperado!!, 1e-12)
+        assertEquals(0.0, r.faltaRecuperarEur, 1e-9)
+        assertNull(r.acoesParaFicarDeBorla)
+        assertEquals(listOf("DELTA"), h.deBorla.map { it.ticker })
+    }
+
+    @Test
+    fun quantoFaltaParaFicarDeBorla() {
+        val h = Historico.calcular(alfa, hoje, mapOf("ALFA" to 20.0), usdEur = 0.91)
+        val r = h.de("ALFA")!!
+        assertFalse(r.deBorla)
+        // Voltaram 1139 € das vendas e 18,20 € de dividendos, de 1454 € pagos.
+        assertEquals(1157.2 / 1454.0, r.pctRecuperado!!, 1e-12)
+        assertEquals(296.8, r.faltaRecuperarEur, 1e-9)
+        // Cada ação vale 1019,20 € / 7 = 145,60 €: faltam 3 (296,80 / 145,60 = 2,04).
+        assertEquals(3, r.acoesParaFicarDeBorla)
+        assertEquals(listOf("ALFA"), h.recuperacao.map { it.ticker })
+        assertTrue(h.deBorla.isEmpty())
+    }
+
+    @Test
     fun periodoDosDividendos() {
         assertEquals("mai/2023", Historico.inicioDoPeriodo("2023 (Mai-Dez)"))
         assertEquals("2024", Historico.inicioDoPeriodo("2024"))

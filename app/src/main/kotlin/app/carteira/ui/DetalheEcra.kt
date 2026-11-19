@@ -2,10 +2,13 @@ package app.carteira.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
@@ -223,12 +227,33 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
 // ───────────────────────────── Rentabilidade total ─────────────────────────────
 
 /**
- * Tudo o que a posição deu desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os
- * dividendos, contra tudo o que pagaste. Também serve para as posições já fechadas (ecrã Vendas).
+ * O que a posição já devolveu do que pagaste (vendas + dividendos) e se já está de borla, e tudo o que deu
+ * desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os dividendos, contra o que pagaste.
  */
 @Composable
 fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
-    Cartao("Rentabilidade total") {
+    Cartao("Custo recuperado e rentabilidade") {
+        val pct = r.pctRecuperado ?: 0.0
+        Text(
+            when {
+                r.deBorla -> "🎁 De borla: as vendas e os dividendos já pagaram tudo"
+                pct >= 0.005 -> "Já recuperaste ${Formatos.pct(pct, 0)} do que pagaste"
+                else -> "Ainda não recuperaste nada do que pagaste"
+            },
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = if (r.deBorla) legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurface,
+        )
+        BarraRecuperado(pct, r.deBorla)
+        TextoPequeno(
+            if (r.deBorla) {
+                "Já tiraste ${Formatos.eur(r.recuperadoEur - r.compradoEur, 0)} a mais do que puseste: as " +
+                    "${Formatos.quantidade(r.unidadesHoje)} ações que tens (${Formatos.eur(r.valorEur, 0)}) são lucro."
+            } else {
+                "Faltam ${Formatos.eur(r.faltaRecuperarEur, 0)} para as vendas e os dividendos cobrirem o que pagaste" +
+                    (r.acoesParaFicarDeBorla?.let { " (cerca de ${plural(it, "ação vendida", "ações vendidas")} ao preço de hoje)." } ?: ".")
+            },
+        )
         LinhaValor("Pagaste nas compras", "${Formatos.eur(r.compradoEur, 0)} · ${plural(r.compras, "compra", "compras")}")
         if (r.vendas > 0) {
             LinhaValor("Recebeste nas vendas", "${Formatos.eur(r.vendidoEur, 0)} · ${plural(r.vendas, "venda", "vendas")}")
@@ -243,7 +268,7 @@ fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
         )
         if (!r.etf) {
             LinhaValor(
-                "Em dólares (sem o câmbio)",
+                "Em dólares",
                 "${Formatos.usdSinal(r.lucroMoeda)} (${Formatos.pctSinal(r.pctMoeda)})",
                 cor = corDoSinal(r.lucroMoeda),
             )
@@ -253,9 +278,30 @@ fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
             "Desde a primeira compra (${Formatos.data(r.primeiraCompra)}): " +
                 (if (r.aberta) "o que vale hoje + " else "") +
                 "o que recebeste nas vendas + dividendos − o que pagaste, com as comissões. " +
-                "Em euros, cada compra e venda conta com o câmbio do seu dia." +
+                "Em euros, cada compra e venda conta com o câmbio do seu dia; em dólares, sem o câmbio." +
                 (if (dividendosDesde != null) " Dividendos desde $dividendosDesde, ao câmbio de hoje." else "") +
                 (if (r.maisValiasEur != null) " Mais-valias pelo FIFO, como no IRS." else ""),
+        )
+    }
+}
+
+/** Barra do que já voltou do que pagaste: cheia (e verde) quando a posição está de borla. */
+@Composable
+internal fun BarraRecuperado(pct: Double, deBorla: Boolean, modifier: Modifier = Modifier) {
+    val cor = if (deBorla) Paleta.verde else MaterialTheme.colorScheme.primary
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .semantics { contentDescription = "Recuperado ${Formatos.pct(pct, 0)}" },
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth(pct.coerceIn(0.0, 1.0).toFloat())
+                .fillMaxHeight()
+                .background(cor),
         )
     }
 }
