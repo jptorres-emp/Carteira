@@ -34,16 +34,19 @@ import app.carteira.dados.Rentabilidade
 import app.carteira.dados.Venda
 
 private const val TODAS = "Todas"
+private const val VISTA_VENDAS = "Vendas"
+private const val VISTA_BORLA = "🎁 De borla"
 
 /**
- * De borla e vendas: que posições já se pagaram com as vendas e os dividendos (e quanto falta às outras),
- * as vendas da tab Transações com a mais-valia de cada uma (FIFO), por ano, e as posições já fechadas.
+ * As vendas da tab Transações com a mais-valia de cada uma (FIFO), por ano, e as posições já fechadas. A
+ * opção "De borla" mostra, só a título informativo, que posições já se pagaram com vendas e dividendos.
  */
 @Composable
 fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
     val d = estado.dados ?: return SemDados(estado, vm)
     val h = d.historico
     var ano by rememberSaveable { mutableStateOf(TODAS) }
+    var vista by rememberSaveable { mutableStateOf(VISTA_VENDAS) }
 
     ListaAtualizavel(estado, vm) {
         if (!h.temDados) {
@@ -64,14 +67,10 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
             return@ListaAtualizavel
         }
         val anoAtual = d.meta.hoje.take(4).toIntOrNull()
-        item { CartaoDeBorla(h) { r -> vm.irPara(if (r.etf) Ecra.Etf(r.ticker) else Ecra.Posicao(r.ticker)) } }
-        item {
-            Text(
-                "Vendas",
-                modifier = Modifier.padding(top = 8.dp),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+        item { Filtros(listOf(VISTA_VENDAS, VISTA_BORLA), vista) { vista = it } }
+        if (vista == VISTA_BORLA) {
+            item { CartaoDeBorla(h) { r -> vm.irPara(if (r.etf) Ecra.Etf(r.ticker) else Ecra.Posicao(r.ticker)) } }
+            return@ListaAtualizavel
         }
         item { MosaicosMaisValias(h, anoAtual) }
         if (h.anos.size > 1) item { CartaoPorAno(h) }
@@ -125,7 +124,8 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
         )
         TextoPequeno(
             "Uma posição fica de borla quando o que recebeste nas vendas e em dividendos já cobre tudo o que pagaste " +
-                "por ela: as ações que ainda tens são lucro.",
+                "por ela: as ações que ainda tens são lucro. É só informativo: o que conta para comprar ou vender " +
+                "continua a ser a zona e o peso de cada posição.",
         )
         (if (todas) lista else lista.take(8)).forEach { r -> LinhaRecuperado(r) { abrir(r) } }
         if (lista.size > 8) {

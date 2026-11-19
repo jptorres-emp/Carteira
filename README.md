@@ -26,6 +26,8 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   mostra também a rentabilidade total desde a primeira compra (valor de hoje + vendas + dividendos − compras,
   com comissões; em euros com o câmbio de cada transação e em dólares sem o câmbio), e o ecrã Vendas lista as
   vendas com a mais-valia de cada uma pelo FIFO (como no IRS), as mais-valias por ano e as posições fechadas.
+  Só a título informativo, a opção «De borla» desse ecrã (e uma linha no detalhe) mostra que posições já se
+  pagaram com vendas e dividendos e quanto falta às outras; não entra nas regras de comprar e vender.
   Estas contas fazem-se na app (`dados/Historico.kt`), a partir das transações da folha. O olho no topo
   esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
   ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa

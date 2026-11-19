@@ -227,38 +227,29 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
 // ───────────────────────────── Rentabilidade total ─────────────────────────────
 
 /**
- * O que a posição já devolveu do que pagaste (vendas + dividendos) e se já está de borla, e tudo o que deu
- * desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os dividendos, contra o que pagaste.
+ * Tudo o que a posição deu desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os
+ * dividendos, contra o que pagaste. Inclui, só a título informativo, quanto do que pagaste já voltou.
  */
 @Composable
 fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
-    Cartao("Custo recuperado e rentabilidade") {
-        val pct = r.pctRecuperado ?: 0.0
-        Text(
-            when {
-                r.deBorla -> "🎁 De borla: as vendas e os dividendos já pagaram tudo"
-                pct >= 0.005 -> "Já recuperaste ${Formatos.pct(pct, 0)} do que pagaste"
-                else -> "Ainda não recuperaste nada do que pagaste"
-            },
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = if (r.deBorla) legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurface,
-        )
-        BarraRecuperado(pct, r.deBorla)
-        TextoPequeno(
-            if (r.deBorla) {
-                "Já tiraste ${Formatos.eur(r.recuperadoEur - r.compradoEur, 0)} a mais do que puseste: as " +
-                    "${Formatos.quantidade(r.unidadesHoje)} ações que tens (${Formatos.eur(r.valorEur, 0)}) são lucro."
-            } else {
-                "Faltam ${Formatos.eur(r.faltaRecuperarEur, 0)} para as vendas e os dividendos cobrirem o que pagaste" +
-                    (r.acoesParaFicarDeBorla?.let { " (cerca de ${plural(it, "ação vendida", "ações vendidas")} ao preço de hoje)." } ?: ".")
-            },
-        )
+    Cartao("Rentabilidade total") {
         LinhaValor("Pagaste nas compras", "${Formatos.eur(r.compradoEur, 0)} · ${plural(r.compras, "compra", "compras")}")
         if (r.vendas > 0) {
             LinhaValor("Recebeste nas vendas", "${Formatos.eur(r.vendidoEur, 0)} · ${plural(r.vendas, "venda", "vendas")}")
         }
         if (r.dividendosEur >= 0.5) LinhaValor("Dividendos (brutos)", Formatos.eur(r.dividendosEur, 0))
+        // Informativo: as vendas e os dividendos já cobrem o que pagaste? (não entra nas regras)
+        if (r.aberta && (r.pctRecuperado ?: 0.0) >= 0.005) {
+            LinhaValor(
+                "Já voltou do que pagaste",
+                if (r.deBorla) {
+                    "🎁 de borla (${Formatos.eurSinal(r.recuperadoEur - r.compradoEur)})"
+                } else {
+                    "${Formatos.pct(r.pctRecuperado, 0)} · faltam ${Formatos.eur(r.faltaRecuperarEur, 0)}"
+                },
+                cor = if (r.deBorla) Paleta.verde else Color.Unspecified,
+            )
+        }
         if (r.aberta) LinhaValor("Vale hoje", Formatos.eur(r.valorEur, 0))
         LinhaValor(
             "Lucro total",

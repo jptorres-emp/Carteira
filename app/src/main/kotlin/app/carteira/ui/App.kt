@@ -192,7 +192,7 @@ private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     Ecra.Watchlist -> "Watchlist"
     is Ecra.Posicao -> estado.dados?.posicoes?.firstOrNull { it.ticker == ecra.ticker }?.nome ?: ecra.ticker
     is Ecra.Etf -> ecra.ticker
-    Ecra.Vendas -> "De borla e vendas"
+    Ecra.Vendas -> "Vendas"
     is Ecra.Registar -> if (ecra.modo == ModoRegisto.DIVIDENDO) "Registar dividendo" else "Registar compra ou venda"
     is Ecra.AtualizarPatrimonio -> "Atualizar património"
     Ecra.Definicoes -> "Definições"

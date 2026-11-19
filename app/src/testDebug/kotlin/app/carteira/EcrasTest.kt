@@ -440,43 +440,35 @@ class EcrasTest {
         abrir()
         esperar("Valor da carteira")
         tocar("Posições")
-        esperar("De borla e vendas")
-        // Cada posição mostra quanto do que pagaste já voltou em vendas e dividendos (JADE já está de borla).
-        esperar("🎁 de borla")
-        esperar("recuperado ")
-        foto("07-posicoes-recuperado")
-        tocar("🎁 De borla")
-        esperar("JADE")
-        foto("07a-posicoes-de-borla")
-        tocar("JADE")
+        esperar("Vendas e posições fechadas")
+        foto("07-posicoes")
+        // A JADE já está de borla: aparece, só informativo, no detalhe e na opção das Vendas.
+        abrirPosicao("JADE")
         esperar("Quando comprar e vender")
-        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 custo recuperado.
+        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 rentabilidade total.
         deslizarPara(4)
-        esperar("Custo recuperado e rentabilidade")
-        esperar("De borla: as vendas e os dividendos já pagaram tudo")
+        esperar("Rentabilidade total")
+        esperar("🎁 de borla")
         foto("07b-posicao-de-borla")
         tocarDescricao("Voltar")
         abrirPosicao("ALFA")
         esperar("Quando comprar e vender")
         deslizarPara(4)
-        esperar("Já recuperaste")
+        esperar("Já voltou do que pagaste")
         esperar("Recebeste nas vendas")
         esperar("Mais-valias das vendas")
-        foto("07b2-posicao-recuperado")
+        foto("07b2-posicao-rentabilidade")
         tocarDescricao("Voltar")
-        tocar("De borla e vendas")
-        esperar("De borla?")
-        foto("07c-de-borla-e-vendas")
-        // Itens: 0 de borla, 1 título, 2 mais-valias, 3 por ano, 4 filtros dos anos.
-        deslizarPara(4)
+        tocar("Vendas e posições fechadas")
+        esperar("Mais-valias em 2026")
+        foto("07c-vendas")
+        // Itens: 0 opções (Vendas / De borla), 1 mais-valias, 2 por ano, 3 filtros dos anos.
+        deslizarPara(3)
         tocar("2025")
         esperar("MARE")
         foto("07d-vendas-2025")
         tocar("Todas")
-        val marcas = listOf(
-            "De borla?", "a mais do que pagaste", "faltam ", "Mais-valias por ano", "Posições fechadas", "ZETA", "MARE",
-            "NORA", "Vendeste bem", "Devias ter mantido",
-        )
+        val marcas = listOf("Mais-valias por ano", "Posições fechadas", "ZETA", "MARE", "NORA", "Vendeste bem", "Devias ter mantido")
         val vistas = mutableSetOf<String>()
         for (k in 0 until 30) {
             try {
@@ -489,6 +481,12 @@ class EcrasTest {
             foto("07e-vendas-${k.toString().padStart(2, '0')}")
         }
         assertEquals(marcas.toSet(), vistas)
+        // A opção "De borla": que posições já se pagaram e quanto falta às outras.
+        deslizarPara(0)
+        tocar("🎁 De borla")
+        esperar("1 posição já está de borla")
+        esperar("faltam ")
+        foto("07f-de-borla")
     }
 
     /** Tema escuro (a app segue o do telemóvel): os ecrãs principais, para rever cores e contraste. */
@@ -543,16 +541,20 @@ class EcrasTest {
         esperar("Carteira vs S&P 500")
         percorrer("22-carteira")
         tocar("Posições")
-        esperar("De borla e vendas")
+        esperar("Vendas e posições fechadas")
         foto("23-posicoes")
         // Com letra grande, a ALFA fica abaixo do ecrã: procura-se pela caixa de pesquisa.
         abrirPosicao("ALFA")
         esperar("Quando comprar e vender")
         percorrer("24-posicao", maximo = 8)
         tocarDescricao("Voltar")
-        tocar("De borla e vendas")
-        esperar("De borla?")
+        tocar("Vendas e posições fechadas")
+        esperar("Mais-valias em")
         percorrer("24b-vendas", maximo = 30)
+        deslizarPara(0)
+        tocar("🎁 De borla")
+        esperar("De borla?")
+        percorrer("24c-de-borla", maximo = 3)
         tocarDescricao("Voltar")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")

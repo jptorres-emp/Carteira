@@ -47,13 +47,9 @@ private data class Linha(
     val etf: Boolean,
     /** Os preços de comprar e vender pela camada (só nas ações com avaliação). */
     val gatilhos: Gatilhos? = null,
-    /** Parte do que pagaste que as vendas e os dividendos já devolveram (ponte v4). */
-    val recuperado: Double? = null,
-    /** As vendas e os dividendos já cobrem o que pagaste: as ações que tens são lucro. */
-    val deBorla: Boolean = false,
 )
 
-private val ordens = listOf("Valor", "Ganho", "Recuperado", "Hoje", "Peso vs alvo")
+private val ordens = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo")
 
 @Composable
 fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
@@ -69,15 +65,11 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         Linha(
             it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPctEur ?: it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, it.sinal, false,
             gatilhos = Gatilhos.de(it.camada, it.avaliacao),
-            recuperado = historico.de(it.ticker)?.pctRecuperado,
-            deBorla = historico.de(it.ticker)?.deBorla == true,
         )
     } + d.etfs.map {
         Linha(
             it.ticker, it.nome ?: it.ticker, "ETFs", it.valorEur, it.ganhoPct, it.varDiaPct,
             if (totalCarteira > 0 && it.valorEur != null) it.valorEur / totalCarteira else null, null, null, true,
-            recuperado = historico.de(it.ticker)?.pctRecuperado,
-            deBorla = historico.de(it.ticker)?.deBorla == true,
         )
     }
     val alvos = d.posicoes.associate { it.ticker to it.pesoAlvo }
@@ -85,9 +77,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     val camadas = listOf("Core A", "Core B", "Satélite", "Aposta").filter { c -> linhas.any { it.camada == c } } +
         linhas.map { it.camada }.distinct().filter { it !in listOf("Core A", "Core B", "Satélite", "Aposta", "ETFs", "—") }.sorted()
     // Os filtros seguem o SINAL da folha (as tuas regras), não só a zona do preço.
-    // "De borla" logo a seguir a "Todas" (só aparece quando há alguma).
-    val opcoes = listOf("Todas") + (if (linhas.any { it.deBorla }) listOf(FILTRO_BORLA) else emptyList()) +
-        listOf(FILTRO_COMPRA, FILTRO_REDUZIR, FILTRO_SAIR) + camadas + listOf("ETFs")
+    val opcoes = listOf("Todas", FILTRO_COMPRA, FILTRO_REDUZIR, FILTRO_SAIR) + camadas + listOf("ETFs")
 
     val termo = procura.trim().lowercase()
     val visiveis = linhas.filter { l ->
@@ -97,13 +87,11 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
                 FILTRO_COMPRA -> Sinais.compra(l.sinal)
                 FILTRO_REDUZIR -> Sinais.reduzir(l.sinal)
                 FILTRO_SAIR -> Sinais.sair(l.sinal)
-                FILTRO_BORLA -> l.deBorla
                 else -> l.camada == filtro
             }
     }.let { lista ->
         when (ordem) {
             "Ganho" -> lista.sortedByDescending { it.ganhoPct ?: Double.NEGATIVE_INFINITY }
-            "Recuperado" -> lista.sortedByDescending { it.recuperado ?: Double.NEGATIVE_INFINITY }
             "Hoje" -> lista.sortedByDescending { it.varDia ?: Double.NEGATIVE_INFINITY }
             "Peso vs alvo" -> lista.sortedByDescending { l ->
                 val alvo = alvos[l.ticker]
@@ -149,7 +137,6 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
 private const val FILTRO_COMPRA = "🟢 Sinal de compra"
 private const val FILTRO_REDUZIR = "🟠 Reduzir"
 private const val FILTRO_SAIR = "🔴 Sair"
-private const val FILTRO_BORLA = "🎁 De borla"
 
 @Composable
 private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
@@ -179,20 +166,6 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                     color = corDoSinal(l.ganhoPct),
                     style = MaterialTheme.typography.bodySmall,
                 )
-                // Quanto do que pagaste já voltou em vendas e dividendos (o detalhe mostra as contas).
-                when {
-                    l.deBorla -> Text(
-                        "🎁 de borla",
-                        color = legivel(Paleta.verde),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    l.recuperado != null && l.recuperado >= 0.005 -> Text(
-                        "recuperado ${Formatos.pct(l.recuperado, 0)}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
                 Text(
                     "hoje ${Formatos.pctSinal(l.varDia, 2)}",
                     color = corDoSinal(l.varDia),
@@ -205,26 +178,16 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
     }
 }
 
-/** Atalho para "De borla e vendas": que posições já se pagaram, quantas vendas há e as mais-valias do ano. */
+/** Atalho para as Vendas: quantas há e as mais-valias do ano (o "de borla" é uma opção desse ecrã). */
 @Composable
 private fun EntradaVendas(d: Dados, h: Historico, aoTocar: () -> Unit) {
     CartaoClicavel(aoTocar) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("De borla e vendas", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text("Vendas e posições fechadas", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 if (!h.temDados) {
                     TextoPequeno("Precisa da ponte da folha na versão 4")
                 } else {
-                    val livres = h.deBorla
-                    val perto = h.recuperacao.firstOrNull()
-                    TextoPequeno(
-                        when {
-                            livres.isNotEmpty() -> "🎁 De borla: " + livres.take(4).joinToString(", ") { it.ticker } +
-                                if (livres.size > 4) "…" else ""
-                            perto != null -> "🎁 Nenhuma de borla · mais perto: ${perto.ticker} ${Formatos.pct(perto.pctRecuperado, 0)}"
-                            else -> "🎁 Nenhuma de borla ainda"
-                        },
-                    )
                     val ano = d.meta.hoje.take(4).toIntOrNull()
                     val esteAno = h.anos.firstOrNull { it.ano == ano }
                     TextoPequeno(
