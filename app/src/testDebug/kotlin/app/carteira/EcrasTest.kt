@@ -56,7 +56,7 @@ import org.robolectric.annotation.GraphicsMode
 private class FonteFalsa(var dados: String) : FonteDados {
     var ultimoPedido: JSONObject? = null
     override suspend fun dados(): String = dados
-    override suspend fun ping(): String = """{"ok":true,"versaoPonte":4,"folha":"Carteira de teste"}"""
+    override suspend fun ping(): String = """{"ok":true,"versaoPonte":5,"folha":"Carteira de teste"}"""
     override suspend fun enviar(pedido: JSONObject): String {
         ultimoPedido = pedido
         return """{"ok":true,"mensagem":"Compra registada na linha 141 de Transações: 2 ALFA a 300,50 $.","aviso":null}"""
@@ -368,10 +368,10 @@ class EcrasTest {
         deslizarPara(0)
         tocar("Carteira")
         esperar("Carteira vs S&P 500")
-        val marcasCarteira = listOf("Carteira vs S&P 500", "Últimos 12 meses", "Estou no caminho?", "Desempenho e risco",
-            "Últimos movimentos")
+        val marcasCarteira = listOf("Carteira vs S&P 500", "Cada ação contra o S&P 500", "Últimos 12 meses", "Estou no caminho?",
+            "Desempenho e risco", "Últimos movimentos")
         val vistasCarteira = mutableSetOf<String>()
-        for (k in 0..6) {
+        for (k in 0..7) {
             deslizarPara(k)
             registar(marcasCarteira, vistasCarteira)
             when (k) {
@@ -489,6 +489,76 @@ class EcrasTest {
         foto("07f-de-borla")
     }
 
+    @Test
+    fun contraOIndiceESimularVenda() {
+        abrir()
+        esperar("Valor da carteira")
+        tocar("Posições")
+        abrirPosicao("ALFA")
+        esperar("Quando comprar e vender")
+        // Itens do detalhe: 0 cabeçalho, 1 botões, 2 comprar e vender, 3 a tua posição, 4 rentabilidade total,
+        // 5 simular uma venda.
+        deslizarPara(4)
+        esperar("Por ano (TIR)")
+        esperar("+26,2%")
+        esperar("Contra o S&P 500 (VUAA)")
+        esperar("O mesmo dinheiro no VUAA")
+        esperar("bateste o índice")
+        foto("30-rentabilidade-indice")
+        deslizarPara(5)
+        esperar("Simular uma venda")
+        esperar("Recebes, ao preço de agora")
+        esperar("Custo dessas ações (FIFO)")
+        esperar("IRS estimado (28%)")
+        esperar("Fica para ti")
+        foto("30b-simular-1")
+        tocar("+")
+        esperar("Saldo de mais-valias de 2026")
+        foto("30c-simular-2")
+        tocar("Tudo")
+        foto("30d-simular-tudo")
+        tocarDescricao("Voltar")
+        // A BORE tem sinal de reduzir: o simulador começa na sugestão da folha (470 € ≈ 4 ações).
+        abrirPosicao("BORE")
+        esperar("Quando comprar e vender")
+        deslizarPara(5)
+        esperar("Sugestão da folha")
+        esperar("de 13 ações")
+        esperar("Peso na carteira")
+        foto("30e-simular-sugestao")
+        tocarDescricao("Voltar")
+        // A lista de todas, a partir da Evolução.
+        tocarSeparador("Evolução")
+        deslizarPara(0)
+        tocar("Carteira")
+        // Itens da vista Carteira: 0 filtros, 1 gráfico, 2 o atalho para cada ação contra o S&P 500.
+        deslizarPara(2)
+        tocar("Cada ação contra o S&P 500")
+        esperar("4 de 13 ações à frente do VUAA")
+        esperar("Tab Validação S&P 500")
+        foto("31-indice")
+        val marcas = listOf("JADE", "ALFA", "ILHA", "HORT", "MARE", "vendida")
+        val vistas = mutableSetOf<String>()
+        for (k in 0 until 20) {
+            try {
+                compose.onNode(hasScrollToIndexAction()).performScrollToIndex(k)
+            } catch (e: IllegalArgumentException) {
+                break // passou do último item
+            }
+            assentar()
+            marcas.filterTo(vistas) { compose.onAllNodes(hasText(it, substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            foto("31b-indice-${k.toString().padStart(2, '0')}")
+        }
+        assertEquals(marcas.toSet(), vistas)
+        deslizarPara(0)
+        tocar("Só as que tens")
+        esperar("4 de 10 ações à frente do VUAA")
+        foto("31c-indice-tens")
+        tocar("ETFs")
+        esperar("0 de 3 ETF à frente do VUAA")
+        foto("31d-indice-etfs")
+    }
+
     /** Tema escuro (a app segue o do telemóvel): os ecrãs principais, para rever cores e contraste. */
     @Test
     @Config(qualifiers = "+night")
@@ -555,6 +625,14 @@ class EcrasTest {
         tocar("🎁 De borla")
         esperar("De borla?")
         percorrer("24c-de-borla", maximo = 3)
+        tocarDescricao("Voltar")
+        tocarSeparador("Evolução")
+        deslizarPara(0)
+        tocar("Carteira")
+        deslizarPara(2)
+        tocar("Cada ação contra o S&P 500")
+        esperar("à frente do VUAA")
+        percorrer("24d-indice", maximo = 20)
         tocarDescricao("Voltar")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")

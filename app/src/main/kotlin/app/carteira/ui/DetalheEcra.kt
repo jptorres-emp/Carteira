@@ -20,7 +20,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.carteira.dados.Gatilhos
+import app.carteira.dados.Historico
 import app.carteira.dados.Posicao
 import app.carteira.dados.Rentabilidade
 
@@ -99,7 +105,10 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 }
             }
         }
-        d.historico.de(p.ticker)?.let { r -> item { CartaoRentabilidade(r, d.historico.dividendosDesde) } }
+        d.historico.de(p.ticker)?.let { r ->
+            item { CartaoRentabilidade(r, d.historico) { vm.irPara(Ecra.Indice) } }
+            if (r.aberta && r.lotes.isNotEmpty()) item { CartaoSimularVenda(r, d.historico, p) }
+        }
         if (a != null) {
             item {
                 Cartao("Avaliação (${moedaLocal})") {
@@ -220,7 +229,10 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 LinhaValor("Peso nos ETF", Formatos.pct(e.pesoEtfs))
             }
         }
-        d.historico.de(e.ticker)?.let { r -> item { CartaoRentabilidade(r, d.historico.dividendosDesde) } }
+        d.historico.de(e.ticker)?.let { r ->
+            item { CartaoRentabilidade(r, d.historico) { vm.irPara(Ecra.Indice) } }
+            if (r.aberta && r.lotes.isNotEmpty()) item { CartaoSimularVenda(r, d.historico, null) }
+        }
     }
 }
 
@@ -228,10 +240,11 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
 
 /**
  * Tudo o que a posição deu desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os
- * dividendos, contra o que pagaste. Inclui, só a título informativo, quanto do que pagaste já voltou.
+ * dividendos, contra o que pagaste. Inclui, só a título informativo, quanto do que pagaste já voltou, a
+ * rentabilidade por ano (TIR) e o mesmo dinheiro no S&P 500 (VUAA), nas mesmas datas (ponte v5).
  */
 @Composable
-fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
+fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? = null) {
     Cartao("Rentabilidade total") {
         LinhaValor("Pagaste nas compras", "${Formatos.eur(r.compradoEur, 0)} · ${plural(r.compras, "compra", "compras")}")
         if (r.vendas > 0) {
@@ -265,14 +278,81 @@ fun CartaoRentabilidade(r: Rentabilidade, dividendosDesde: String?) {
             )
         }
         r.maisValiasEur?.let { LinhaValor("Mais-valias das vendas", Formatos.eurSinal(it), cor = corDoSinal(it)) }
+        if (h.v5) {
+            LinhaValor(
+                "Por ano (TIR)",
+                r.tir?.let { Formatos.pctSinal(it) } ?: "menos de 1 ano",
+                cor = r.tir?.let { corDoSinal(it) } ?: Color.Unspecified,
+            )
+        }
+        ContraIndice(r, h, verTodas)
         TextoPequeno(
             "Desde a primeira compra (${Formatos.data(r.primeiraCompra)}): " +
                 (if (r.aberta) "o que vale hoje + " else "") +
                 "o que recebeste nas vendas + dividendos − o que pagaste, com as comissões. " +
                 "Em euros, cada compra e venda conta com o câmbio do seu dia; em dólares, sem o câmbio." +
-                (if (dividendosDesde != null) " Dividendos desde $dividendosDesde, ao câmbio de hoje." else "") +
-                (if (r.maisValiasEur != null) " Mais-valias pelo FIFO, como no IRS." else ""),
+                (
+                    if (h.dividendosDesde != null) {
+                        " Dividendos desde ${h.dividendosDesde}, " + (if (h.v5) "ao câmbio de cada mês." else "ao câmbio de hoje.")
+                    } else {
+                        ""
+                    }
+                    ) +
+                (if (r.maisValiasEur != null) " Mais-valias pelo FIFO, como no IRS." else "") +
+                (if (h.v5) " TIR: o que a posição rendeu por ano, contando com a data de cada compra, venda e dividendo; só a partir de um ano." else ""),
         )
+    }
+}
+
+/**
+ * O mesmo dinheiro no VUAA: cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos
+ * euros, como a tab Validação S&P 500. A diferença é o que ganhaste (ou perdeste) por escolher esta ação.
+ */
+@Composable
+private fun ContraIndice(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)?) {
+    if (!h.temIndice) {
+        if (h.temDados) TextoPequeno("Atualiza a ponte da folha para a versão 5 para comparar com o S&P 500 e veres a TIR.")
+        return
+    }
+    val e = r.espelho
+    Text(
+        "Contra o S&P 500 (VUAA)",
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(top = 6.dp),
+    )
+    if (e == null) {
+        TextoPequeno(
+            if (r.semPrecoIndice > 0) {
+                "Falta o preço do S&P 500 de ${plural(r.semPrecoIndice, "transação", "transações")}: a ponte fixa-o no dia " +
+                    "seguinte, ou podes colá-lo na tab Transações (colunas R e S)."
+            } else {
+                "Sem dados para comparar."
+            },
+        )
+        return
+    }
+    LinhaValor(
+        "O mesmo dinheiro no VUAA",
+        Formatos.eurSinal(e.lucroEur) + (e.tir?.let { " · ${Formatos.pctSinal(it)}/ano" } ?: ""),
+        cor = corDoSinal(e.lucroEur),
+    )
+    val dif = r.diferencaIndiceEur ?: 0.0
+    LinhaValor(
+        "Diferença",
+        Formatos.eurSinal(dif) + if (dif >= 0) " · bateste o índice" else " · o índice fez melhor",
+        cor = corDoSinal(dif),
+        destaque = true,
+    )
+    TextoPequeno(
+        "Cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos euros, com as mesmas " +
+            "comissões (como a tab Validação S&P 500). O VUAA reinveste os dividendos dele." +
+            if (e.unidades < -1e-6) " Vendeste mais do que o VUAA chegava a valer: a diferença conta o que faltava, ao preço de hoje." else "",
+    )
+    if (verTodas != null) {
+        TextButton(onClick = verTodas, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)) {
+            Text("Ver todas as ações contra o S&P 500")
+        }
     }
 }
 
@@ -299,6 +379,99 @@ internal fun BarraRecuperado(pct: Double, deBorla: Boolean, modifier: Modifier =
 
 /** "1 compra", "3 compras". */
 internal fun plural(n: Int, um: String, varios: String): String = if (n == 1) "1 $um" else "$n $varios"
+
+// ───────────────────────────── Simular uma venda ─────────────────────────────
+
+/**
+ * Ações a vender sugeridas pela folha quando diz para reduzir ou sair (o "Ajuste sugerido" em euros, ao
+ * preço de hoje), arredondadas a ações inteiras; null se a folha não sugere vender.
+ */
+internal fun sugestaoDeVenda(r: Rentabilidade, p: Posicao?): Double? {
+    val ajuste = p?.ajusteSugeridoEur?.takeIf { it < -0.5 } ?: return null
+    if (!r.aberta || r.valorEur <= 0) return null
+    if (-ajuste >= r.valorEur - 0.5) return r.unidadesHoje
+    val porAcao = r.valorEur / r.unidadesHoje
+    val inteiras = kotlin.math.floor(r.unidadesHoje + 1e-9)
+    return kotlin.math.round(-ajuste / porAcao).coerceIn(1.0, inteiras.coerceAtLeast(1.0)).coerceAtMost(r.unidadesHoje)
+}
+
+/** Mais uma ação (a última fração, se tiveres ações fracionadas). */
+internal fun maisUma(n: Double, total: Double): Double = minOf(kotlin.math.floor(n + 1e-9) + 1, total)
+
+/** Menos uma ação; nunca abaixo de uma (ou de tudo, se tiveres menos de uma). */
+internal fun menosUma(n: Double, total: Double): Double {
+    val inteiro = kotlin.math.floor(n + 1e-9)
+    val menos = if (n - inteiro > 1e-9) inteiro else n - 1
+    return menos.coerceAtLeast(minOf(1.0, total))
+}
+
+/**
+ * Vender agora parte desta posição: o que recebes ao preço de hoje, o custo das ações pelo FIFO, a mais-valia
+ * e o IRS estimado sobre o saldo do ano. Começa na sugestão da folha quando ela diz para reduzir ou sair.
+ */
+@Composable
+internal fun CartaoSimularVenda(r: Rentabilidade, h: Historico, p: Posicao?) {
+    val sugestao = sugestaoDeVenda(r, p)
+    var n by rememberSaveable(r.ticker) { mutableStateOf(sugestao ?: minOf(1.0, r.unidadesHoje)) }
+    val s = h.simularVenda(r, n) ?: return
+    val nome = if (r.etf) "unidades" else "ações"
+    Cartao("Simular uma venda") {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedButton(onClick = { n = menosUma(n, r.unidadesHoje) }, enabled = n > minOf(1.0, r.unidadesHoje) + 1e-9) { Text("−") }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    Formatos.quantidade(s.unidades),
+                    style = MaterialTheme.typography.titleLarge.numeros(),
+                    fontWeight = FontWeight.SemiBold,
+                )
+                TextoPequeno("de ${Formatos.quantidade(r.unidadesHoje)} $nome")
+            }
+            OutlinedButton(onClick = { n = maisUma(n, r.unidadesHoje) }, enabled = n < r.unidadesHoje - 1e-9) { Text("+") }
+        }
+        val opcoes = buildList {
+            if (sugestao != null) add("Sugestão da folha" to sugestao)
+            if (r.unidadesHoje >= 2) add("Metade" to kotlin.math.round(r.unidadesHoje / 2).coerceAtLeast(1.0))
+            add("Tudo" to r.unidadesHoje)
+        }.distinctBy { it.second }
+        Filtros(opcoes.map { it.first }, opcoes.firstOrNull { kotlin.math.abs(it.second - n) < 1e-9 }?.first ?: "", compacto = true) { o ->
+            opcoes.firstOrNull { it.first == o }?.let { n = it.second }
+        }
+        LinhaValor("Recebes, ao preço de agora", Formatos.eur(s.recebidoEur, 0))
+        LinhaValor("Custo dessas $nome (FIFO)", Formatos.eur(s.custoEur, 0))
+        val mv = s.maisValiaEur
+        LinhaValor("Mais-valia", Formatos.eurSinal(mv), cor = corDoSinal(mv))
+        val imposto = s.impostoEur ?: 0.0
+        LinhaValor(
+            "IRS estimado (28%)",
+            when {
+                imposto > 0.5 -> Formatos.eur(imposto, 0)
+                imposto < -0.5 -> "baixa ${Formatos.eur(-imposto, 0)}"
+                else -> Formatos.eur(0.0, 0)
+            },
+            cor = if (imposto < -0.5) Paleta.verde else Color.Unspecified,
+        )
+        LinhaValor("Fica para ti", Formatos.eur(s.recebidoEur - imposto.coerceAtLeast(0.0), 0), destaque = true)
+        if (p?.pesoTotal != null && r.valorEur > 0) {
+            val depois = p.pesoTotal * (r.valorEur - s.recebidoEur) / r.valorEur
+            LinhaValor(
+                "Peso na carteira",
+                "${Formatos.pct(p.pesoTotal)} → ${Formatos.pct(depois)}" +
+                    (p.pesoMaximo?.let { " · máx. ${Formatos.pct(it)}" } ?: p.pesoAlvo?.let { " · alvo ${Formatos.pct(it)}" } ?: ""),
+            )
+        }
+        TextoPequeno(
+            "Saldo de mais-valias de ${s.ano}: ${Formatos.eurSinal(s.saldoAnoAntesEur)} → ${Formatos.eurSinal(s.saldoAnoDepoisEur)}. " +
+                "O IRS é 28% do saldo do ano (mais-valias − menos-valias), se não englobares; aqui conta só a diferença " +
+                "que esta venda faz. Sem comissão de venda; o preço muda até venderes." +
+                if (s.unidadesMenosDeUmAno > 1e-9) {
+                    " ${Formatos.quantidade(s.unidadesMenosDeUmAno)} destas $nome têm menos de um ano: se o teu rendimento " +
+                        "estiver no último escalão do IRS, essa mais-valia tem de ser englobada."
+                } else {
+                    ""
+                },
+        )
+    }
+}
 
 // ───────────────────────────── Quando comprar e vender ─────────────────────────────
 

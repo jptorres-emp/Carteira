@@ -32,6 +32,9 @@ sealed interface Ecra {
 
     /** Vendas, mais-valias por ano e posições fechadas (ponte v4). */
     data object Vendas : Ecra
+
+    /** Cada ação contra o mesmo dinheiro no S&P 500 (ponte v5). */
+    data object Indice : Ecra
     data class Registar(val modo: ModoRegisto, val ticker: String? = null, val tipo: String? = null) : Ecra
 
     /** Gravar o património de um mês na folha (mes: "aaaa-mm"; null = o que a app sugere). */

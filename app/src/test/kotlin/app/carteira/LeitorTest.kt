@@ -84,7 +84,7 @@ class LeitorTest {
     @Test
     fun leAsSeccoesDaPonteV2() {
         val d = Leitor.lerResposta(amostra())
-        assertEquals(4, d.versaoPonte)
+        assertEquals(5, d.versaoPonte)
         assertTrue(d.meta.avisos.isEmpty())
         assertEquals("2022-09", d.evolucao.first().mes)
         assertEquals("2026-11", d.evolucao.last().mes)
@@ -140,6 +140,50 @@ class LeitorTest {
         assertTrue(h.vendas.all { it.analise != null && it.custoEur != null })
         assertEquals("Alfa Software Inc", h.de("ALFA")!!.nome)
         assertTrue(h.de("ALFA")!!.aberta)
+    }
+
+    @Test
+    fun lePrecosDoIndiceEDividendosPorMesDaPonteV5() {
+        val d = Leitor.lerResposta(amostra())
+        assertTrue(d.movimentos.all { it.precoIndiceEur != null && it.precoIndiceEur!! > 0 && it.precoSpy != null })
+        val i = d.indice!!
+        assertEquals("2026-11-16", i.data)
+        assertEquals(130.0582, i.vuaaEur, 1e-9)
+        assertEquals(32, d.dividendosPorMes.size)
+        assertEquals(60, d.cambioMensal.size)
+        assertTrue(d.cambioMensal.keys.all { Regex("\\d{4}-\\d{2}").matches(it) })
+        // Os dividendos por mês somam o mesmo que os totais por empresa.
+        d.dividendosPorEmpresa!!.empresas.forEach { e ->
+            assertEquals(e.totalUsd, d.dividendosPorMes.filter { it.ticker == e.ticker }.sumOf { it.usd }, 0.011)
+        }
+        val h = d.historico
+        assertTrue(h.v5 && h.temIndice)
+        assertTrue(h.porTicker.values.all { it.espelho != null && it.semPrecoIndice == 0 })
+        // A diferença para o índice é o que a ação vale hoje + dividendos − o que o VUAA valeria.
+        val alfa = h.de("ALFA")!!
+        assertEquals(alfa.valorEur + alfa.dividendosEur - alfa.espelho!!.valorEur, alfa.diferencaIndiceEur!!, 1e-9)
+    }
+
+    @Test
+    fun ponteV4NaoTemIndice() {
+        val v4 = org.json.JSONObject(amostra()).apply {
+            put("versaoPonte", 4)
+            getJSONObject("dados").apply {
+                remove("indice")
+                remove("dividendosPorMes")
+                remove("cambioMensal")
+                val mv = getJSONArray("movimentos")
+                for (k in 0 until mv.length()) mv.getJSONObject(k).apply { remove("precoIndiceEur"); remove("precoSpy") }
+            }
+        }
+        val d = Leitor.lerResposta(v4.toString())
+        assertNull(d.indice)
+        assertTrue(d.dividendosPorMes.isEmpty() && d.cambioMensal.isEmpty())
+        assertTrue(d.movimentos.all { it.precoIndiceEur == null })
+        val h = d.historico
+        assertTrue(h.temDados)
+        assertFalse(h.temIndice || h.v5)
+        assertTrue(h.porTicker.values.all { it.espelho == null && it.tir == null && it.semPrecoIndice == 0 })
     }
 
     @Test

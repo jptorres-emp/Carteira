@@ -300,8 +300,24 @@ object Leitor {
                     )
                 }
             }.filterNotNull(),
+            indice = d.optJSONObject("indice")?.let { o ->
+                o.num("vuaaEur")?.takeIf { it > 0 }?.let { IndiceHoje(o.texto("data"), it, o.num("spyUsd")) }
+            },
+            dividendosPorMes = d.lista("dividendosPorMes") { x ->
+                val t = x.texto("ticker")
+                val mes = x.texto("mes")?.takeIf { MES.matches(it) }
+                val usd = x.num("usd")
+                if (t != null && mes != null && usd != null) DividendoMes(t, mes, usd) else null
+            }.filterNotNull(),
+            cambioMensal = d.optJSONObject("cambioMensal")?.let { o ->
+                o.keys().asSequence().mapNotNull { k ->
+                    o.num(k)?.takeIf { MES.matches(k) && it > 0.3 && it < 3 }?.let { k to it }
+                }.toMap()
+            }.orEmpty(),
         )
     }
+
+    private val MES = Regex("\\d{4}-\\d{2}")
 
     /** Uma compra ou venda; fica de fora se faltar o essencial (data, ticker, unidades ou valores). */
     private fun lerMovimento(o: JSONObject): Movimento? {
@@ -320,6 +336,8 @@ object Leitor {
             cambio = o.num("cambio"),
             valorEur = o.num("valorEur") ?: return null,
             comissaoEur = o.num("comissaoEur") ?: 0.0,
+            precoIndiceEur = o.num("precoIndiceEur")?.takeIf { it > 0 },
+            precoSpy = o.num("precoSpy")?.takeIf { it > 0 },
         )
     }
 

@@ -150,6 +150,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                 is Ecra.Posicao -> PosicaoDetalheEcra(estado, vm, ecra.ticker)
                 is Ecra.Etf -> EtfDetalheEcra(estado, vm, ecra.ticker)
                 Ecra.Vendas -> VendasEcra(estado, vm)
+                Ecra.Indice -> IndiceEcra(estado, vm)
                 is Ecra.Registar -> RegistarEcra(estado, vm, ecra)
                 is Ecra.AtualizarPatrimonio -> AtualizarPatrimonioEcra(estado, vm, ecra)
                 Ecra.Definicoes -> DefinicoesEcra(estado, vm)
@@ -193,6 +194,7 @@ private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     is Ecra.Posicao -> estado.dados?.posicoes?.firstOrNull { it.ticker == ecra.ticker }?.nome ?: ecra.ticker
     is Ecra.Etf -> ecra.ticker
     Ecra.Vendas -> "Vendas"
+    Ecra.Indice -> "Contra o S&P 500"
     is Ecra.Registar -> if (ecra.modo == ModoRegisto.DIVIDENDO) "Registar dividendo" else "Registar compra ou venda"
     is Ecra.AtualizarPatrimonio -> "Atualizar património"
     Ecra.Definicoes -> "Definições"

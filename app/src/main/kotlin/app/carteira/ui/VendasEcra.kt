@@ -200,7 +200,7 @@ private fun CartaoPorAno(h: Historico) {
 
 /** Cartão de lista; só se pode tocar quando há para onde ir (posições que ainda tens). */
 @Composable
-private fun CartaoLista(aoTocar: (() -> Unit)?, conteudo: @Composable ColumnScope.() -> Unit) {
+internal fun CartaoLista(aoTocar: (() -> Unit)?, conteudo: @Composable ColumnScope.() -> Unit) {
     if (aoTocar != null) {
         CartaoClicavel(aoTocar, conteudo = conteudo)
     } else {

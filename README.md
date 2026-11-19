@@ -10,14 +10,19 @@ a folha calcula e escreve lá o que registas.
 App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
 ```
 
-- **Ponte** (`ponte/Codigo.gs`, versão 4): aplicação Web do Google Apps Script, publicada a partir da folha.
+- **Ponte** (`ponte/Codigo.gs`, versão 5): aplicação Web do Google Apps Script, publicada a partir da folha.
   `GET ?acao=dados` devolve a carteira em JSON (com a evolução mensal, o plano do património até 2030 —
   reforço e taxas assumidos e as metas de referência, base e alargada de cada mês —, os objetivos, o
   património, a comparação com o S&P 500 e os setores; e, desde a versão 4, todas as compras e vendas da tab
-  Transações, os dividendos por empresa da tab Dividendos Anuais e a tab Vendas); `GET ?acao=alertas` devolve só preços e sinais,
+  Transações, os dividendos por empresa da tab Dividendos Anuais e a tab Vendas; e, desde a versão 5, o preço
+  do S&P 500 (VUAA e SPY) em cada compra e venda, os dividendos de cada empresa mês a mês e o câmbio de cada
+  mês); `GET ?acao=alertas` devolve só preços e sinais,
   para os alertas; `POST` regista uma transação (tab Transações), um dividendo (tab Dividendos Mensais) ou o
   património de um mês (coluna Net Worth (€) da tab Evolução Patrimonial).
   Todos os pedidos levam uma chave secreta. Se uma tab mudar de forma, a resposta traz o resto e um aviso.
+  A Google não deixa ler o GOOGLEFINANCE histórico fora do browser (dá #N/A), por isso as colunas «Preço SPY
+  na Data» e «Preço VUAA na Data» da tab Transações estão em valores; a ponte guarda o preço de cada dia
+  (nas propriedades do script) e, a partir do dia seguinte, passa a valor o preço das transações novas.
 - **App** (Kotlin + Jetpack Compose): Início (só o estado atual da carteira), Evolução (o património total
   mês a mês face ao plano da folha, com o registo do mês, marcos e ano a ano; e a carteira face ao S&P 500,
   indicadores, objetivos e movimentos), Posições, Dividendos, Watchlist, Registar e Alertas. Cada posição
@@ -28,7 +33,12 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   vendas com a mais-valia de cada uma pelo FIFO (como no IRS), as mais-valias por ano e as posições fechadas.
   Só a título informativo, a opção «De borla» desse ecrã (e uma linha no detalhe) mostra que posições já se
   pagaram com vendas e dividendos e quanto falta às outras; não entra nas regras de comprar e vender.
-  Estas contas fazem-se na app (`dados/Historico.kt`), a partir das transações da folha. O olho no topo
+  Com a ponte v5, o detalhe compara cada posição com o mesmo dinheiro no S&P 500 (VUAA) nas mesmas datas —
+  como a tab Validação S&P 500, mas ação a ação — e mostra a rentabilidade por ano (TIR, só quando o dinheiro
+  está lá, em média, há mais de um ano); o ecrã «Contra o S&P 500» (atalho na Evolução) põe todas lado a
+  lado. O simulador de venda do detalhe diz o que recebes ao preço de agora, o custo pelo FIFO, a mais-valia
+  e o IRS estimado (28% do saldo do ano), e começa na sugestão da folha quando ela diz para reduzir.
+  Estas contas fazem-se na app (`dados/Historico.kt` e `dados/Tir.kt`), a partir das transações da folha. O olho no topo
   esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
   ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa
   tons com contraste de pelo menos 4,5:1 (WCAG AA) nos dois temas, e os gráficos podem mudar de mês com

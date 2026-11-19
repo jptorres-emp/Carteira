@@ -156,6 +156,7 @@ private fun LazyListScope.itensCarteira(d: Dados, vm: CarteiraViewModel) {
     } else if (d.versaoPonte < 2) {
         item { AvisoPonteAntiga(vm) }
     }
+    if (d.historico.temDados) item { EntradaContraIndice(d.historico) { vm.irPara(Ecra.Indice) } }
     item { GrelhaIndicadores(d) }
     if (d.objetivos.isNotEmpty()) item { CartaoObjetivos(d.objetivos) }
     item { CartaoDesempenho(d) }

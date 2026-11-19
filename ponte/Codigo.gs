@@ -17,7 +17,9 @@
  */
 const CHAVE = '__CHAVE__';
 // v4: todas as compras e vendas, os dividendos por empresa e a tab Vendas (vendas e rentabilidade na app).
-const VERSAO_PONTE = 4;
+// v5: o preço do S&P 500 (VUAA) em cada compra e venda, que a ponte fixa na folha, e os dividendos de cada
+//     empresa mês a mês (cada ação contra o índice e a rentabilidade por ano na app).
+const VERSAO_PONTE = 5;
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto',
   'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -32,8 +34,14 @@ function doGet(e) {
     if (acao === 'ping') {
       return { ok: true, versaoPonte: VERSAO_PONTE, folha: SpreadsheetApp.getActive().getName() };
     }
-    if (acao === 'dados') return { ok: true, versaoPonte: VERSAO_PONTE, dados: lerTudo_() };
-    if (acao === 'alertas') return { ok: true, versaoPonte: VERSAO_PONTE, alertas: lerParaAlertas_() };
+    if (acao === 'dados') {
+      const indice = prepararIndice_(true);
+      return { ok: true, versaoPonte: VERSAO_PONTE, dados: lerTudo_(indice) };
+    }
+    if (acao === 'alertas') {
+      prepararIndice_(false);
+      return { ok: true, versaoPonte: VERSAO_PONTE, alertas: lerParaAlertas_() };
+    }
     throw new Error('Ação desconhecida: ' + acao);
   });
 }
@@ -174,22 +182,26 @@ function hojeIso_() {
 
 // ───────────────────────────── Leitura ─────────────────────────────
 
-function lerTudo_() {
+function lerTudo_(indice) {
+  indice = indice || { hoje: null, registo: {}, avisos: [] };
   const ss = SpreadsheetApp.getActive();
   const cart = lerCarteira_();
   const aval = lerAvaliacao_();
   cart.posicoes.forEach(function (p) { p.avaliacao = aval[p.ticker] || null; });
   // Secções da visão geral: se uma tab mudar de forma, a app recebe o resto e um aviso.
-  const avisos = [];
+  const avisos = indice.avisos.slice();
   const ev = opcional_(avisos, 'Evolução Patrimonial', lerEvolucaoEPlano_, { evolucao: [], plano: null });
   const objetivos = opcional_(avisos, 'Objetivos', lerObjetivos_, []);
   const patrimonio = opcional_(avisos, 'Investimentos', lerPatrimonio_, null);
   const comparacoes = opcional_(avisos, 'Validação S&P 500', lerComparacoes_, []);
   const setores = opcional_(avisos, 'Distribuição', lerSetores_, []);
   // Ponte v4: a app calcula a rentabilidade de cada ação e as mais-valias de cada venda.
-  const movimentos = opcional_(avisos, 'Transações (compras e vendas)', lerMovimentos_, []);
+  const movimentos = opcional_(avisos, 'Transações (compras e vendas)', function () { return lerMovimentos_(indice.registo); }, []);
   const dividendosPorEmpresa = opcional_(avisos, 'Dividendos Anuais (por empresa)', lerDividendosPorEmpresa_, null);
   const analiseVendas = opcional_(avisos, 'Vendas', lerAnaliseVendas_, []);
+  // Ponte v5: cada ação contra o S&P 500 e a rentabilidade por ano.
+  const dividendosPorMes = opcional_(avisos, 'Dividendos Mensais (por empresa e mês)', lerDividendosPorMes_, []);
+  const cambioMensal = opcional_(avisos, 'Validação S&P 500 (câmbio de cada mês)', lerCambioMensal_, {});
   return {
     meta: {
       folha: ss.getName(),
@@ -217,7 +229,10 @@ function lerTudo_() {
     transacoes: lerTransacoes_(15),
     movimentos: movimentos,
     dividendosPorEmpresa: dividendosPorEmpresa,
-    analiseVendas: analiseVendas
+    analiseVendas: analiseVendas,
+    indice: indice.hoje,
+    dividendosPorMes: dividendosPorMes,
+    cambioMensal: cambioMensal
   };
 }
 
@@ -721,6 +736,27 @@ function lerComparacoes_() {
   return out;
 }
 
+/**
+ * Câmbio médio de cada mês (euros por dólar), da tabela "Os teus dividendos — € por $ (média de cada mês)"
+ * da tab Validação S&P 500 (ponte v5): {"2024-03": 0.9265, ...}. A app passa os dividendos de cada mês a
+ * euros com ele, como a folha.
+ */
+function lerCambioMensal_() {
+  const d = grelha_(folha_('Validação S&P 500'), 150).valores;
+  const h = acharLinha_(d, ['Os teus dividendos — € por $ (média de cada mês)', 'Jan', 'Dez']);
+  if (h < 0) throw new Error('não encontrei a tabela do câmbio de cada mês');
+  const out = {};
+  for (let r = h + 1; r < d.length; r++) {
+    const ano = parseInt(norm_(d[r][0]), 10);
+    if (!(ano >= 2000 && ano < 2100)) break;
+    for (let mes = 0; mes < 12; mes++) {
+      const x = num_(d[r][1 + mes]);
+      if (x && x > 0.3 && x < 3) out[ano + '-' + ('0' + (mes + 1)).slice(-2)] = x;
+    }
+  }
+  return out;
+}
+
 /** Peso de cada setor nas ações e o limite da tab Distribuição. */
 function lerSetores_() {
   const d = grelha_(folha_('Distribuição'), 80).valores;
@@ -815,7 +851,7 @@ function lerTransacoes_(quantas) {
  * Todas as compras e vendas da tab Transações, pela ordem da folha (ponte v4). "valor" vem na moeda da
  * linha (dólares nas ações, euros nos ETF); "valorEur" é a coluna Custo em EUR (com o câmbio desse dia).
  */
-function lerMovimentos_() {
+function lerMovimentos_(registo) {
   const b = blocoTransacoes_(folha_('Transações'));
   const out = [];
   for (let r = b.cab; r < b.fim; r++) {
@@ -823,9 +859,21 @@ function lerMovimentos_() {
     const tipo = campo_(l, b.mapa, 'Tipo');
     const ticker = campo_(l, b.mapa, 'Ticker');
     if (!ticker || (tipo !== 'Compra' && tipo !== 'Venda')) continue;
+    const data = campo_(l, b.mapa, 'Data');
+    const cambio = num_(campo_(l, b.mapa, 'Câmbio USD/EUR'));
+    // Preço do índice nesse dia: o da folha (colunas R e S); se ainda for a fórmula, o que a ponte registou.
+    let spy = num_(campo_(l, b.mapa, 'Preço SPY na Data ($)'));
+    let vuaa = num_(campo_(l, b.mapa, 'Preço VUAA na Data (€)'));
+    if ((spy === null || vuaa === null) && registo && typeof data === 'string') {
+      const p = precoNoRegisto_(registo, data);
+      if (p) {
+        if (spy === null) spy = p[0];
+        if (vuaa === null && cambio) vuaa = p[1] * cambio;
+      }
+    }
     out.push({
       linha: r + 1,
-      data: campo_(l, b.mapa, 'Data'),
+      data: data,
       tipo: tipo,
       classe: campo_(l, b.mapa, 'Classe'),
       ticker: String(ticker),
@@ -833,9 +881,11 @@ function lerMovimentos_() {
       preco: num_(campo_(l, b.mapa, 'Preço Unitário')),
       moeda: campo_(l, b.mapa, 'Moeda'),
       valor: num_(campo_(l, b.mapa, 'Valor Total')),
-      cambio: num_(campo_(l, b.mapa, 'Câmbio USD/EUR')),
+      cambio: cambio,
       valorEur: num_(campo_(l, b.mapa, 'Custo em EUR')),
-      comissaoEur: num_(campo_(l, b.mapa, 'Comissão'))
+      comissaoEur: num_(campo_(l, b.mapa, 'Comissão')),
+      precoSpy: spy,
+      precoIndiceEur: vuaa
     });
   }
   return out;
@@ -866,6 +916,183 @@ function lerDividendosPorEmpresa_() {
     });
   }
   return { periodos: colunas.map(function (c) { return norm_(d[h][c]); }), empresas: empresas };
+}
+
+/**
+ * Dividendos de cada empresa em cada mês, em dólares brutos (todas as tabelas "DIVIDENDOS RECEBIDOS EM
+ * <ano>" de Dividendos Mensais, ponte v5). Só os meses com pagamento: [{ticker, mes: "2024-03", usd}].
+ */
+function lerDividendosPorMes_() {
+  const sh = folha_('Dividendos Mensais');
+  const n = sh.getLastRow();
+  if (n < 1) return [];
+  const d = sh.getRange(1, 1, n, 14).getValues();
+  const out = [];
+  for (let r = 0; r < n; r++) {
+    const titulo = /^DIVIDENDOS RECEBIDOS EM (\d{4})/.exec(norm_(d[r][0]).toUpperCase());
+    if (!titulo) continue;
+    const ano = titulo[1];
+    for (let k = r + 2; k < n; k++) {
+      const t = norm_(d[k][0]);
+      if (t.toUpperCase() === 'TOTAL MENSAL' || /^DIVIDENDOS RECEBIDOS EM/.test(t.toUpperCase())) break;
+      if (!t || t === 'Ticker') continue;
+      for (let mes = 0; mes < 12; mes++) {
+        const x = num_(d[k][2 + mes]);
+        if (x) out.push({ ticker: t, mes: ano + '-' + ('0' + (mes + 1)).slice(-2), usd: x });
+      }
+    }
+  }
+  return out;
+}
+
+// ─────────────────────── Preço do S&P 500 (VUAA) em cada transação ───────────────────────
+//
+// A Google não deixa a ponte ler o GOOGLEFINANCE histórico: fora do browser as colunas "Preço SPY na Data"
+// e "Preço VUAA na Data" da tab Transações dão #N/A, e a comparação com o S&P 500 sai errada. Por isso:
+//  1. sempre que a app pede dados ou verifica alertas, a ponte guarda o preço de hoje do SPY e do VUAA
+//     (as células "Preço Atual" no topo da tab Transações, que são ao vivo e se leem bem);
+//  2. quando a app pede dados, as transações dos dias anteriores que ainda têm a fórmula passam a ter o
+//     valor: o da própria fórmula, se a folha o tiver, ou o preço que a ponte guardou desse dia.
+
+const CHAVE_REGISTO_INDICE = 'precosIndice';
+const DIAS_NO_REGISTO = 150;
+
+/** Preços de hoje, registo dos últimos dias e (se fixar) transações passadas com o preço já em valor. */
+function prepararIndice_(fixar) {
+  const res = { hoje: null, registo: {}, avisos: [] };
+  try {
+    res.hoje = precosDeHoje_();
+    res.registo = registarPrecosIndice_(res.hoje);
+  } catch (err) {
+    res.avisos.push('Preço do S&P 500 de hoje: ' + String((err && err.message) || err));
+  }
+  if (!fixar) return res;
+  try {
+    const f = fixarPrecosIndice_(res.registo);
+    if (f.semPreco.length) {
+      const quais = f.semPreco.slice(0, 6).join(', ') + (f.semPreco.length > 6 ? '…' : '');
+      res.avisos.push('Transações: ' + f.semPreco.length + (f.semPreco.length === 1 ? ' linha' : ' linhas') +
+        ' sem preço do S&P 500 (' + quais + '). Abre a folha no computador, copia as colunas R e S dessas ' +
+        'linhas e cola só os valores (Ctrl+Shift+V).');
+    }
+  } catch (err) {
+    res.avisos.push('Preço do S&P 500 nas transações: ' + String((err && err.message) || err));
+  }
+  return res;
+}
+
+/** Preço atual do SPY (dólares) e do VUAA (euros e dólares), do topo da tab Transações. */
+function precosDeHoje_() {
+  const sh = folha_('Transações');
+  const topo = sh.getRange(1, 1, 5, Math.min(sh.getLastColumn(), 12)).getValues();
+  let spy = null;
+  let vuaaEur = null;
+  topo.forEach(function (l) {
+    for (let c = 0; c < l.length - 1; c++) {
+      const t = norm_(l[c]);
+      if (t === 'Preço Atual SPY ($)') spy = num_(l[c + 1]);
+      if (t === 'Preço Atual VUAA (€)') vuaaEur = num_(l[c + 1]);
+    }
+  });
+  let usdEur = null;
+  folha_('Carteira').getRange(1, 1, 12, 2).getValues().forEach(function (l) {
+    if (norm_(l[0]) === 'Taxa de câmbio USD/EUR') usdEur = num_(l[1]);
+  });
+  if (!(spy > 0) || !(vuaaEur > 0)) throw new Error('não encontrei "Preço Atual SPY ($)" e "Preço Atual VUAA (€)" no topo da tab Transações');
+  return { data: hojeIso_(), spyUsd: spy, vuaaEur: vuaaEur, vuaaUsd: usdEur > 0 ? vuaaEur / usdEur : null, usdEur: usdEur };
+}
+
+/** Guarda o preço de hoje (o último do dia fica) e devolve o registo {aaaa-mm-dd: [spy $, vuaa $]}. */
+function registarPrecosIndice_(hoje) {
+  const props = PropertiesService.getScriptProperties();
+  let registo = {};
+  try { registo = JSON.parse(props.getProperty(CHAVE_REGISTO_INDICE) || '{}') || {}; } catch (e) { registo = {}; }
+  if (hoje && hoje.spyUsd > 0 && hoje.vuaaUsd > 0) {
+    const antes = registo[hoje.data];
+    const agora = [Math.round(hoje.spyUsd * 100) / 100, Math.round(hoje.vuaaUsd * 10000) / 10000];
+    if (!antes || antes[0] !== agora[0] || antes[1] !== agora[1]) {
+      registo[hoje.data] = agora;
+      const dias = Object.keys(registo).sort();
+      dias.slice(0, Math.max(0, dias.length - DIAS_NO_REGISTO)).forEach(function (k) { delete registo[k]; });
+      props.setProperty(CHAVE_REGISTO_INDICE, JSON.stringify(registo));
+    }
+  }
+  return registo;
+}
+
+/**
+ * [spy $, vuaa $, dia] registados nesse dia ou, se não houver (fim de semana, feriado, app sem uso), no
+ * primeiro dia seguinte, até 6 (como a fórmula, que usa o primeiro fecho da semana).
+ */
+function precoNoRegisto_(registo, data) {
+  if (!registo || !/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
+  const t0 = Date.UTC(+data.slice(0, 4), +data.slice(5, 7) - 1, +data.slice(8, 10));
+  for (let k = 0; k <= 6; k++) {
+    const dia = new Date(t0 + k * 86400000);
+    const chave = dia.getUTCFullYear() + '-' + ('0' + (dia.getUTCMonth() + 1)).slice(-2) + '-' + ('0' + dia.getUTCDate()).slice(-2);
+    const p = registo[chave];
+    if (p && p[0] > 0 && p[1] > 0) return [p[0], p[1], chave];
+  }
+  return null;
+}
+
+/**
+ * Passa a valor o preço do SPY e do VUAA das transações de dias anteriores que ainda têm a fórmula. Usa o
+ * valor da fórmula se a folha o tiver; senão o preço que a ponte registou nesse dia (VUAA em euros = preço
+ * em dólares × câmbio da linha, como na fórmula). Devolve as linhas que ficaram sem preço.
+ */
+function fixarPrecosIndice_(registo) {
+  const res = { fixadas: [], semPreco: [] };
+  const tranca = LockService.getDocumentLock();
+  if (!tranca.tryLock(5000)) return res; // outro pedido está a escrever: fica para a próxima
+  try {
+    const sh = folha_('Transações');
+    const b = blocoTransacoes_(sh);
+    const cSpy = b.mapa[norm_('Preço SPY na Data ($)')];
+    const cVuaa = b.mapa[norm_('Preço VUAA na Data (€)')];
+    const cCambio = b.mapa[norm_('Câmbio USD/EUR')];
+    if (cSpy === undefined || cVuaa === undefined || cCambio === undefined) return res;
+    const primeira = b.cab + 1; // 1.ª linha de dados (1-based)
+    const n = b.fim - b.cab;
+    if (n <= 0) return res;
+    const fSpy = sh.getRange(primeira, cSpy + 1, n, 1).getFormulas();
+    const fVuaa = sh.getRange(primeira, cVuaa + 1, n, 1).getFormulas();
+    const hoje = hojeIso_();
+    for (let i = 0; i < n; i++) {
+      if (!fSpy[i][0] && !fVuaa[i][0]) continue;
+      const l = b.dados[b.cab + i];
+      if (!norm_(l[b.mapa.Ticker])) continue;
+      const data = v_(l[b.mapa.Data]);
+      if (typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data) || data >= hoje) continue;
+      let spy = num_(l[cSpy]);
+      let vuaa = num_(l[cVuaa]);
+      let doRegisto = null;
+      if (spy === null || vuaa === null) {
+        const p = precoNoRegisto_(registo, data);
+        const cambio = num_(l[cCambio]);
+        if (p && cambio) {
+          if (spy === null) spy = p[0];
+          if (vuaa === null) vuaa = Math.round(p[1] * cambio * 1e6) / 1e6;
+          doRegisto = p[2];
+        }
+      }
+      const linha = primeira + i;
+      if (spy === null || vuaa === null) { res.semPreco.push(linha); continue; }
+      if (fSpy[i][0]) sh.getRange(linha, cSpy + 1).setValue(spy);
+      if (fVuaa[i][0]) sh.getRange(linha, cVuaa + 1).setValue(vuaa);
+      if (doRegisto) {
+        sh.getRange(linha, cVuaa + 1).setNote('Fixado pela ponte a ' + hoje + ' com o preço que registou a ' + doRegisto +
+          ' (a fórmula GOOGLEFINANCE histórica não se lê fora do browser). Para voltar à fórmula, copia a de uma linha livre.');
+      }
+      l[cSpy] = spy;
+      l[cVuaa] = vuaa;
+      res.fixadas.push(linha);
+    }
+    if (res.fixadas.length) SpreadsheetApp.flush();
+  } finally {
+    tranca.releaseLock();
+  }
+  return res;
 }
 
 /** A tab Vendas: cada venda comparada com o preço de hoje ("Vendeste bem" / "Devias ter mantido"), ponte v4. */

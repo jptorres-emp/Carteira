@@ -7,8 +7,10 @@ import app.carteira.dados.ValorHoje
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 /** Contas da rentabilidade total e das mais-valias (FIFO), com transações inventadas. */
 class HistoricoTest {
@@ -147,5 +149,141 @@ class HistoricoTest {
     fun periodoDosDividendos() {
         assertEquals("mai/2023", Historico.inicioDoPeriodo("2023 (Mai-Dez)"))
         assertEquals("2024", Historico.inicioDoPeriodo("2024"))
+    }
+
+    // ── Ponte v5: contra o S&P 500 (VUAA), TIR e simulação de venda ──
+
+    /** Uma transação de ações já com o preço do VUAA (€) desse dia. */
+    private fun comIndice(linha: Int, data: String, tipo: String, ticker: String, un: Double, preco: Double, cambio: Double, comissao: Double, vuaa: Double?) =
+        acao(linha, data, tipo, ticker, un, preco, cambio, comissao).copy(precoIndiceEur = vuaa)
+
+    // GAMA: compra 10 a 100 $ (900 € + 1 €) com o VUAA a 90 €, compra 5 a 120 $ (600 €) com o VUAA a 100 €,
+    // vende 6 a 150 $ (900 € − 1 €) com o VUAA a 120 €. Hoje: 9 ações valem 1350 € e o VUAA está a 130 €.
+    private val gama = listOf(
+        comIndice(1, "2023-01-02", "Compra", "GAMA", 10.0, 100.0, 0.90, 1.0, 90.0),
+        comIndice(2, "2024-01-02", "Compra", "GAMA", 5.0, 120.0, 1.0, 0.0, 100.0),
+        comIndice(3, "2025-01-02", "Venda", "GAMA", 6.0, 150.0, 1.0, 1.0, 120.0),
+    )
+    private val hojeGama = mapOf("GAMA" to ValorHoje(9.0, 1350.0, 1350.0))
+    // 10 $ em jun/2024 (câmbio desse mês 0,90) e 10 $ em jun/2025 (sem câmbio do mês: o de hoje, 0,95).
+    private val divGama = mapOf("GAMA" to listOf("2024-06" to 10.0, "2025-06" to 10.0))
+    private val dia = LocalDate.parse("2026-01-02")
+
+    private fun historicoGama(mov: List<app.carteira.dados.Movimento> = gama) = Historico.calcular(
+        mov, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divGama,
+        cambioMensal = mapOf("2024-06" to 0.90), dia = dia,
+    )
+
+    @Test
+    fun mesmoDinheiroNoVuaa() {
+        val h = historicoGama()
+        val r = h.de("GAMA")!!
+        assertEquals(18.5, r.dividendosEur, 1e-9)          // 10 $ × 0,90 + 10 $ × 0,95
+        assertEquals(766.5, r.lucroEur, 1e-9)              // 1350 + 899 + 18,5 − 1501
+        val e = r.espelho!!
+        // VUAA: 900/90 + 600/100 − 900/120 = 8,5 unidades × 130 € = 1105 €.
+        assertEquals(8.5, e.unidades, 1e-12)
+        assertEquals(1105.0, e.valorEur, 1e-9)
+        assertEquals(503.0, e.lucroEur, 1e-9)              // 1105 + 899 − 1501, com as mesmas comissões
+        assertEquals(263.5, r.diferencaIndiceEur!!, 1e-9)  // = 1350 + 18,5 − 1105
+        assertEquals(263.5 / 1501.0, r.diferencaIndicePct!!, 1e-12)
+        assertEquals(0, r.semPrecoIndice)
+        assertTrue(h.temIndice)
+        assertEquals(listOf("GAMA"), h.contraIndice.map { it.ticker })
+    }
+
+    @Test
+    fun tirDaAcaoEDoVuaa() {
+        val r = historicoGama().de("GAMA")!!
+        // Dinheiro investido, em média, há 818 dias (cada compra pesa pelo custo, até ser vendida ou até hoje).
+        assertEquals(818, r.idadeMediaDias)
+        assertTrue(r.maisDeUmAno)
+        assertEquals(1096, r.dias)
+        // Valores do scipy (brentq) para os mesmos fluxos, com os dividendos no dia 15 de cada mês.
+        assertEquals(0.20654587962617724, r.tir!!, 1e-9)
+        assertEquals(0.14361557878215936, r.espelho!!.tir!!, 1e-9)
+    }
+
+    @Test
+    fun semUmAnoNaoHaTir() {
+        val mov = listOf(comIndice(1, "2025-10-01", "Compra", "GAMA", 9.0, 100.0, 1.0, 0.0, 120.0))
+        val r = historicoGama(mov).de("GAMA")!!
+        assertTrue(r.idadeMediaDias!! < 365)
+        assertNull(r.tir)
+        assertNotNull(r.espelho)
+        assertNull(r.espelho!!.tir)
+    }
+
+    @Test
+    fun semPrecoDoIndiceNaoCompara() {
+        val mov = gama.mapIndexed { i, m -> if (i == 1) m.copy(precoIndiceEur = null) else m }
+        val r = historicoGama(mov).de("GAMA")!!
+        assertNull(r.espelho)
+        assertNull(r.diferencaIndiceEur)
+        assertEquals(1, r.semPrecoIndice)
+    }
+
+    @Test
+    fun pontePorAtualizarNaoTemIndiceNemTir() {
+        // Sem preço de hoje do VUAA nem dividendos por mês (ponte v4): fica tudo como antes.
+        val h = Historico.calcular(gama, hojeGama, mapOf("GAMA" to 20.0), usdEur = 0.95, dia = dia)
+        val r = h.de("GAMA")!!
+        assertFalse(h.temIndice)
+        assertNull(r.espelho)
+        assertEquals(0, r.semPrecoIndice)
+        assertNull(r.tir)
+        assertEquals(19.0, r.dividendosEur, 1e-9)          // 20 $ ao câmbio de hoje
+    }
+
+    @Test
+    fun simularVendaPeloFifoComImposto() {
+        val h = historicoGama()
+        val r = h.de("GAMA")!!
+        // Sobram 4 do 1.º lote (90,10 € cada) e 5 do 2.º (120 € cada).
+        assertEquals(listOf(4.0, 5.0), r.lotes.map { it.unidades })
+        val s = h.simularVenda(r, 5.0, dia)!!
+        assertEquals(750.0, s.recebidoEur, 1e-9)           // 5 × 1350 / 9
+        assertEquals(480.4, s.custoEur!!, 1e-9)            // 4 × 90,10 + 1 × 120
+        assertEquals(269.6, s.maisValiaEur!!, 1e-9)
+        assertEquals(0.0, s.saldoAnoAntesEur, 1e-9)        // ainda não vendeste nada em 2026
+        assertEquals(0.28 * 269.6, s.impostoEur!!, 1e-9)
+        assertEquals(750.0 - 0.28 * 269.6, s.liquidoEur, 1e-9)
+        assertEquals(0.0, s.unidadesMenosDeUmAno, 1e-12)
+        assertEquals(4.0, s.unidadesDepois, 1e-12)
+        // Mais do que tens: vende só as 9.
+        assertEquals(9.0, h.simularVenda(r, 50.0, dia)!!.unidades, 1e-12)
+        assertNull(h.simularVenda(r, 0.0, dia))
+    }
+
+    @Test
+    fun menosValiaDoAnoBaixaOImposto() {
+        // DELTA (ETF) vendido com 200 € de prejuízo em 2026: o saldo do ano começa em −200 €.
+        val delta = listOf(
+            etf(10, "2025-06-01", "Compra", "DELTA", 4.0, 100.0, 0.0),
+            etf(11, "2026-01-01", "Venda", "DELTA", 4.0, 50.0, 0.0),
+        )
+        val h = historicoGama(gama + delta)
+        val s = h.simularVenda(h.de("GAMA")!!, 5.0, dia)!!
+        assertEquals(-200.0, s.saldoAnoAntesEur, 1e-9)
+        assertEquals(69.6, s.saldoAnoDepoisEur, 1e-9)
+        assertEquals(0.28 * 69.6, s.impostoEur!!, 1e-9)    // só paga sobre o que passa de zero
+        // Uma compra recente: as ações dela têm menos de um ano.
+        val recente = gama + comIndice(4, "2025-09-01", "Compra", "GAMA", 2.0, 100.0, 1.0, 0.0, 125.0)
+        val h2 = Historico.calcular(
+            recente, mapOf("GAMA" to ValorHoje(11.0, 1650.0, 1650.0)), emptyMap(), usdEur = 0.95,
+            indiceHojeEur = 130.0, dividendosPorMes = divGama, dia = dia,
+        )
+        val s2 = h2.simularVenda(h2.de("GAMA")!!, 11.0, dia)!!
+        assertEquals(2.0, s2.unidadesMenosDeUmAno, 1e-12)
+        // Uma venda com prejuízo quando o ano já tem mais-valias: o imposto do ano baixa.
+        val h3 = Historico.calcular(
+            gama, mapOf("GAMA" to ValorHoje(9.0, 450.0, 450.0)), emptyMap(), usdEur = 0.95,
+            indiceHojeEur = 130.0, dividendosPorMes = divGama, dia = LocalDate.parse("2025-03-01"),
+        )
+        val s3 = h3.simularVenda(h3.de("GAMA")!!, 5.0, LocalDate.parse("2025-03-01"))!!
+        // Em 2025 já vendeste 6 GAMA com 899 − 540,60 = 358,40 € de mais-valia.
+        assertEquals(358.4, s3.saldoAnoAntesEur, 1e-9)
+        assertEquals(250.0 - 480.4, s3.maisValiaEur!!, 1e-9)
+        assertEquals(0.28 * (358.4 - 230.4) - 0.28 * 358.4, s3.impostoEur!!, 1e-9)
     }
 }

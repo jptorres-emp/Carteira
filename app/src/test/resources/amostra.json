@@ -1,6 +1,6 @@
 {
  "ok": true,
- "versaoPonte": 4,
+ "versaoPonte": 5,
  "dados": {
   "meta": {
    "folha": "Carteira de teste",
@@ -1409,6 +1409,14 @@
     "principal": false
    },
    {
+    "comparacao": "Só ações vs VUAA (S&P 500 em €, acumula)",
+    "carteiraEur": null,
+    "indiceEur": null,
+    "diferencaEur": -95.2,
+    "leitura": null,
+    "principal": false
+   },
+   {
     "comparacao": "Carteira toda vs S&P 500 — com dividendos",
     "carteiraEur": 17894.41075,
     "indiceEur": 19079.01075,
@@ -2214,7 +2222,9 @@
     "valor": 720.0,
     "cambio": 0.93,
     "valorEur": 669.6,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 407.55,
+    "precoIndiceEur": 83.4526
    },
    {
     "linha": 8,
@@ -2228,7 +2238,9 @@
     "valor": 1380.0,
     "cambio": 0.9,
     "valorEur": 1380.0,
-    "comissaoEur": 0.0
+    "comissaoEur": 0.0,
+    "precoSpy": 419.13,
+    "precoIndiceEur": 85.7223
    },
    {
     "linha": 9,
@@ -2242,7 +2254,9 @@
     "valor": 480.0,
     "cambio": 0.92,
     "valorEur": 441.6,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 428.24,
+    "precoIndiceEur": 87.4993
    },
    {
     "linha": 10,
@@ -2256,7 +2270,9 @@
     "valor": 480.0,
     "cambio": 0.925,
     "valorEur": 444.0,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 467.24,
+    "precoIndiceEur": 94.6741
    },
    {
     "linha": 11,
@@ -2270,7 +2286,9 @@
     "valor": 832.0,
     "cambio": 0.9,
     "valorEur": 832.0,
-    "comissaoEur": 0.0
+    "comissaoEur": 0.0,
+    "precoSpy": 477.56,
+    "precoIndiceEur": 96.2033
    },
    {
     "linha": 12,
@@ -2284,7 +2302,9 @@
     "valor": 615.0,
     "cambio": 0.96,
     "valorEur": 590.4,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 480.65,
+    "precoIndiceEur": 96.7592
    },
    {
     "linha": 13,
@@ -2298,7 +2318,9 @@
     "valor": 1160.0,
     "cambio": 0.86,
     "valorEur": 997.6,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 577.37,
+    "precoIndiceEur": 115.2048
    },
    {
     "linha": 14,
@@ -2312,7 +2334,9 @@
     "valor": 635.0,
     "cambio": 0.87,
     "valorEur": 552.45,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 589.96,
+    "precoIndiceEur": 117.6149
    },
    {
     "linha": 15,
@@ -2326,7 +2350,9 @@
     "valor": 480.0,
     "cambio": 0.855,
     "valorEur": 410.4,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 615.5,
+    "precoIndiceEur": 122.4765
    },
    {
     "linha": 16,
@@ -2340,7 +2366,9 @@
     "valor": 380.0,
     "cambio": 0.86,
     "valorEur": 326.8,
-    "comissaoEur": 1.0
+    "comissaoEur": 1.0,
+    "precoSpy": 647.65,
+    "precoIndiceEur": 128.4942
    },
    {
     "linha": 17,
@@ -2354,7 +2382,9 @@
     "valor": 230.0,
     "cambio": 0.9,
     "valorEur": 230.0,
-    "comissaoEur": 0.0
+    "comissaoEur": 0.0,
+    "precoSpy": 653.96,
+    "precoIndiceEur": 129.6463
    }
   ],
   "dividendosPorEmpresa": {
@@ -2426,6 +2456,237 @@
     "diferencaPct": -0.108146,
     "veredito": "🔴 Devias ter mantido"
    }
-  ]
+  ],
+  "indice": {
+   "data": "2026-11-16",
+   "spyUsd": 656.25,
+   "vuaaEur": 130.0582,
+   "vuaaUsd": 150.3563,
+   "usdEur": 0.865
+  },
+  "dividendosPorMes": [
+   {
+    "ticker": "ALFA",
+    "mes": "2023-06",
+    "usd": 0.37
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2023-09",
+    "usd": 0.37
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2023-12",
+    "usd": 0.36
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2024-03",
+    "usd": 0.85
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2024-06",
+    "usd": 0.85
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2024-09",
+    "usd": 0.85
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2024-12",
+    "usd": 0.85
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2025-03",
+    "usd": 1.2
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2025-06",
+    "usd": 1.2
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2025-09",
+    "usd": 1.2
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2025-12",
+    "usd": 1.2
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2026-03",
+    "usd": 2.04
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2026-06",
+    "usd": 2.04
+   },
+   {
+    "ticker": "ALFA",
+    "mes": "2026-09",
+    "usd": 2.04
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2025-03",
+    "usd": 9.6
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2025-06",
+    "usd": 9.6
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2025-09",
+    "usd": 9.6
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2025-12",
+    "usd": 9.6
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2026-03",
+    "usd": 21.91
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2026-06",
+    "usd": 21.91
+   },
+   {
+    "ticker": "CAST",
+    "mes": "2026-09",
+    "usd": 21.9
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2023-06",
+    "usd": 1.6
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2023-09",
+    "usd": 1.6
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2023-12",
+    "usd": 1.6
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2024-03",
+    "usd": 2.9
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2024-06",
+    "usd": 2.9
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2024-09",
+    "usd": 2.9
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2024-12",
+    "usd": 2.9
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2025-03",
+    "usd": 3.1
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2025-06",
+    "usd": 3.1
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2025-09",
+    "usd": 3.1
+   },
+   {
+    "ticker": "ZETA",
+    "mes": "2025-12",
+    "usd": 3.1
+   }
+  ],
+  "cambioMensal": {
+   "2022-01": 0.9114,
+   "2022-02": 0.9177,
+   "2022-03": 0.9237,
+   "2022-04": 0.9293,
+   "2022-05": 0.9345,
+   "2022-06": 0.939,
+   "2022-07": 0.9429,
+   "2022-08": 0.9459,
+   "2022-09": 0.9482,
+   "2022-10": 0.9495,
+   "2022-11": 0.95,
+   "2022-12": 0.9495,
+   "2023-01": 0.9482,
+   "2023-02": 0.9459,
+   "2023-03": 0.9428,
+   "2023-04": 0.939,
+   "2023-05": 0.9344,
+   "2023-06": 0.9293,
+   "2023-07": 0.9236,
+   "2023-08": 0.9176,
+   "2023-09": 0.9114,
+   "2023-10": 0.9049,
+   "2023-11": 0.8985,
+   "2023-12": 0.8923,
+   "2024-01": 0.8862,
+   "2024-02": 0.8806,
+   "2024-03": 0.8755,
+   "2024-04": 0.8709,
+   "2024-05": 0.8671,
+   "2024-06": 0.864,
+   "2024-07": 0.8618,
+   "2024-08": 0.8604,
+   "2024-09": 0.86,
+   "2024-10": 0.8605,
+   "2024-11": 0.8618,
+   "2024-12": 0.8641,
+   "2025-01": 0.8672,
+   "2025-02": 0.8711,
+   "2025-03": 0.8756,
+   "2025-04": 0.8808,
+   "2025-05": 0.8864,
+   "2025-06": 0.8924,
+   "2025-07": 0.8987,
+   "2025-08": 0.9051,
+   "2025-09": 0.9115,
+   "2025-10": 0.9178,
+   "2025-11": 0.9238,
+   "2025-12": 0.9294,
+   "2026-01": 0.9346,
+   "2026-02": 0.9391,
+   "2026-03": 0.9429,
+   "2026-04": 0.946,
+   "2026-05": 0.9482,
+   "2026-06": 0.9496,
+   "2026-07": 0.95,
+   "2026-08": 0.9495,
+   "2026-09": 0.9481,
+   "2026-10": 0.9459,
+   "2026-11": 0.9428,
+   "2026-12": 0.9389
+  }
  }
 }

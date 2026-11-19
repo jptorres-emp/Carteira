@@ -34,6 +34,12 @@ data class Dados(
     val dividendosPorEmpresa: DividendosPorEmpresa? = null,
     /** A tab Vendas: cada venda comparada com o que valeria hoje (ponte v4). */
     val analiseVendas: List<AnaliseVenda> = emptyList(),
+    /** Preço de hoje do S&P 500 (VUAA em euros e SPY), do topo da tab Transações (ponte v5). */
+    val indice: IndiceHoje? = null,
+    /** Dividendos brutos de cada empresa em cada mês (Dividendos Mensais, ponte v5). */
+    val dividendosPorMes: List<DividendoMes> = emptyList(),
+    /** Euros por dólar, média de cada mês ("2024-03"), da tab Validação S&P 500 (ponte v5). */
+    val cambioMensal: Map<String, Double> = emptyMap(),
 ) {
     /** Rentabilidade total de cada ação e mais-valias das vendas, calculadas uma vez por leitura. */
     val historico: Historico by lazy { Historico.de(this) }
@@ -319,10 +325,19 @@ data class Movimento(
     val cambio: Double?,
     val valorEur: Double,
     val comissaoEur: Double,
+    /** Preço do VUAA em euros nesse dia (coluna S da tab Transações, ponte v5). */
+    val precoIndiceEur: Double? = null,
+    val precoSpy: Double? = null,
 ) {
     val compra: Boolean get() = tipo == "Compra"
     val etf: Boolean get() = classe == "ETF"
 }
+
+/** Preço de hoje do VUAA (euros) e do SPY (dólares). */
+data class IndiceHoje(val data: String?, val vuaaEur: Double, val spyUsd: Double?)
+
+/** Dividendos brutos de uma empresa num mês ("2024-03"), em dólares. */
+data class DividendoMes(val ticker: String, val mes: String, val usd: Double)
 
 /** Dividendos brutos por empresa (Dividendos Anuais). periodos: "2023 (Mai-Dez)", "2024", ... */
 data class DividendosPorEmpresa(val periodos: List<String>, val empresas: List<DividendosDaEmpresa>)
