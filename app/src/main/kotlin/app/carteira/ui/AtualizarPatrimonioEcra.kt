@@ -40,7 +40,7 @@ fun AtualizarPatrimonioEcra(estado: Estado, vm: CarteiraViewModel, ecra: Ecra.At
     // que acabou de fechar). No modo privado, o campo começa vazio.
     val sugestao = naFolha ?: agora.takeIf { mes == hoje || mes == meses[1] }
     var valor by rememberSaveable(mes) {
-        mutableStateOf(if (sugestao == null || estado.privado) "" else Formatos.numero(sugestao, 2))
+        mutableStateOf(if (sugestao == null || estado.privado) "" else Formatos.paraCampo(sugestao))
     }
     val v = Formatos.lerNumero(valor)
     val erro = if (valor.isNotBlank() && (v == null || v <= 0)) "Valor inválido" else null
@@ -68,7 +68,7 @@ fun AtualizarPatrimonioEcra(estado: Estado, vm: CarteiraViewModel, ecra: Ecra.At
         }
         CampoNumero(valor, "Património em ${mesLongo(mes)}", { valor = it }, erro = erro, sufixo = "€")
         if (agora != null) {
-            AssistChip(onClick = { valor = Formatos.numero(agora, 2) }, label = { Text("Usar o valor de agora") })
+            AssistChip(onClick = { valor = Formatos.paraCampo(agora) }, label = { Text("Usar o valor de agora") })
         }
         if (estranho) {
             TextoPequeno(

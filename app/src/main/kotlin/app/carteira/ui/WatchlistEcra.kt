@@ -175,13 +175,17 @@ private fun CartaoOportunidades(lista: List<ItemWatchlist>, vm: CarteiraViewMode
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(w.ticker, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.width(6.dp))
-                        TextoPequeno(w.empresa ?: "", modifier = Modifier.weight(1f, fill = false))
-                    }
+                    Text(w.ticker, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        w.empresa ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     w.testeTroca?.takeIf { it.startsWith("✓") }?.let { TextoPequeno(it, cor = Paleta.verde) }
                 }
+                Spacer(Modifier.width(8.dp))
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         "${Formatos.numero(w.preco)} → ${Formatos.numero(w.valorJusto)}",

@@ -27,9 +27,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.carteira.R
@@ -119,12 +124,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
         },
         bottomBar = {
             if (emSeparador) {
-                // Os rótulos não crescem além de 1,1× com a letra grande do telemóvel: cinco não cabiam e
-                // ficavam cortados ("Divide…"). O resto da app segue o tamanho escolhido.
-                val escala = LocalDensity.current.fontScale
-                val estiloRotulo = MaterialTheme.typography.labelMedium.let { e ->
-                    if (escala > 1.1f) e.copy(fontSize = e.fontSize * (1.1f / escala)) else e
-                }
+                val estiloRotulo = estiloQueCabe(separadores.map { it.rotulo })
                 NavigationBar {
                     separadores.forEach { s ->
                         NavigationBarItem(
@@ -158,6 +158,28 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                 LinearProgressIndicator(modifier = Modifier.align(Alignment.TopCenter))
             }
         }
+    }
+}
+
+/**
+ * Letra dos rótulos dos separadores: a do tema, mais pequena se o rótulo mais comprido não couber na
+ * largura de um separador (cinco num telemóvel estreito, ou com a letra grande, cortavam "Divide…").
+ */
+@Composable
+private fun estiloQueCabe(rotulos: List<String>): TextStyle {
+    val base = MaterialTheme.typography.labelMedium
+    val medidor = rememberTextMeasurer()
+    val densidade = LocalDensity.current
+    val larguraEcra = LocalConfiguration.current.screenWidthDp
+    // Cada separador fica com um quinto da largura, menos os 8 dp entre eles e uma pequena margem.
+    val disponivel = with(densidade) { ((larguraEcra - 32) / rotulos.size.coerceAtLeast(1) - 6).coerceAtLeast(24).dp.roundToPx() }
+    return remember(rotulos, base, disponivel, densidade) {
+        var estilo = base
+        repeat(8) {
+            val maior = rotulos.maxOf { medidor.measure(it, estilo, maxLines = 1, softWrap = false).size.width }
+            if (maior > disponivel) estilo = estilo.copy(fontSize = estilo.fontSize * 0.92f, letterSpacing = 0.sp)
+        }
+        estilo
     }
 }
 

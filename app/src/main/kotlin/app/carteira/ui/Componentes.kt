@@ -42,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 
 /** Cartão branco com contorno fino, título opcional e uma ação à direita do título ("Ver tudo"). */
@@ -98,21 +100,37 @@ fun CartaoClicavel(aoTocar: () -> Unit, modifier: Modifier = Modifier, conteudo:
 /** Rótulo à esquerda, valor à direita. */
 @Composable
 fun LinhaValor(rotulo: String, valor: String, cor: Color = Color.Unspecified, destaque: Boolean = false) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            rotulo,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.width(12.dp))
-        Text(
-            valor,
-            style = (if (destaque) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium).numeros(),
-            fontWeight = if (destaque) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else cor,
-            textAlign = TextAlign.End,
-        )
+    // O valor fica com 60% da largura no máximo (se for comprido, passa para a linha de baixo); o rótulo
+    // fica com o resto. Numa Row simples, um valor comprido espremia o rótulo até uma letra por linha.
+    Layout(
+        content = {
+            Text(
+                rotulo,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                valor,
+                style = (if (destaque) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium).numeros(),
+                fontWeight = if (destaque) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (cor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else cor,
+                textAlign = TextAlign.End,
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { pecas, limites ->
+        val espaco = 12.dp.roundToPx()
+        val total = if (limites.hasBoundedWidth) limites.maxWidth else Constraints.Infinity
+        val maxValor = if (limites.hasBoundedWidth) (total * 0.6f).toInt() else Constraints.Infinity
+        val valorP = pecas[1].measure(Constraints(maxWidth = maxValor))
+        val maxRotulo = if (limites.hasBoundedWidth) (total - valorP.width - espaco).coerceAtLeast(0) else Constraints.Infinity
+        val rotuloP = pecas[0].measure(Constraints(maxWidth = maxRotulo))
+        val largura = if (limites.hasBoundedWidth) total else rotuloP.width + espaco + valorP.width
+        val altura = maxOf(rotuloP.height, valorP.height).coerceIn(limites.minHeight, limites.maxHeight)
+        layout(largura, altura) {
+            rotuloP.placeRelative(0, (altura - rotuloP.height) / 2)
+            valorP.placeRelative(largura - valorP.width, (altura - valorP.height) / 2)
+        }
     }
 }
 
@@ -171,7 +189,7 @@ fun SeloZona(zona: String?, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             style = MaterialTheme.typography.labelSmall,
             color = e.texto,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }

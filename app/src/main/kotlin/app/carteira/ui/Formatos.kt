@@ -9,7 +9,10 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.abs
 
-/** Números à portuguesa: espaço nos milhares e vírgula nas décimas ("1 234,56 €"). */
+/**
+ * Números à portuguesa: espaço nos milhares e vírgula nas décimas ("1 234,56 €"). Os espaços são
+ * inquebráveis, para um número nunca ficar partido no fim de uma linha nem o "€" sozinho na seguinte.
+ */
 object Formatos {
     /**
      * Modo privado: os valores em dinheiro e as quantidades aparecem como "•••". É estado do Compose, por
@@ -19,8 +22,11 @@ object Formatos {
 
     const val OCULTO = "•••"
 
+    /** Espaço inquebrável. */
+    const val NB = '\u00A0'
+
     private val simbolos = DecimalFormatSymbols(Locale.forLanguageTag("pt-PT")).apply {
-        groupingSeparator = ' '
+        groupingSeparator = NB
         decimalSeparator = ','
     }
 
@@ -39,10 +45,10 @@ object Formatos {
     }
 
     /** Dinheiro em euros (escondido no modo privado). */
-    fun eur(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO €" else numero(x, casas) + " €"
+    fun eur(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO$NB€" else numero(x, casas) + "$NB€"
 
     /** Dinheiro em dólares (escondido no modo privado). */
-    fun usd(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO $" else numero(x, casas) + " $"
+    fun usd(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO$NB$" else numero(x, casas) + "$NB$"
 
     private fun simbolo(moeda: String?): String = when (moeda) {
         null, "USD" -> "$"
@@ -53,14 +59,17 @@ object Formatos {
 
     /** Dinheiro na moeda dada ("USD", "EUR", "GBP", "DKK", ...), escondido no modo privado. */
     fun moeda(x: Double?, moeda: String?, casas: Int = 2): String =
-        if (x != null && privado) "$OCULTO ${simbolo(moeda)}" else preco(x, moeda, casas)
+        if (x != null && privado) "$OCULTO$NB${simbolo(moeda)}" else preco(x, moeda, casas)
 
     /** Preço de mercado (por ação ou unidade) na moeda dada: aparece também no modo privado. */
     fun preco(x: Double?, moeda: String?, casas: Int = 2): String =
-        if (x == null) "—" else numero(x, casas) + " " + simbolo(moeda)
+        if (x == null) "—" else numero(x, casas) + NB + simbolo(moeda)
 
     /** Número de ações ou unidades: escondido no modo privado (com o preço, dava o valor). */
     fun quantidade(x: Double?): String = if (x == null) "—" else if (privado) OCULTO else numeroLivre(x)
+
+    /** Para um campo de texto: sem espaços nos milhares ("31894,41"), fácil de editar. */
+    fun paraCampo(x: Double, casas: Int = 2): String = numero(x, casas).replace(NB.toString(), "")
 
     /** Percentagem guardada como fração (0,2096 → "20,96%"). */
     fun pct(x: Double?, casas: Int = 1): String = if (x == null) "—" else numero(x * 100, casas) + "%"
@@ -75,16 +84,16 @@ object Formatos {
     /** Valor com sinal (+1 234 € / −56 €). */
     fun eurSinal(x: Double?, casas: Int = 0): String {
         if (x == null) return "—"
-        if (privado) return "$OCULTO €"
+        if (privado) return "$OCULTO$NB€"
         val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
-        return sinal + numero(abs(x), casas) + " €"
+        return sinal + numero(abs(x), casas) + "$NB€"
     }
 
     fun usdSinal(x: Double?, casas: Int = 0): String {
         if (x == null) return "—"
-        if (privado) return "$OCULTO $"
+        if (privado) return "$OCULTO$NB$"
         val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
-        return sinal + numero(abs(x), casas) + " $"
+        return sinal + numero(abs(x), casas) + "$NB$"
     }
 
     /** Números grandes em curto, para eixos: 60 k, 1,2 M (dinheiro: escondido no modo privado). */
@@ -93,9 +102,9 @@ object Formatos {
         if (privado) return OCULTO
         val a = abs(x)
         return when {
-            a >= 1_000_000 -> numeroLivre(x / 1_000_000, 1) + " M"
-            a >= 10_000 -> numero(x / 1_000, 0) + " k"
-            a >= 1_000 -> numeroLivre(x / 1_000, 1) + " k"
+            a >= 1_000_000 -> numeroLivre(x / 1_000_000, 1) + "${NB}M"
+            a >= 10_000 -> numero(x / 1_000, 0) + "${NB}k"
+            a >= 1_000 -> numeroLivre(x / 1_000, 1) + "${NB}k"
             else -> numero(x, 0)
         }
     }
@@ -106,13 +115,13 @@ object Formatos {
      */
     fun intervaloEur(de: Double?, ate: Double?): String {
         if (de == null || ate == null) return "—"
-        if (privado) return "$OCULTO €"
+        if (privado) return "$OCULTO$NB€"
         val maior = maxOf(abs(de), abs(ate))
         return when {
-            maior >= 1_000_000 -> numero(de / 1_000_000, 2) + "–" + numero(ate / 1_000_000, 2) + " M €"
-            maior >= 100_000 -> numero(de / 1_000, 0) + "–" + numero(ate / 1_000, 0) + " k €"
-            maior >= 1_000 -> numero(de / 1_000, 1) + "–" + numero(ate / 1_000, 1) + " k €"
-            else -> numero(de, 0) + "–" + numero(ate, 0) + " €"
+            maior >= 1_000_000 -> numero(de / 1_000_000, 2) + "–" + numero(ate / 1_000_000, 2) + "${NB}M$NB€"
+            maior >= 100_000 -> numero(de / 1_000, 0) + "–" + numero(ate / 1_000, 0) + "${NB}k$NB€"
+            maior >= 1_000 -> numero(de / 1_000, 1) + "–" + numero(ate / 1_000, 1) + "${NB}k$NB€"
+            else -> numero(de, 0) + "–" + numero(ate, 0) + "$NB€"
         }
     }
 
@@ -120,7 +129,7 @@ object Formatos {
     fun pp(x: Double?, casas: Int = 1): String {
         if (x == null) return "—"
         val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
-        return sinal + numero(abs(x) * 100, casas) + " pp"
+        return sinal + numero(abs(x) * 100, casas) + "${NB}pp"
     }
 
     /** "2026-11-16T15:42" → "hoje às 15:42", "ontem às 15:42" ou "13/11 às 15:42". */

@@ -207,7 +207,7 @@ private fun FormTransacao(d: Dados, estado: Estado, vm: CarteiraViewModel, ticke
     CampoNumero(preco, "Preço por unidade", { preco = it }, erroPreco, moeda)
     if (precoAtual != null && preco.isBlank()) {
         AssistChip(
-            onClick = { preco = Formatos.numeroLivre(precoAtual, 4).replace(" ", "") },
+            onClick = { preco = Formatos.numeroLivre(precoAtual, 4).replace(Formatos.NB.toString(), "") },
             label = { Text("Usar o preço atual (${Formatos.numero(precoAtual)} $moeda)") },
         )
     }

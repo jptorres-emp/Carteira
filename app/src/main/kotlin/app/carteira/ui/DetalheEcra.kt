@@ -105,7 +105,10 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
             item {
                 Cartao("Tese") {
                     a.tese?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                    a.alarme?.let { LinhaValor("A vigiar", it) }
+                    a.alarme?.let {
+                        TextoPequeno("A vigiar")
+                        Text(it, style = MaterialTheme.typography.bodyMedium)
+                    }
                     a.fiscalidade?.let { TextoPequeno(it) }
                     a.fonte?.let { TextoPequeno("Fonte: $it") }
                 }

@@ -358,7 +358,7 @@ class EcrasTest {
         esperar("Gravar na folha")
         foto("13-atualizar-patrimonio")
         // Novembro ainda não está na folha: o campo vem com o valor de agora.
-        assertTrue(compose.onAllNodes(hasText("31 894,41")).fetchSemanticsNodes().isNotEmpty())
+        assertTrue(compose.onAllNodes(hasText("31894,41")).fetchSemanticsNodes().isNotEmpty())
         tocar("Gravar na folha")
         val pedido = fonte.ultimoPedido!!
         assertEquals("patrimonio", pedido.getString("acao"))
@@ -367,7 +367,7 @@ class EcrasTest {
         // Outubro já tem valor na folha: o campo mostra-o para o corrigir.
         tocar("Atualizar património")
         tocar("out/26")
-        esperar("31 123,37")
+        esperar("31123,37")
         foto("13b-atualizar-outubro")
     }
 
@@ -378,7 +378,7 @@ class EcrasTest {
         val total = compose.onAllNodes(hasText("€", substring = true)).fetchSemanticsNodes().size
         tocarDescricao("Esconder valores")
         assertTrue(Formatos.privado)
-        esperar("••• €")
+        esperar("•••")
         // Nenhum valor em euros fica à vista no Início (só os escondidos).
         val emEuros = compose.onAllNodes(hasText("€", substring = true)).fetchSemanticsNodes()
             .flatMap { n -> n.config.getOrElse(androidx.compose.ui.semantics.SemanticsProperties.Text) { emptyList() }.map { it.text } }
