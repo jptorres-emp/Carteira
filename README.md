@@ -19,7 +19,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   Todos os pedidos levam uma chave secreta. Se uma tab mudar de forma, a resposta traz o resto e um aviso.
 - **App** (Kotlin + Jetpack Compose): Início (só o estado atual da carteira), Evolução (o património total
   mês a mês face ao plano da folha, com o registo do mês, marcos e ano a ano; e a carteira face ao S&P 500,
-  indicadores, objetivos e movimentos), Posições, Dividendos, Watchlist, Registar e Alertas. O olho no topo
+  indicadores, objetivos e movimentos), Posições, Dividendos, Watchlist, Registar e Alertas. Cada posição
+  mostra os preços de comprar e vender que contam para a sua camada (as regras do Sinal da folha): na lista
+  («compra ≤ … · vende ≥ …») e no detalhe, com uma régua do preço de hoje face a esses preços. O olho no topo
   esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
   ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa
   tons com contraste de pelo menos 4,5:1 (WCAG AA) nos dois temas, e os gráficos podem mudar de mês com

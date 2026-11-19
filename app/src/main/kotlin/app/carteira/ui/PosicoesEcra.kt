@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.carteira.dados.Gatilhos
 import app.carteira.dados.Sinais
 
 /** Linha da lista: uma ação ou um ETF, já com os números em euros. */
@@ -42,6 +43,8 @@ private data class Linha(
     /** O sinal da folha: a zona já com as tuas regras (camada, peso, saídas planeadas). */
     val sinal: String?,
     val etf: Boolean,
+    /** Os preços de comprar e vender pela camada (só nas ações com avaliação). */
+    val gatilhos: Gatilhos? = null,
 )
 
 private val ordens = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo")
@@ -56,7 +59,10 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
     val linhas = d.posicoes.map {
         // O valor da lista está em euros, por isso o ganho também.
-        Linha(it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPctEur ?: it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, it.sinal, false)
+        Linha(
+            it.ticker, it.nome, it.camada ?: "—", it.valorEur, it.ganhoPctEur ?: it.ganhoPct, it.varDiaPct, it.pesoTotal, it.zona, it.sinal, false,
+            gatilhos = Gatilhos.de(it.camada, it.avaliacao),
+        )
     } + d.etfs.map {
         Linha(
             it.ticker, it.nome ?: it.ticker, "ETFs", it.valorEur, it.ganhoPct, it.varDiaPct,
@@ -146,6 +152,7 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                 )
                 // O sinal (o que fazer pelas tuas regras); a zona do preço fica no detalhe.
                 SeloZona(l.sinal ?: l.zona)
+                l.gatilhos?.let { LinhaGatilhos(it) }
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -163,6 +170,32 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                 val peso = "peso ${Formatos.pct(l.peso)}" + if (alvo != null && alvo > 0) " / ${Formatos.pct(alvo)}" else ""
                 Text(peso, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.End)
             }
+        }
+    }
+}
+
+/** "compra ≤ 7,28 $ · vende ≥ 12,71 $": os preços que contam pela camada, a verde e a vermelho (✓ = já lá chegou). */
+@Composable
+private fun LinhaGatilhos(g: Gatilhos) {
+    if (g.comprar == null && g.vender == null) return
+    LinhaLegendas(espaco = 10.dp) {
+        g.comprar?.let {
+            Text(
+                "compra ≤ ${Formatos.preco(it, g.moeda)}" + if (g.naZonaDeCompra) " ✓" else "",
+                style = MaterialTheme.typography.labelSmall.numeros(),
+                color = legivel(Paleta.verde),
+                fontWeight = if (g.naZonaDeCompra) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1,
+            )
+        }
+        g.vender?.let {
+            Text(
+                "vende ≥ ${Formatos.preco(it, g.moeda)}" + if (g.acimaDeVender) " ✓" else "",
+                style = MaterialTheme.typography.labelSmall.numeros(),
+                color = legivel(Paleta.vermelho),
+                fontWeight = if (g.acimaDeVender) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1,
+            )
         }
     }
 }

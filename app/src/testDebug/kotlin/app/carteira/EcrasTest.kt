@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToString
@@ -253,10 +254,22 @@ class EcrasTest {
         esperar("Valor da carteira")
         tocar("Posições")
         esperar("ALFA")
+        // Cada posição mostra os preços de compra e venda que contam para a camada (ALFA é Core A: só compra).
+        esperar("compra ≤ 212,50")
         foto("02-posicoes")
         tocar("ALFA")
-        esperar("A tua posição")
+        esperar("Quando comprar e vender")
+        esperar("Não vende pelo preço")
         foto("03-posicao")
+        tocarDescricao("Voltar")
+        // Um satélite: só compra em 🟢🟢; reduz e vende pelos preços da folha (BORE já passou o de reduzir).
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("BORE"))
+        assentar()
+        esperar("vende ≥ 147,00")
+        tocar("BORE")
+        esperar("Quando comprar e vender")
+        esperar("Reduzir acima de")
+        foto("03b-posicao-satelite")
         tocarDescricao("Voltar")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")
@@ -461,7 +474,7 @@ class EcrasTest {
         esperar("ALFA")
         foto("23-posicoes")
         tocar("ALFA")
-        esperar("A tua posição")
+        esperar("Quando comprar e vender")
         percorrer("24-posicao", maximo = 8)
         tocarDescricao("Voltar")
         tocar("Dividendos")
@@ -556,7 +569,7 @@ class EcrasTest {
         esperar("KAPA · abaixo do valor justo")
         foto("10-alertas")
         tocar("ALFA · Reforçar até ao alvo")
-        esperar("A tua posição")
+        esperar("Quando comprar e vender")
     }
 
     private fun comMudancas(json: String): String {
