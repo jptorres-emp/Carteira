@@ -100,8 +100,8 @@ fun DefinicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         if (estado.configurado) CartaoDefinicoesAlertas(estado, vm)
         Cartao("Atualizar a ponte") {
             Text(
-                "Quando receberes uma versão nova do código da ponte (a versão 2 traz a evolução, os objetivos, o património, " +
-                    "os setores e os preços para os alertas):",
+                "Quando receberes uma versão nova do código da ponte (a versão 3 traz o plano do património até 2030, " +
+                    "para o separador Património):",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextoPequeno("1. Na folha: Extensões > Apps Script. Apaga o código antigo, cola o novo e guarda.")

@@ -1,6 +1,6 @@
 {
  "ok": true,
- "versaoPonte": 2,
+ "versaoPonte": 3,
  "dados": {
   "meta": {
    "folha": "Carteira de exemplo",
@@ -14,478 +14,1288 @@
     "carteiraUsd": 1425.0,
     "investidoUsd": 1500.0,
     "sp500Usd": 1486.56,
-    "netWorthEur": 4282.5,
-    "reforcoEur": 300.0,
-    "metaBaseEur": null
+    "netWorthEur": 7042.26,
+    "reforcoEur": 400.0,
+    "metaBaseEur": 7080.58,
+    "metaReferenciaEur": 7080.58,
+    "metaAlargadaEur": 7080.58
    },
    {
     "mes": "2022-10",
     "carteiraUsd": 1776.51,
     "investidoUsd": 1817.68,
     "sp500Usd": 1819.49,
-    "netWorthEur": 4638.86,
-    "reforcoEur": 357.81,
-    "metaBaseEur": null
+    "netWorthEur": 7452.04,
+    "reforcoEur": 515.63,
+    "metaBaseEur": 7517.83,
+    "metaReferenciaEur": 7509.42,
+    "metaAlargadaEur": 7526.13
    },
    {
     "mes": "2022-11",
     "carteiraUsd": 2122.75,
     "investidoUsd": 2135.37,
     "sp500Usd": 2143.01,
-    "netWorthEur": 4990.47,
-    "reforcoEur": 330.93,
-    "metaBaseEur": null
+    "netWorthEur": 7741.17,
+    "reforcoEur": 461.86,
+    "metaBaseEur": 7957.39,
+    "metaReferenciaEur": 7940.02,
+    "metaAlargadaEur": 7974.56
    },
    {
     "mes": "2022-12",
     "carteiraUsd": 2439.83,
     "investidoUsd": 2453.05,
     "sp500Usd": 2452.56,
-    "netWorthEur": 5315.85,
-    "reforcoEur": 258.73,
-    "metaBaseEur": null
+    "netWorthEur": 7934.12,
+    "reforcoEur": 167.47,
+    "metaBaseEur": 8399.26,
+    "metaReferenciaEur": 8372.37,
+    "metaAlargadaEur": 8425.86
    },
    {
     "mes": "2023-01",
     "carteiraUsd": 2717.86,
     "investidoUsd": 2770.73,
     "sp500Usd": 2750.07,
-    "netWorthEur": 5606.08,
-    "reforcoEur": 246.99,
-    "metaBaseEur": null
+    "netWorthEur": 8185.22,
+    "reforcoEur": 293.99,
+    "metaBaseEur": 8843.45,
+    "metaReferenciaEur": 8806.48,
+    "metaAlargadaEur": 8880.08
    },
    {
     "mes": "2023-02",
     "carteiraUsd": 2970.08,
     "investidoUsd": 3088.42,
     "sp500Usd": 3044.29,
-    "netWorthEur": 5873.07,
-    "reforcoEur": 312.91,
-    "metaBaseEur": null
+    "netWorthEur": 8644.91,
+    "reforcoEur": 425.81,
+    "metaBaseEur": 9289.98,
+    "metaReferenciaEur": 9242.35,
+    "metaAlargadaEur": 9337.21
    },
    {
     "mes": "2023-03",
     "carteiraUsd": 3229.25,
     "investidoUsd": 3406.1,
     "sp500Usd": 3348.52,
-    "netWorthEur": 6146.33,
-    "reforcoEur": 359.91,
-    "metaBaseEur": null
+    "netWorthEur": 9303.93,
+    "reforcoEur": 519.83,
+    "metaBaseEur": 9738.86,
+    "metaReferenciaEur": 9680.01,
+    "metaAlargadaEur": 9797.29
    },
    {
     "mes": "2023-04",
     "carteiraUsd": 3531.26,
     "investidoUsd": 3723.79,
     "sp500Usd": 3676.26,
-    "netWorthEur": 6458.13,
-    "reforcoEur": 319.15,
-    "metaBaseEur": null
+    "netWorthEur": 10022.48,
+    "reforcoEur": 438.29,
+    "metaBaseEur": 10190.11,
+    "metaReferenciaEur": 10119.45,
+    "metaAlargadaEur": 10260.32
    },
    {
     "mes": "2023-05",
     "carteiraUsd": 3892.73,
     "investidoUsd": 4041.47,
     "sp500Usd": 4036.14,
-    "netWorthEur": 6823.46,
-    "reforcoEur": 250.33,
-    "metaBaseEur": null
+    "netWorthEur": 10670.07,
+    "reforcoEur": 300.66,
+    "metaBaseEur": 10643.72,
+    "metaReferenciaEur": 10560.67,
+    "metaAlargadaEur": 10726.34
    },
    {
     "mes": "2023-06",
     "carteiraUsd": 4295.24,
     "investidoUsd": 4359.15,
     "sp500Usd": 4428.13,
-    "netWorthEur": 7225.71,
-    "reforcoEur": 254.28,
-    "metaBaseEur": null
+    "netWorthEur": 11192.36,
+    "reforcoEur": 308.56,
+    "metaBaseEur": 11099.73,
+    "metaReferenciaEur": 11003.7,
+    "metaAlargadaEur": 11195.35
    },
    {
     "mes": "2023-07",
     "carteiraUsd": 4689.0,
     "investidoUsd": 4676.84,
     "sp500Usd": 4842.29,
-    "netWorthEur": 7620.1,
-    "reforcoEur": 325.21,
-    "metaBaseEur": null
+    "netWorthEur": 11602.09,
+    "reforcoEur": 300.42,
+    "metaBaseEur": 11558.13,
+    "metaReferenciaEur": 11448.53,
+    "metaAlargadaEur": 11667.38
    },
    {
     "mes": "2023-08",
     "carteiraUsd": 5021.13,
     "investidoUsd": 4994.52,
     "sp500Usd": 5260.96,
-    "netWorthEur": 7959.01,
-    "reforcoEur": 359.21,
-    "metaBaseEur": null
+    "netWorthEur": 11962.11,
+    "reforcoEur": 518.41,
+    "metaBaseEur": 12018.95,
+    "metaReferenciaEur": 11895.17,
+    "metaAlargadaEur": 12142.45
    },
    {
     "mes": "2023-09",
     "carteiraUsd": 5273.79,
     "investidoUsd": 5312.2,
     "sp500Usd": 5663.86,
-    "netWorthEur": 8226.41,
-    "reforcoEur": 306.47,
-    "metaBaseEur": null
+    "netWorthEur": 12357.77,
+    "reforcoEur": 412.93,
+    "metaBaseEur": 12482.19,
+    "metaReferenciaEur": 12343.64,
+    "metaAlargadaEur": 12620.58
    },
    {
     "mes": "2023-10",
     "carteiraUsd": 5481.08,
     "investidoUsd": 5629.89,
     "sp500Usd": 6034.75,
-    "netWorthEur": 8452.97,
-    "reforcoEur": 244.25,
-    "metaBaseEur": null
+    "netWorthEur": 12846.93,
+    "reforcoEur": 288.51,
+    "metaBaseEur": 12947.86,
+    "metaReferenciaEur": 12793.93,
+    "metaAlargadaEur": 13101.78
    },
    {
     "mes": "2023-11",
     "carteiraUsd": 5707.48,
     "investidoUsd": 5947.57,
     "sp500Usd": 6367.32,
-    "netWorthEur": 8696.73,
-    "reforcoEur": 263.71,
-    "metaBaseEur": null
+    "netWorthEur": 13418.37,
+    "reforcoEur": 327.42,
+    "metaBaseEur": 13415.99,
+    "metaReferenciaEur": 13246.05,
+    "metaAlargadaEur": 13586.07
    },
    {
     "mes": "2023-12",
     "carteiraUsd": 6009.33,
     "investidoUsd": 6265.26,
     "sp500Usd": 6668.41,
-    "netWorthEur": 9008.4,
-    "reforcoEur": 336.33,
-    "metaBaseEur": null
+    "netWorthEur": 13997.45,
+    "reforcoEur": 1100.0,
+    "metaBaseEur": 13886.58,
+    "metaReferenciaEur": 13700.02,
+    "metaAlargadaEur": 14073.49
    },
    {
     "mes": "2024-01",
     "carteiraUsd": 6412.67,
     "investidoUsd": 6582.94,
     "sp500Usd": 6957.1,
-    "netWorthEur": 9411.4,
-    "reforcoEur": 355.73,
-    "metaBaseEur": null
+    "netWorthEur": 14501.75,
+    "reforcoEur": 511.46,
+    "metaBaseEur": 14359.65,
+    "metaReferenciaEur": 14155.83,
+    "metaAlargadaEur": 14564.04
    },
    {
     "mes": "2024-02",
     "carteiraUsd": 6911.07,
     "investidoUsd": 6900.62,
     "sp500Usd": 7259.67,
-    "netWorthEur": 9899.97,
-    "reforcoEur": 293.48,
-    "metaBaseEur": null
+    "netWorthEur": 14907.26,
+    "reforcoEur": 236.96,
+    "metaBaseEur": 14835.21,
+    "metaReferenciaEur": 14613.5,
+    "metaAlargadaEur": 15057.74
    },
    {
     "mes": "2024-03",
     "carteiraUsd": 7467.11,
     "investidoUsd": 7218.31,
     "sp500Usd": 7601.7,
-    "netWorthEur": 10440.4,
-    "reforcoEur": 240.79,
-    "metaBaseEur": null
+    "netWorthEur": 15273.59,
+    "reforcoEur": 281.57,
+    "metaBaseEur": 15313.26,
+    "metaReferenciaEur": 15073.04,
+    "metaAlargadaEur": 15554.62
    },
    {
     "mes": "2024-04",
     "carteiraUsd": 8016.18,
     "investidoUsd": 7535.99,
     "sp500Usd": 7999.73,
-    "netWorthEur": 10974.56,
-    "reforcoEur": 274.84,
-    "metaBaseEur": null
+    "netWorthEur": 15705.66,
+    "reforcoEur": 349.68,
+    "metaBaseEur": 15793.84,
+    "metaReferenciaEur": 15534.45,
+    "metaAlargadaEur": 16054.7
    },
    {
     "mes": "2024-05",
     "carteiraUsd": 8485.54,
     "investidoUsd": 7853.67,
     "sp500Usd": 8455.15,
-    "netWorthEur": 11436.99,
-    "reforcoEur": 345.75,
-    "metaBaseEur": null
+    "netWorthEur": 16276.91,
+    "reforcoEur": 491.51,
+    "metaBaseEur": 16276.94,
+    "metaReferenciaEur": 15997.74,
+    "metaAlargadaEur": 16558.0
    },
    {
     "mes": "2024-06",
     "carteiraUsd": 8828.01,
     "investidoUsd": 8171.36,
     "sp500Usd": 8952.46,
-    "netWorthEur": 11785.21,
-    "reforcoEur": 349.64,
-    "metaBaseEur": null
+    "netWorthEur": 16971.65,
+    "reforcoEur": 499.28,
+    "metaBaseEur": 16762.59,
+    "metaReferenciaEur": 16462.92,
+    "metaAlargadaEur": 17064.53
    },
    {
     "mes": "2024-07",
     "carteiraUsd": 9051.04,
     "investidoUsd": 8489.04,
     "sp500Usd": 9462.87,
-    "netWorthEur": 12025.94,
-    "reforcoEur": 280.8,
-    "metaBaseEur": null
+    "netWorthEur": 17691.5,
+    "reforcoEur": 361.61,
+    "metaBaseEur": 17250.78,
+    "metaReferenciaEur": 16929.99,
+    "metaAlargadaEur": 17574.33
    },
    {
     "mes": "2024-08",
     "carteiraUsd": 9220.88,
     "investidoUsd": 8806.73,
     "sp500Usd": 9952.41,
-    "netWorthEur": 12218.79,
-    "reforcoEur": 240.09,
-    "metaBaseEur": null
+    "netWorthEur": 18324.13,
+    "reforcoEur": 280.18,
+    "metaBaseEur": 17741.55,
+    "metaReferenciaEur": 17398.96,
+    "metaAlargadaEur": 18087.4
    },
    {
     "mes": "2024-09",
     "carteiraUsd": 9435.87,
     "investidoUsd": 9124.41,
     "sp500Usd": 10392.25,
-    "netWorthEur": 12452.28,
-    "reforcoEur": 287.14,
-    "metaBaseEur": null
+    "netWorthEur": 18823.56,
+    "reforcoEur": 224.29,
+    "metaBaseEur": 18234.9,
+    "metaReferenciaEur": 17869.85,
+    "metaAlargadaEur": 18603.78
    },
    {
     "mes": "2024-10",
     "carteiraUsd": 9780.62,
     "investidoUsd": 9442.09,
     "sp500Usd": 10768.24,
-    "netWorthEur": 12802.56,
-    "reforcoEur": 353.03,
-    "metaBaseEur": null
+    "netWorthEur": 19240.77,
+    "reforcoEur": 506.06,
+    "metaBaseEur": 18730.85,
+    "metaReferenciaEur": 18342.65,
+    "metaAlargadaEur": 19123.47
    },
    {
     "mes": "2024-11",
     "carteiraUsd": 10283.2,
     "investidoUsd": 9759.78,
     "sp500Usd": 11086.31,
-    "netWorthEur": 13294.88,
-    "reforcoEur": 341.23,
-    "metaBaseEur": null
+    "netWorthEur": 19679.46,
+    "reforcoEur": 482.45,
+    "metaBaseEur": 19229.41,
+    "metaReferenciaEur": 18817.38,
+    "metaAlargadaEur": 19646.52
    },
    {
     "mes": "2024-12",
     "carteiraUsd": 10897.41,
     "investidoUsd": 10077.46,
     "sp500Usd": 11372.02,
-    "netWorthEur": 13887.67,
-    "reforcoEur": 269.02,
-    "metaBaseEur": null
+    "netWorthEur": 20208.13,
+    "reforcoEur": 950.0,
+    "metaBaseEur": 19730.59,
+    "metaReferenciaEur": 19294.05,
+    "metaAlargadaEur": 20172.92
    },
    {
     "mes": "2025-01",
     "carteiraUsd": 11520.61,
     "investidoUsd": 10395.14,
     "sp500Usd": 11663.84,
-    "netWorthEur": 14488.55,
-    "reforcoEur": 242.2,
-    "metaBaseEur": null
+    "netWorthEur": 20777.86,
+    "reforcoEur": 284.4,
+    "metaBaseEur": 20234.4,
+    "metaReferenciaEur": 19772.65,
+    "metaAlargadaEur": 20702.71
    },
    {
     "mes": "2025-02",
     "carteiraUsd": 12040.65,
     "investidoUsd": 10712.83,
     "sp500Usd": 12002.0,
-    "netWorthEur": 14996.58,
-    "reforcoEur": 300.05,
-    "metaBaseEur": null
+    "netWorthEur": 21151.12,
+    "reforcoEur": 400.11,
+    "metaBaseEur": 20740.87,
+    "metaReferenciaEur": 20253.21,
+    "metaAlargadaEur": 21235.92
    },
    {
     "mes": "2025-03",
     "carteiraUsd": 12390.38,
     "investidoUsd": 11030.51,
     "sp500Usd": 12416.05,
-    "netWorthEur": 15351.35,
-    "reforcoEur": 357.83,
-    "metaBaseEur": null
+    "netWorthEur": 21070.22,
+    "reforcoEur": 515.66,
+    "metaBaseEur": 21250.0,
+    "metaReferenciaEur": 20735.72,
+    "metaAlargadaEur": 21772.55
    },
    {
     "mes": "2025-04",
     "carteiraUsd": 12583.41,
     "investidoUsd": 11348.19,
     "sp500Usd": 12915.08,
-    "netWorthEur": 15565.07,
-    "reforcoEur": 330.88,
-    "metaBaseEur": null
+    "netWorthEur": 20969.92,
+    "reforcoEur": 311.77,
+    "metaBaseEur": 21761.81,
+    "metaReferenciaEur": 21220.2,
+    "metaAlargadaEur": 22312.63
    },
    {
     "mes": "2025-05",
     "carteiraUsd": 12712.14,
     "investidoUsd": 11665.88,
     "sp500Usd": 13483.72,
-    "netWorthEur": 15720.93,
-    "reforcoEur": 258.7,
-    "metaBaseEur": null
+    "netWorthEur": 21524.04,
+    "reforcoEur": 317.39,
+    "metaBaseEur": 22276.32,
+    "metaReferenciaEur": 21706.66,
+    "metaAlargadaEur": 22856.19
    },
    {
     "mes": "2025-06",
     "carteiraUsd": 12907.12,
     "investidoUsd": 11983.56,
     "sp500Usd": 14085.46,
-    "netWorthEur": 15936.4,
-    "reforcoEur": 247.02,
-    "metaBaseEur": null
+    "netWorthEur": 22361.15,
+    "reforcoEur": 294.04,
+    "metaBaseEur": 22793.53,
+    "metaReferenciaEur": 22195.09,
+    "metaAlargadaEur": 23403.25
    },
    {
     "mes": "2025-07",
     "carteiraUsd": 13275.35,
     "investidoUsd": 12301.25,
     "sp500Usd": 14672.79,
-    "netWorthEur": 16307.81,
-    "reforcoEur": 312.96,
-    "metaBaseEur": null
+    "netWorthEur": 23082.23,
+    "reforcoEur": 425.92,
+    "metaBaseEur": 23313.46,
+    "metaReferenciaEur": 22685.52,
+    "metaAlargadaEur": 23953.83
    },
    {
     "mes": "2025-08",
     "carteiraUsd": 13846.78,
     "investidoUsd": 12618.93,
     "sp500Usd": 15201.24,
-    "netWorthEur": 16862.1,
-    "reforcoEur": 359.92,
-    "metaBaseEur": null
+    "netWorthEur": 23786.31,
+    "reforcoEur": 519.83,
+    "metaBaseEur": 23836.13,
+    "metaReferenciaEur": 23177.94,
+    "metaAlargadaEur": 24507.95
    },
    {
     "mes": "2025-09",
     "carteiraUsd": 14555.66,
     "investidoUsd": 12936.61,
     "sp500Usd": 15643.21,
-    "netWorthEur": 17540.09,
-    "reforcoEur": 319.1,
-    "metaBaseEur": null
+    "netWorthEur": 24468.52,
+    "reforcoEur": 438.19,
+    "metaBaseEur": 24361.55,
+    "metaReferenciaEur": 23672.37,
+    "metaAlargadaEur": 25065.63
    },
    {
     "mes": "2025-10",
     "carteiraUsd": 15267.57,
     "investidoUsd": 13254.3,
     "sp500Usd": 15997.31,
-    "netWorthEur": 18220.81,
-    "reforcoEur": 250.3,
-    "metaBaseEur": null
+    "netWorthEur": 25009.77,
+    "reforcoEur": 300.6,
+    "metaBaseEur": 24889.73,
+    "metaReferenciaEur": 24168.82,
+    "metaAlargadaEur": 25626.91
    },
    {
     "mes": "2025-11",
     "carteiraUsd": 15841.39,
     "investidoUsd": 13571.98,
     "sp500Usd": 16290.12,
-    "netWorthEur": 18777.25,
-    "reforcoEur": 254.32,
-    "metaBaseEur": null
+    "netWorthEur": 25375.67,
+    "reforcoEur": 158.63,
+    "metaBaseEur": 25420.69,
+    "metaReferenciaEur": 24667.28,
+    "metaAlargadaEur": 26191.79
    },
    {
     "mes": "2025-12",
     "carteiraUsd": 16197.52,
     "investidoUsd": 13889.66,
     "sp500Usd": 16569.36,
-    "netWorthEur": 19137.77,
-    "reforcoEur": 325.26,
-    "metaBaseEur": null
+    "netWorthEur": 25670.54,
+    "reforcoEur": 1300.0,
+    "metaBaseEur": 25954.45,
+    "metaReferenciaEur": 25167.78,
+    "metaAlargadaEur": 26760.31
    },
    {
     "mes": "2026-01",
     "carteiraUsd": 16359.5,
     "investidoUsd": 14207.35,
     "sp500Usd": 16890.33,
-    "netWorthEur": 19323.55,
-    "reforcoEur": 359.2,
-    "metaBaseEur": null
+    "netWorthEur": 26062.39,
+    "reforcoEur": 518.4,
+    "metaBaseEur": 26491.01,
+    "metaReferenciaEur": 25670.32,
+    "metaAlargadaEur": 27332.49
    },
    {
     "mes": "2026-02",
     "carteiraUsd": 16447.38,
     "investidoUsd": 14525.03,
     "sp500Usd": 17299.34,
-    "netWorthEur": 19442.65,
-    "reforcoEur": 306.41,
-    "metaBaseEur": null
+    "netWorthEur": 26654.1,
+    "reforcoEur": 412.82,
+    "metaBaseEur": 27030.4,
+    "metaReferenciaEur": 26174.9,
+    "metaAlargadaEur": 27908.34
    },
    {
     "mes": "2026-03",
     "carteiraUsd": 16624.0,
     "investidoUsd": 14842.72,
     "sp500Usd": 17819.16,
-    "netWorthEur": 19641.6,
-    "reforcoEur": 244.23,
-    "metaBaseEur": null
+    "netWorthEur": 27400.12,
+    "reforcoEur": 288.47,
+    "metaBaseEur": 27572.63,
+    "metaReferenciaEur": 26681.54,
+    "metaAlargadaEur": 28487.91
    },
    {
     "mes": "2026-04",
     "carteiraUsd": 17018.01,
     "investidoUsd": 15160.4,
     "sp500Usd": 18441.03,
-    "netWorthEur": 20036.21,
-    "reforcoEur": 263.75,
-    "metaBaseEur": null
+    "netWorthEur": 28135.23,
+    "reforcoEur": 327.5,
+    "metaBaseEur": 28117.7,
+    "metaReferenciaEur": 27190.24,
+    "metaAlargadaEur": 29071.2
    },
    {
     "mes": "2026-05",
     "carteiraUsd": 17660.18,
     "investidoUsd": 15478.08,
     "sp500Usd": 19125.96,
-    "netWorthEur": 20654.16,
-    "reforcoEur": 336.37,
-    "metaBaseEur": null
+    "netWorthEur": 28697.39,
+    "reforcoEur": 472.75,
+    "metaBaseEur": 28665.65,
+    "metaReferenciaEur": 27701.02,
+    "metaAlargadaEur": 29658.24
    },
    {
     "mes": "2026-06",
     "carteiraUsd": 18464.29,
     "investidoUsd": 15795.77,
     "sp500Usd": 19815.32,
-    "netWorthEur": 21417.86,
-    "reforcoEur": 355.71,
-    "metaBaseEur": null
+    "netWorthEur": 29053.04,
+    "reforcoEur": 361.42,
+    "metaBaseEur": 29216.48,
+    "metaReferenciaEur": 28213.88,
+    "metaAlargadaEur": 30249.07
    },
    {
     "mes": "2026-07",
     "carteiraUsd": 19263.89,
     "investidoUsd": 16113.45,
     "sp500Usd": 20447.84,
-    "netWorthEur": 22177.5,
-    "reforcoEur": 293.43,
-    "metaBaseEur": null
+    "netWorthEur": 29328.11,
+    "reforcoEur": 386.86,
+    "metaBaseEur": 29770.21,
+    "metaReferenciaEur": 28728.83,
+    "metaAlargadaEur": 30843.69
    },
    {
     "mes": "2026-08",
     "carteiraUsd": 19889.37,
     "investidoUsd": 16431.13,
     "sp500Usd": 20978.16,
-    "netWorthEur": 22780.43,
-    "reforcoEur": 240.78,
-    "metaBaseEur": 23008.24
+    "netWorthEur": 29716.72,
+    "reforcoEur": 281.55,
+    "metaBaseEur": 30326.85,
+    "metaReferenciaEur": 29245.87,
+    "metaAlargadaEur": 31442.14
    },
    {
     "mes": "2026-09",
     "carteiraUsd": 20249.69,
     "investidoUsd": 16748.82,
     "sp500Usd": 21391.22,
-    "netWorthEur": 23144.72,
-    "reforcoEur": 274.89,
-    "metaBaseEur": 23376.16
+    "netWorthEur": 30333.75,
+    "reforcoEur": 349.77,
+    "metaBaseEur": 30886.42,
+    "metaReferenciaEur": 29765.02,
+    "metaAlargadaEur": 32044.44
    },
    {
     "mes": "2026-10",
     "carteiraUsd": 20379.35,
     "investidoUsd": 17066.5,
     "sp500Usd": 21708.03,
-    "netWorthEur": 23301.41,
-    "reforcoEur": 345.79,
-    "metaBaseEur": 23534.43
+    "netWorthEur": 31123.06,
+    "reforcoEur": 491.58,
+    "metaBaseEur": 31448.94,
+    "metaReferenciaEur": 30286.29,
+    "metaAlargadaEur": 32650.61
    },
    {
     "mes": "2026-11",
     "carteiraUsd": 20687.18,
     "investidoUsd": 17384.18,
     "sp500Usd": 21980.67,
-    "netWorthEur": 23618.46,
-    "reforcoEur": 349.61,
-    "metaBaseEur": 23854.65
+    "netWorthEur": 31894.41,
+    "reforcoEur": 250.0,
+    "metaBaseEur": 32014.41,
+    "metaReferenciaEur": 30809.68,
+    "metaAlargadaEur": 33260.69
    }
   ],
+  "plano": {
+   "reforcoMensalEur": 400.0,
+   "taxaReferencia": 0.05,
+   "taxaBase": 0.065,
+   "taxaAlargada": 0.08,
+   "meses": [
+    {
+     "mes": "2022-09",
+     "referenciaEur": 7080.58,
+     "baseEur": 7080.58,
+     "alargadaEur": 7080.58,
+     "historicaEur": 7080.58
+    },
+    {
+     "mes": "2022-10",
+     "referenciaEur": 7509.42,
+     "baseEur": 7517.83,
+     "alargadaEur": 7526.13,
+     "historicaEur": 7521.28
+    },
+    {
+     "mes": "2022-11",
+     "referenciaEur": 7940.02,
+     "baseEur": 7957.39,
+     "alargadaEur": 7974.56,
+     "historicaEur": 7964.51
+    },
+    {
+     "mes": "2022-12",
+     "referenciaEur": 8372.37,
+     "baseEur": 8399.26,
+     "alargadaEur": 8425.86,
+     "historicaEur": 8410.29
+    },
+    {
+     "mes": "2023-01",
+     "referenciaEur": 8806.48,
+     "baseEur": 8843.45,
+     "alargadaEur": 8880.08,
+     "historicaEur": 8858.63
+    },
+    {
+     "mes": "2023-02",
+     "referenciaEur": 9242.35,
+     "baseEur": 9289.98,
+     "alargadaEur": 9337.21,
+     "historicaEur": 9309.55
+    },
+    {
+     "mes": "2023-03",
+     "referenciaEur": 9680.01,
+     "baseEur": 9738.86,
+     "alargadaEur": 9797.29,
+     "historicaEur": 9763.06
+    },
+    {
+     "mes": "2023-04",
+     "referenciaEur": 10119.45,
+     "baseEur": 10190.11,
+     "alargadaEur": 10260.32,
+     "historicaEur": 10219.18
+    },
+    {
+     "mes": "2023-05",
+     "referenciaEur": 10560.67,
+     "baseEur": 10643.72,
+     "alargadaEur": 10726.34,
+     "historicaEur": 10677.92
+    },
+    {
+     "mes": "2023-06",
+     "referenciaEur": 11003.7,
+     "baseEur": 11099.73,
+     "alargadaEur": 11195.35,
+     "historicaEur": 11139.3
+    },
+    {
+     "mes": "2023-07",
+     "referenciaEur": 11448.53,
+     "baseEur": 11558.13,
+     "alargadaEur": 11667.38,
+     "historicaEur": 11603.33
+    },
+    {
+     "mes": "2023-08",
+     "referenciaEur": 11895.17,
+     "baseEur": 12018.95,
+     "alargadaEur": 12142.45,
+     "historicaEur": 12070.03
+    },
+    {
+     "mes": "2023-09",
+     "referenciaEur": 12343.64,
+     "baseEur": 12482.19,
+     "alargadaEur": 12620.58,
+     "historicaEur": 12539.41
+    },
+    {
+     "mes": "2023-10",
+     "referenciaEur": 12793.93,
+     "baseEur": 12947.86,
+     "alargadaEur": 13101.78,
+     "historicaEur": 13011.49
+    },
+    {
+     "mes": "2023-11",
+     "referenciaEur": 13246.05,
+     "baseEur": 13415.99,
+     "alargadaEur": 13586.07,
+     "historicaEur": 13486.28
+    },
+    {
+     "mes": "2023-12",
+     "referenciaEur": 13700.02,
+     "baseEur": 13886.58,
+     "alargadaEur": 14073.49,
+     "historicaEur": 13963.8
+    },
+    {
+     "mes": "2024-01",
+     "referenciaEur": 14155.83,
+     "baseEur": 14359.65,
+     "alargadaEur": 14564.04,
+     "historicaEur": 14444.06
+    },
+    {
+     "mes": "2024-02",
+     "referenciaEur": 14613.5,
+     "baseEur": 14835.21,
+     "alargadaEur": 15057.74,
+     "historicaEur": 14927.09
+    },
+    {
+     "mes": "2024-03",
+     "referenciaEur": 15073.04,
+     "baseEur": 15313.26,
+     "alargadaEur": 15554.62,
+     "historicaEur": 15412.89
+    },
+    {
+     "mes": "2024-04",
+     "referenciaEur": 15534.45,
+     "baseEur": 15793.84,
+     "alargadaEur": 16054.7,
+     "historicaEur": 15901.48
+    },
+    {
+     "mes": "2024-05",
+     "referenciaEur": 15997.74,
+     "baseEur": 16276.94,
+     "alargadaEur": 16558.0,
+     "historicaEur": 16392.89
+    },
+    {
+     "mes": "2024-06",
+     "referenciaEur": 16462.92,
+     "baseEur": 16762.59,
+     "alargadaEur": 17064.53,
+     "historicaEur": 16887.11
+    },
+    {
+     "mes": "2024-07",
+     "referenciaEur": 16929.99,
+     "baseEur": 17250.78,
+     "alargadaEur": 17574.33,
+     "historicaEur": 17384.18
+    },
+    {
+     "mes": "2024-08",
+     "referenciaEur": 17398.96,
+     "baseEur": 17741.55,
+     "alargadaEur": 18087.4,
+     "historicaEur": 17884.11
+    },
+    {
+     "mes": "2024-09",
+     "referenciaEur": 17869.85,
+     "baseEur": 18234.9,
+     "alargadaEur": 18603.78,
+     "historicaEur": 18386.91
+    },
+    {
+     "mes": "2024-10",
+     "referenciaEur": 18342.65,
+     "baseEur": 18730.85,
+     "alargadaEur": 19123.47,
+     "historicaEur": 18892.6
+    },
+    {
+     "mes": "2024-11",
+     "referenciaEur": 18817.38,
+     "baseEur": 19229.41,
+     "alargadaEur": 19646.52,
+     "historicaEur": 19401.19
+    },
+    {
+     "mes": "2024-12",
+     "referenciaEur": 19294.05,
+     "baseEur": 19730.59,
+     "alargadaEur": 20172.92,
+     "historicaEur": 19912.71
+    },
+    {
+     "mes": "2025-01",
+     "referenciaEur": 19772.65,
+     "baseEur": 20234.4,
+     "alargadaEur": 20702.71,
+     "historicaEur": 20427.17
+    },
+    {
+     "mes": "2025-02",
+     "referenciaEur": 20253.21,
+     "baseEur": 20740.87,
+     "alargadaEur": 21235.92,
+     "historicaEur": 20944.59
+    },
+    {
+     "mes": "2025-03",
+     "referenciaEur": 20735.72,
+     "baseEur": 21250.0,
+     "alargadaEur": 21772.55,
+     "historicaEur": 21464.98
+    },
+    {
+     "mes": "2025-04",
+     "referenciaEur": 21220.2,
+     "baseEur": 21761.81,
+     "alargadaEur": 22312.63,
+     "historicaEur": 21988.36
+    },
+    {
+     "mes": "2025-05",
+     "referenciaEur": 21706.66,
+     "baseEur": 22276.32,
+     "alargadaEur": 22856.19,
+     "historicaEur": 22514.76
+    },
+    {
+     "mes": "2025-06",
+     "referenciaEur": 22195.09,
+     "baseEur": 22793.53,
+     "alargadaEur": 23403.25,
+     "historicaEur": 23044.17
+    },
+    {
+     "mes": "2025-07",
+     "referenciaEur": 22685.52,
+     "baseEur": 23313.46,
+     "alargadaEur": 23953.83,
+     "historicaEur": 23576.63
+    },
+    {
+     "mes": "2025-08",
+     "referenciaEur": 23177.94,
+     "baseEur": 23836.13,
+     "alargadaEur": 24507.95,
+     "historicaEur": 24112.15
+    },
+    {
+     "mes": "2025-09",
+     "referenciaEur": 23672.37,
+     "baseEur": 24361.55,
+     "alargadaEur": 25065.63,
+     "historicaEur": 24650.75
+    },
+    {
+     "mes": "2025-10",
+     "referenciaEur": 24168.82,
+     "baseEur": 24889.73,
+     "alargadaEur": 25626.91,
+     "historicaEur": 25192.45
+    },
+    {
+     "mes": "2025-11",
+     "referenciaEur": 24667.28,
+     "baseEur": 25420.69,
+     "alargadaEur": 26191.79,
+     "historicaEur": 25737.25
+    },
+    {
+     "mes": "2025-12",
+     "referenciaEur": 25167.78,
+     "baseEur": 25954.45,
+     "alargadaEur": 26760.31,
+     "historicaEur": 26285.19
+    },
+    {
+     "mes": "2026-01",
+     "referenciaEur": 25670.32,
+     "baseEur": 26491.01,
+     "alargadaEur": 27332.49,
+     "historicaEur": 26836.28
+    },
+    {
+     "mes": "2026-02",
+     "referenciaEur": 26174.9,
+     "baseEur": 27030.4,
+     "alargadaEur": 27908.34,
+     "historicaEur": 27390.54
+    },
+    {
+     "mes": "2026-03",
+     "referenciaEur": 26681.54,
+     "baseEur": 27572.63,
+     "alargadaEur": 28487.91,
+     "historicaEur": 27947.98
+    },
+    {
+     "mes": "2026-04",
+     "referenciaEur": 27190.24,
+     "baseEur": 28117.7,
+     "alargadaEur": 29071.2,
+     "historicaEur": 28508.63
+    },
+    {
+     "mes": "2026-05",
+     "referenciaEur": 27701.02,
+     "baseEur": 28665.65,
+     "alargadaEur": 29658.24,
+     "historicaEur": 29072.5
+    },
+    {
+     "mes": "2026-06",
+     "referenciaEur": 28213.88,
+     "baseEur": 29216.48,
+     "alargadaEur": 30249.07,
+     "historicaEur": 29639.61
+    },
+    {
+     "mes": "2026-07",
+     "referenciaEur": 28728.83,
+     "baseEur": 29770.21,
+     "alargadaEur": 30843.69,
+     "historicaEur": 30209.98
+    },
+    {
+     "mes": "2026-08",
+     "referenciaEur": 29245.87,
+     "baseEur": 30326.85,
+     "alargadaEur": 31442.14,
+     "historicaEur": 30783.63
+    },
+    {
+     "mes": "2026-09",
+     "referenciaEur": 29765.02,
+     "baseEur": 30886.42,
+     "alargadaEur": 32044.44,
+     "historicaEur": 31360.58
+    },
+    {
+     "mes": "2026-10",
+     "referenciaEur": 30286.29,
+     "baseEur": 31448.94,
+     "alargadaEur": 32650.61,
+     "historicaEur": 31940.84
+    },
+    {
+     "mes": "2026-11",
+     "referenciaEur": 30809.68,
+     "baseEur": 32014.41,
+     "alargadaEur": 33260.69,
+     "historicaEur": 32524.44
+    },
+    {
+     "mes": "2026-12",
+     "referenciaEur": 31335.2,
+     "baseEur": 32582.86,
+     "alargadaEur": 33874.69,
+     "historicaEur": 33111.39
+    },
+    {
+     "mes": "2027-01",
+     "referenciaEur": 31862.86,
+     "baseEur": 33154.3,
+     "alargadaEur": 34492.64,
+     "historicaEur": 33701.72
+    },
+    {
+     "mes": "2027-02",
+     "referenciaEur": 32392.68,
+     "baseEur": 33728.75,
+     "alargadaEur": 35114.57,
+     "historicaEur": 34295.44
+    },
+    {
+     "mes": "2027-03",
+     "referenciaEur": 32924.65,
+     "baseEur": 34306.22,
+     "alargadaEur": 35740.5,
+     "historicaEur": 34892.58
+    },
+    {
+     "mes": "2027-04",
+     "referenciaEur": 33458.79,
+     "baseEur": 34886.73,
+     "alargadaEur": 36370.45,
+     "historicaEur": 35493.14
+    },
+    {
+     "mes": "2027-05",
+     "referenciaEur": 33995.1,
+     "baseEur": 35470.29,
+     "alargadaEur": 37004.46,
+     "historicaEur": 36097.16
+    },
+    {
+     "mes": "2027-06",
+     "referenciaEur": 34533.6,
+     "baseEur": 36056.93,
+     "alargadaEur": 37642.55,
+     "historicaEur": 36704.65
+    },
+    {
+     "mes": "2027-07",
+     "referenciaEur": 35074.3,
+     "baseEur": 36646.65,
+     "alargadaEur": 38284.74,
+     "historicaEur": 37315.63
+    },
+    {
+     "mes": "2027-08",
+     "referenciaEur": 35617.19,
+     "baseEur": 37239.47,
+     "alargadaEur": 38931.07,
+     "historicaEur": 37930.12
+    },
+    {
+     "mes": "2027-09",
+     "referenciaEur": 36162.3,
+     "baseEur": 37835.41,
+     "alargadaEur": 39581.55,
+     "historicaEur": 38548.15
+    },
+    {
+     "mes": "2027-10",
+     "referenciaEur": 36709.63,
+     "baseEur": 38434.49,
+     "alargadaEur": 40236.22,
+     "historicaEur": 39169.73
+    },
+    {
+     "mes": "2027-11",
+     "referenciaEur": 37259.19,
+     "baseEur": 39036.72,
+     "alargadaEur": 40895.1,
+     "historicaEur": 39794.88
+    },
+    {
+     "mes": "2027-12",
+     "referenciaEur": 37810.99,
+     "baseEur": 39642.12,
+     "alargadaEur": 41558.22,
+     "historicaEur": 40423.62
+    },
+    {
+     "mes": "2028-01",
+     "referenciaEur": 38365.04,
+     "baseEur": 40250.71,
+     "alargadaEur": 42225.61,
+     "historicaEur": 41055.98
+    },
+    {
+     "mes": "2028-02",
+     "referenciaEur": 38921.34,
+     "baseEur": 40862.49,
+     "alargadaEur": 42897.29,
+     "historicaEur": 41691.97
+    },
+    {
+     "mes": "2028-03",
+     "referenciaEur": 39479.91,
+     "baseEur": 41477.5,
+     "alargadaEur": 43573.29,
+     "historicaEur": 42331.62
+    },
+    {
+     "mes": "2028-04",
+     "referenciaEur": 40040.76,
+     "baseEur": 42095.74,
+     "alargadaEur": 44253.64,
+     "historicaEur": 42974.95
+    },
+    {
+     "mes": "2028-05",
+     "referenciaEur": 40603.89,
+     "baseEur": 42717.24,
+     "alargadaEur": 44938.37,
+     "historicaEur": 43621.97
+    },
+    {
+     "mes": "2028-06",
+     "referenciaEur": 41169.31,
+     "baseEur": 43342.0,
+     "alargadaEur": 45627.51,
+     "historicaEur": 44272.71
+    },
+    {
+     "mes": "2028-07",
+     "referenciaEur": 41737.04,
+     "baseEur": 43970.05,
+     "alargadaEur": 46321.07,
+     "historicaEur": 44927.2
+    },
+    {
+     "mes": "2028-08",
+     "referenciaEur": 42307.09,
+     "baseEur": 44601.41,
+     "alargadaEur": 47019.11,
+     "historicaEur": 45585.44
+    },
+    {
+     "mes": "2028-09",
+     "referenciaEur": 42879.45,
+     "baseEur": 45236.09,
+     "alargadaEur": 47721.63,
+     "historicaEur": 46247.47
+    },
+    {
+     "mes": "2028-10",
+     "referenciaEur": 43454.15,
+     "baseEur": 45874.11,
+     "alargadaEur": 48428.67,
+     "historicaEur": 46913.31
+    },
+    {
+     "mes": "2028-11",
+     "referenciaEur": 44031.18,
+     "baseEur": 46515.48,
+     "alargadaEur": 49140.26,
+     "historicaEur": 47582.97
+    },
+    {
+     "mes": "2028-12",
+     "referenciaEur": 44610.57,
+     "baseEur": 47160.23,
+     "alargadaEur": 49856.43,
+     "historicaEur": 48256.48
+    },
+    {
+     "mes": "2029-01",
+     "referenciaEur": 45192.32,
+     "baseEur": 47808.38,
+     "alargadaEur": 50577.21,
+     "historicaEur": 48933.86
+    },
+    {
+     "mes": "2029-02",
+     "referenciaEur": 45776.44,
+     "baseEur": 48459.93,
+     "alargadaEur": 51302.62,
+     "historicaEur": 49615.14
+    },
+    {
+     "mes": "2029-03",
+     "referenciaEur": 46362.94,
+     "baseEur": 49114.91,
+     "alargadaEur": 52032.71,
+     "historicaEur": 50300.33
+    },
+    {
+     "mes": "2029-04",
+     "referenciaEur": 46951.83,
+     "baseEur": 49773.34,
+     "alargadaEur": 52767.49,
+     "historicaEur": 50989.46
+    },
+    {
+     "mes": "2029-05",
+     "referenciaEur": 47543.11,
+     "baseEur": 50435.23,
+     "alargadaEur": 53506.99,
+     "historicaEur": 51682.55
+    },
+    {
+     "mes": "2029-06",
+     "referenciaEur": 48136.81,
+     "baseEur": 51100.6,
+     "alargadaEur": 54251.26,
+     "historicaEur": 52379.63
+    },
+    {
+     "mes": "2029-07",
+     "referenciaEur": 48732.93,
+     "baseEur": 51769.48,
+     "alargadaEur": 55000.31,
+     "historicaEur": 53080.71
+    },
+    {
+     "mes": "2029-08",
+     "referenciaEur": 49331.47,
+     "baseEur": 52441.88,
+     "alargadaEur": 55754.19,
+     "historicaEur": 53785.82
+    },
+    {
+     "mes": "2029-09",
+     "referenciaEur": 49932.45,
+     "baseEur": 53117.81,
+     "alargadaEur": 56512.91,
+     "historicaEur": 54494.99
+    },
+    {
+     "mes": "2029-10",
+     "referenciaEur": 50535.88,
+     "baseEur": 53797.3,
+     "alargadaEur": 57276.52,
+     "historicaEur": 55208.23
+    },
+    {
+     "mes": "2029-11",
+     "referenciaEur": 51141.77,
+     "baseEur": 54480.36,
+     "alargadaEur": 58045.04,
+     "historicaEur": 55925.57
+    },
+    {
+     "mes": "2029-12",
+     "referenciaEur": 51750.13,
+     "baseEur": 55167.02,
+     "alargadaEur": 58818.5,
+     "historicaEur": 56647.03
+    },
+    {
+     "mes": "2030-01",
+     "referenciaEur": 52360.97,
+     "baseEur": 55857.29,
+     "alargadaEur": 59596.94,
+     "historicaEur": 57372.65
+    },
+    {
+     "mes": "2030-02",
+     "referenciaEur": 52974.29,
+     "baseEur": 56551.2,
+     "alargadaEur": 60380.39,
+     "historicaEur": 58102.43
+    },
+    {
+     "mes": "2030-03",
+     "referenciaEur": 53590.12,
+     "baseEur": 57248.75,
+     "alargadaEur": 61168.88,
+     "historicaEur": 58836.41
+    },
+    {
+     "mes": "2030-04",
+     "referenciaEur": 54208.45,
+     "baseEur": 57949.98,
+     "alargadaEur": 61962.44,
+     "historicaEur": 59574.6
+    },
+    {
+     "mes": "2030-05",
+     "referenciaEur": 54829.3,
+     "baseEur": 58654.89,
+     "alargadaEur": 62761.11,
+     "historicaEur": 60317.04
+    },
+    {
+     "mes": "2030-06",
+     "referenciaEur": 55452.68,
+     "baseEur": 59363.52,
+     "alargadaEur": 63564.92,
+     "historicaEur": 61063.75
+    },
+    {
+     "mes": "2030-07",
+     "referenciaEur": 56078.6,
+     "baseEur": 60075.87,
+     "alargadaEur": 64373.89,
+     "historicaEur": 61814.75
+    },
+    {
+     "mes": "2030-08",
+     "referenciaEur": 56707.08,
+     "baseEur": 60791.97,
+     "alargadaEur": 65188.08,
+     "historicaEur": 62570.07
+    },
+    {
+     "mes": "2030-09",
+     "referenciaEur": 57338.11,
+     "baseEur": 61511.84,
+     "alargadaEur": 66007.5,
+     "historicaEur": 63329.72
+    },
+    {
+     "mes": "2030-10",
+     "referenciaEur": 57971.71,
+     "baseEur": 62235.5,
+     "alargadaEur": 66832.19,
+     "historicaEur": 64093.75
+    },
+    {
+     "mes": "2030-11",
+     "referenciaEur": 58607.89,
+     "baseEur": 62962.96,
+     "alargadaEur": 67662.19,
+     "historicaEur": 64862.16
+    },
+    {
+     "mes": "2030-12",
+     "referenciaEur": 59246.67,
+     "baseEur": 63694.25,
+     "alargadaEur": 68497.53,
+     "historicaEur": 65635.0
+    }
+   ]
+  },
   "objetivos": [
    {
     "objetivo": "Património em out/2026",
-    "meta": 21400.0,
-    "real": 21150.0,
-    "metaTexto": "21 400 €",
-    "realTexto": "21 150 €",
-    "diferencaTexto": "-250 €",
+    "meta": 31448.94,
+    "real": 31123.06,
+    "metaTexto": "31 449 €",
+    "realTexto": "31 123 €",
+    "diferencaTexto": "-326 €",
     "estado": "No limite"
    },
    {
     "objetivo": "Reforço médio mensal (últimos 12 meses)",
-    "meta": 300.0,
-    "real": 312.4,
-    "metaTexto": "300 €",
-    "realTexto": "312 €",
-    "diferencaTexto": "+12 €",
+    "meta": 400.0,
+    "real": 445.81,
+    "metaTexto": "400 €",
+    "realTexto": "446 €",
+    "diferencaTexto": "+46 €",
     "estado": "No caminho"
    },
    {
@@ -499,7 +1309,7 @@
    }
   ],
   "patrimonio": {
-   "totalEur": 22694.41,
+   "totalEur": 31894.41,
    "classes": [
     {
      "classe": "Ações",
@@ -517,24 +1327,24 @@
     },
     {
      "classe": "Certificado de Aforro (exemplo)",
-     "investidoEur": 2400,
-     "valorEur": 2500,
-     "valorizacao": 0.0417,
-     "rendimentoAnualEur": 75
+     "investidoEur": 6900.0,
+     "valorEur": 7350.0,
+     "valorizacao": 0.065217,
+     "rendimentoAnualEur": 180.0
+    },
+    {
+     "classe": "PPR (exemplo)",
+     "investidoEur": 2800.0,
+     "valorEur": 3050.0,
+     "valorizacao": 0.089286,
+     "rendimentoAnualEur": 0.0
     },
     {
      "classe": "Depósito a prazo",
-     "investidoEur": 1500,
-     "valorEur": 1500,
-     "valorizacao": 0,
-     "rendimentoAnualEur": 30
-    },
-    {
-     "classe": "Corretora (saldo €)",
-     "investidoEur": 800,
-     "valorEur": 800,
-     "valorizacao": 0,
-     "rendimentoAnualEur": 0
+     "investidoEur": 3600.0,
+     "valorEur": 3600.0,
+     "valorizacao": 0.0,
+     "rendimentoAnualEur": 72.0
     }
    ]
   },
@@ -747,8 +1557,8 @@
    },
    {
     "rotulo": "PATRIMÓNIO TOTAL (NET WORTH)",
-    "valor": 22094.41075,
-    "texto": "22 094"
+    "valor": 31894.41075,
+    "texto": "31 894"
    },
    {
     "rotulo": "vs S&P 500 (VUAA, c/ dividendos)",
@@ -762,13 +1572,13 @@
    },
    {
     "rotulo": "DIVIDENDOS RECEBIDOS (TOTAL, USD)",
-    "valor": 1007.29,
-    "texto": "1 007"
+    "valor": 1069.66,
+    "texto": "1 070"
    },
    {
     "rotulo": "REFORÇO MÉDIO MENSAL",
-    "valor": 500,
-    "texto": "500"
+    "valor": 445.81,
+    "texto": "446"
    },
    {
     "rotulo": "PORTEFÓLIO TOTAL (USD)",
@@ -1544,8 +2354,8 @@
     },
     {
      "rotulo": "TOTAL RECEBIDO ATÉ HOJE ($)",
-     "valor": 1007.29,
-     "texto": "1 007"
+     "valor": 1069.66,
+     "texto": "1 070"
     },
     {
      "rotulo": "BRUTO 2027 ($)",
@@ -1574,7 +2384,7 @@
      "mes": "Janeiro",
      "previstoBrutoUsd": 25.46,
      "previstoLiquidoEur": 15.64,
-     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoAnteriorUsd": 32.59,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, BORE, DUNA"
     },
@@ -1582,7 +2392,7 @@
      "mes": "Fevereiro",
      "previstoBrutoUsd": 42.58,
      "previstoLiquidoEur": 26.15,
-     "recebidoAnoAnteriorUsd": 39.71,
+     "recebidoAnoAnteriorUsd": 46.16,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, CAST, GIRA, HORT"
     },
@@ -1590,7 +2400,7 @@
      "mes": "Março",
      "previstoBrutoUsd": 12.16,
      "previstoLiquidoEur": 7.47,
-     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoAnteriorUsd": 16.14,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, ALFA, ILHA, JADE"
     },
@@ -1598,7 +2408,7 @@
      "mes": "Abril",
      "previstoBrutoUsd": 25.46,
      "previstoLiquidoEur": 15.64,
-     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoAnteriorUsd": 31.24,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, BORE, DUNA"
     },
@@ -1606,7 +2416,7 @@
      "mes": "Maio",
      "previstoBrutoUsd": 75.34,
      "previstoLiquidoEur": 46.27,
-     "recebidoAnoAnteriorUsd": 70.27,
+     "recebidoAnoAnteriorUsd": 77.87,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, CAST, GIRA, HORT, LON:ESTR, AMS:FARO"
     },
@@ -1614,7 +2424,7 @@
      "mes": "Junho",
      "previstoBrutoUsd": 12.16,
      "previstoLiquidoEur": 7.47,
-     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoAnteriorUsd": 17.99,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, ALFA, ILHA, JADE"
     },
@@ -1622,7 +2432,7 @@
      "mes": "Julho",
      "previstoBrutoUsd": 25.46,
      "previstoLiquidoEur": 15.64,
-     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoAnteriorUsd": 33.49,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, BORE, DUNA"
     },
@@ -1630,7 +2440,7 @@
      "mes": "Agosto",
      "previstoBrutoUsd": 42.58,
      "previstoLiquidoEur": 26.15,
-     "recebidoAnoAnteriorUsd": 39.71,
+     "recebidoAnoAnteriorUsd": 46.78,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, CAST, GIRA, HORT"
     },
@@ -1638,7 +2448,7 @@
      "mes": "Setembro",
      "previstoBrutoUsd": 12.16,
      "previstoLiquidoEur": 7.47,
-     "recebidoAnoAnteriorUsd": 11.34,
+     "recebidoAnoAnteriorUsd": 13.29,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, ALFA, ILHA, JADE"
     },
@@ -1646,7 +2456,7 @@
      "mes": "Outubro",
      "previstoBrutoUsd": 25.46,
      "previstoLiquidoEur": 15.64,
-     "recebidoAnoAnteriorUsd": 23.74,
+     "recebidoAnoAnteriorUsd": 25.49,
      "recebidoAnoUsd": 0.0,
      "quemPaga": "EMRG, BORE, DUNA"
     },
@@ -1743,20 +2553,20 @@
     {
      "ano": 2026,
      "meses": [
-      23.74,
-      39.71,
-      11.34,
-      23.74,
-      70.27,
-      11.34,
-      23.74,
-      39.71,
-      11.34,
-      23.74,
+      32.59,
+      46.16,
+      16.14,
+      31.24,
+      77.87,
+      17.99,
+      33.49,
+      46.78,
+      13.29,
+      25.49,
       21.23,
       0.0
      ],
-     "totalUsd": 299.9
+     "totalUsd": 362.27
     }
    ],
    "esteAno": {
@@ -1896,6 +2706,44 @@
       "totalUsd": 23.96
      },
      {
+      "ticker": "ZETA",
+      "empresa": "Zeta Distribuição Alimentar e Logística Integrada do Atlântico SA",
+      "meses": [
+       6.1,
+       0.0,
+       0.0,
+       6.1,
+       0.0,
+       0.0,
+       6.1,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 18.3
+     },
+     {
+      "ticker": "MARE",
+      "empresa": "Maré Alta Transportes Marítimos Inc",
+      "meses": [
+       0.0,
+       4.35,
+       0.0,
+       0.0,
+       4.35,
+       0.0,
+       0.0,
+       4.35,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 13.05
+     },
+     {
       "ticker": "ILHA",
       "empresa": "Ilha Pagamentos Inc",
       "meses": [
@@ -1934,6 +2782,44 @@
       "totalUsd": 6.6
      },
      {
+      "ticker": "NORA",
+      "empresa": "Nora Têxteis e Confeções Ltd",
+      "meses": [
+       0.0,
+       0.0,
+       3.2,
+       0.0,
+       0.0,
+       3.2,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 6.4
+     },
+     {
+      "ticker": "PENA",
+      "empresa": "Pena Branca Avicultura Inc",
+      "meses": [
+       0.0,
+       2.1,
+       0.0,
+       0.0,
+       2.1,
+       0.0,
+       0.0,
+       2.1,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 6.3
+     },
+     {
       "ticker": "ALFA",
       "empresa": "Alfa Software Inc",
       "meses": [
@@ -1953,6 +2839,44 @@
       "totalUsd": 6.12
      },
      {
+      "ticker": "OURI",
+      "empresa": "Ourives Reunidos Joalharia Inc",
+      "meses": [
+       2.75,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       2.75,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 5.5
+     },
+     {
+      "ticker": "SOMA",
+      "empresa": "Soma Telecomunicações e Media Interativa Inc",
+      "meses": [
+       0.0,
+       0.0,
+       1.6,
+       0.0,
+       0.0,
+       1.6,
+       0.0,
+       0.0,
+       1.6,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 4.8
+     },
+     {
       "ticker": "JADE",
       "empresa": "Jade Semicondutores Inc",
       "meses": [
@@ -1970,6 +2894,120 @@
        0.0
       ],
       "totalUsd": 3.21
+     },
+     {
+      "ticker": "TRIG",
+      "empresa": "Trigo Dourado Moagens Inc",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       1.4,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       1.4,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 2.8
+     },
+     {
+      "ticker": "RAIZ",
+      "empresa": "Raiz Profunda Biotecnologia e Ciências da Vida Inc",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       1.85,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 1.85
+     },
+     {
+      "ticker": "VIGA",
+      "empresa": "Viga Mestra Construções Inc",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       1.15,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 1.15
+     },
+     {
+      "ticker": "XARE",
+      "empresa": "Xaréu Pescas do Norte Ltd",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.9,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 0.9
+     },
+     {
+      "ticker": "ZIMB",
+      "empresa": "Zimbro Destilarias Inc",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.35,
+       0.35,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 0.7
+     },
+     {
+      "ticker": "IATE",
+      "empresa": "Iate Clube Marinas e Turismo Náutico Inc",
+      "meses": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.62,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "totalUsd": 0.62
      }
     ]
    }

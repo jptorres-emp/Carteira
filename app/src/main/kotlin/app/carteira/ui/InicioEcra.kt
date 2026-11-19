@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,11 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.carteira.alertas.Alerta
 import app.carteira.alertas.TipoAlerta
-import app.carteira.dados.ClassePatrimonio
+import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.Dados
 import app.carteira.dados.ItemWatchlist
 import app.carteira.dados.Objetivo
-import app.carteira.dados.Patrimonio
 import app.carteira.dados.Sinais
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -47,8 +48,8 @@ import kotlin.math.max
 
 /**
  * Ecrã inicial: o que interessa ao abrir a app, do mais importante para o resto.
- * Valor e dia → evolução → indicadores → objetivos → o que precisa de atenção → hoje →
- * alocação → dividendos → oportunidades → património → desempenho → movimentos.
+ * Valor e dia → alertas recentes → património → evolução → indicadores → objetivos → o que precisa
+ * de atenção → hoje → alocação → dividendos → oportunidades → desempenho → movimentos.
  */
 @Composable
 fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
@@ -58,11 +59,13 @@ fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
     val oportunidades = d.watchlist.filter { Sinais.compra(it.sinal) }
         .sortedWith(compareByDescending<ItemWatchlist> { ganhoDaTroca(it) ?: -1.0 }.thenByDescending { it.margem ?: 0.0 })
     val recentes = estado.alertas.filter { recente(it.quando, 3) }.take(3)
+    val patrimonio = remember(d) { AnalisePatrimonio.de(d) }
 
     ListaAtualizavel(estado, vm) {
         item { CartaoPrincipal(d) }
         if (estado.conviteAlertas) item { ConviteAlertas(estado, vm) }
         if (recentes.isNotEmpty()) item { CartaoAlertasRecentes(recentes, estado.alertasNaoVistos, vm) }
+        if (patrimonio != null) item { CartaoPatrimonioResumo(patrimonio, vm) }
         if (d.evolucao.size >= 2) {
             item { Cartao("Evolução") { GraficoEvolucao(d.evolucao) } }
         } else if (d.versaoPonte < 2) {
@@ -75,8 +78,6 @@ fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
         item { CartaoAlocacao(d) }
         item { CartaoDividendosResumo(d, vm) }
         if (oportunidades.isNotEmpty()) item { CartaoOportunidades(oportunidades, vm) }
-        val patrimonio = d.patrimonio
-        if (patrimonio != null && patrimonio.classes.isNotEmpty()) item { CartaoPatrimonio(patrimonio) }
         item { CartaoDesempenho(d) }
         if (d.transacoes.isNotEmpty()) item { CartaoMovimentos(d) }
         item {
@@ -293,17 +294,17 @@ private fun GrelhaIndicadores(d: Dados) {
     val volatilidade = d.indicador("Volatilidade Anualizada")?.valor
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        LinhaDeMosaicos {
             Mosaico(
                 "Últimos 12 meses",
                 Formatos.pctSinal(doze),
-                Modifier.weight(1f),
+                Modifier.weight(1f).fillMaxHeight(),
                 detalhe = anual?.let { "${Formatos.pct(it)}/ano desde o início" },
             )
             Mosaico(
                 "vs S&P 500",
                 Formatos.eurSinal(vsSp),
-                Modifier.weight(1f),
+                Modifier.weight(1f).fillMaxHeight(),
                 detalhe = when {
                     vsPct != null -> (if (vsPct >= 0) "à frente " else "atrás ") + Formatos.pct(abs(vsPct))
                     vsSp != null -> if (vsSp >= 0) "à frente, c/ dividendos" else "atrás, c/ dividendos"
@@ -312,21 +313,21 @@ private fun GrelhaIndicadores(d: Dados) {
                 corDetalhe = corDoSinal(vsSp),
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        LinhaDeMosaicos {
             if (liquido != null) {
                 Mosaico(
                     "Dividendos $ano (líquidos)",
                     Formatos.eur(liquido, 0),
-                    Modifier.weight(1f),
+                    Modifier.weight(1f).fillMaxHeight(),
                     detalhe = "≈ ${Formatos.eur(liquido / 12, 0)} por mês",
                 )
             } else {
-                Mosaico("Dividendos/ano", Formatos.eur(dividendosAno, 0), Modifier.weight(1f), detalhe = "estimativa bruta")
+                Mosaico("Dividendos/ano", Formatos.eur(dividendosAno, 0), Modifier.weight(1f).fillMaxHeight(), detalhe = "estimativa bruta")
             }
             Mosaico(
                 "Maior queda",
                 Formatos.pctSinal(queda),
-                Modifier.weight(1f),
+                Modifier.weight(1f).fillMaxHeight(),
                 detalhe = volatilidade?.let { "volatilidade ${Formatos.pct(it)}" },
             )
         }
@@ -638,7 +639,7 @@ private fun CartaoDividendosResumo(d: Dados, vm: CarteiraViewModel) {
             BarrasMensais(
                 previsto = div.calendario.map { it.previstoBrutoUsd ?: 0.0 },
                 recebido = div.calendario.map { it.recebidoAnoAnteriorUsd },
-                mesAtual = mes,
+                destacado = mes,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Legenda(MaterialTheme.colorScheme.primary, "Previsão ${ano ?: ""}")
@@ -686,60 +687,6 @@ private fun CartaoOportunidades(lista: List<ItemWatchlist>, vm: CarteiraViewMode
                 }
             }
         }
-    }
-}
-
-// ───────────────────────────── Património ─────────────────────────────
-
-/** Junta as classes da tab Investimentos em grupos legíveis (os saldos das corretoras vão para Liquidez). */
-private fun agruparClasses(classes: List<ClassePatrimonio>): List<Pair<String, Double>> {
-    val grupos = linkedMapOf<String, Double>()
-    classes.forEach { c ->
-        val n = c.classe.lowercase()
-        val g = when {
-            n.startsWith("ações") || n.startsWith("acoes") -> "Ações"
-            n.startsWith("etf") -> "ETFs"
-            "certificado" in n -> "Certificados de Aforro"
-            "ppr" in n -> "PPR"
-            "p2p" in n -> "P2P"
-            "cripto" in n -> "Cripto"
-            // Os saldos das corretoras podem ter mais do que dinheiro (a Trading Republic tem cripto e ETFs).
-            "saldo" in n || "cash" in n || "revolut" in n || "depósito" in n || "deposito" in n -> "Corretoras e liquidez"
-            else -> c.classe
-        }
-        grupos[g] = (grupos[g] ?: 0.0) + c.valorEur
-    }
-    val total = grupos.values.sum()
-    return grupos.entries
-        .filter { total > 0 && it.value / total >= 0.002 }
-        .sortedByDescending { it.value }
-        .map { it.key to it.value }
-}
-
-@Composable
-private fun CartaoPatrimonio(p: Patrimonio) {
-    val grupos = agruparClasses(p.classes)
-    if (grupos.isEmpty()) return
-    val total = p.totalEur ?: grupos.sumOf { it.second }
-    Cartao("Património total") {
-        Text(Formatos.eur(total, 0), style = MaterialTheme.typography.headlineSmall.numeros(), fontWeight = FontWeight.SemiBold)
-        BarraEmpilhada(grupos.mapIndexed { k, (_, v) -> v to Paleta.categoria(k) })
-        grupos.forEachIndexed { k, (nome, valor) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(Paleta.categoria(k)))
-                Spacer(Modifier.width(8.dp))
-                Text(nome, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                Text(Formatos.eur(valor, 0), style = MaterialTheme.typography.bodyMedium.numeros())
-                Text(
-                    Formatos.pct(if (total > 0) valor / total else null, 0),
-                    modifier = Modifier.width(44.dp),
-                    style = MaterialTheme.typography.bodySmall.numeros(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                )
-            }
-        }
-        TextoPequeno("Da tab Investimentos: ações e ETFs ao vivo; o resto é o último saldo que lá puseste.")
     }
 }
 

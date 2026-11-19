@@ -37,6 +37,7 @@ private data class Separador(val ecra: Ecra, val rotulo: String, val icone: Int)
 
 private val separadores = listOf(
     Separador(Ecra.Resumo, "Início", R.drawable.ic_resumo),
+    Separador(Ecra.Patrimonio, "Património", R.drawable.ic_patrimonio),
     Separador(Ecra.Posicoes, "Posições", R.drawable.ic_posicoes),
     Separador(Ecra.Dividendos, "Dividendos", R.drawable.ic_dividendos),
     Separador(Ecra.Watchlist, "Watchlist", R.drawable.ic_watchlist),
@@ -109,14 +110,15 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                             selected = ecra == s.ecra,
                             onClick = { vm.irPara(s.ecra) },
                             icon = { Icon(painterResource(s.icone), contentDescription = null) },
-                            label = { Text(s.rotulo) },
+                            // Uma só linha: com letra grande, cinco separadores não cabem em duas.
+                            label = { Text(s.rotulo, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis) },
                         )
                     }
                 }
             }
         },
         floatingActionButton = {
-            if (emSeparador && ecra != Ecra.Watchlist && dados != null) {
+            if (emSeparador && ecra != Ecra.Watchlist && ecra != Ecra.Patrimonio && dados != null) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         val modo = if (ecra == Ecra.Dividendos) ModoRegisto.DIVIDENDO else ModoRegisto.TRANSACAO
@@ -133,6 +135,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
         Box(Modifier.padding(margens).fillMaxSize()) {
             when (ecra) {
                 Ecra.Resumo -> InicioEcra(estado, vm)
+                Ecra.Patrimonio -> PatrimonioEcra(estado, vm)
                 Ecra.Posicoes -> PosicoesEcra(estado, vm)
                 Ecra.Dividendos -> DividendosEcra(estado, vm)
                 Ecra.Watchlist -> WatchlistEcra(estado, vm)
@@ -151,6 +154,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
 
 private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     Ecra.Resumo -> "Carteira"
+    Ecra.Patrimonio -> "Património"
     Ecra.Posicoes -> "Posições"
     Ecra.Dividendos -> "Dividendos"
     Ecra.Watchlist -> "Watchlist"

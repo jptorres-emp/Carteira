@@ -16,7 +16,7 @@
  * A chave impede que alguém com o URL leia a carteira. Se a mudares aqui, muda-a também na app.
  */
 const CHAVE = '__CHAVE__';
-const VERSAO_PONTE = 2;
+const VERSAO_PONTE = 3;
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto',
   'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -179,7 +179,7 @@ function lerTudo_() {
   cart.posicoes.forEach(function (p) { p.avaliacao = aval[p.ticker] || null; });
   // Secções da visão geral: se uma tab mudar de forma, a app recebe o resto e um aviso.
   const avisos = [];
-  const evolucao = opcional_(avisos, 'Evolução Patrimonial', lerEvolucao_, []);
+  const ev = opcional_(avisos, 'Evolução Patrimonial', lerEvolucaoEPlano_, { evolucao: [], plano: null });
   const objetivos = opcional_(avisos, 'Objetivos', lerObjetivos_, []);
   const patrimonio = opcional_(avisos, 'Investimentos', lerPatrimonio_, null);
   const comparacoes = opcional_(avisos, 'Validação S&P 500', lerComparacoes_, []);
@@ -191,7 +191,8 @@ function lerTudo_() {
       hoje: hojeIso_(),
       avisos: avisos
     },
-    evolucao: evolucao,
+    evolucao: ev.evolucao,
+    plano: ev.plano,
     objetivos: objetivos,
     patrimonio: patrimonio,
     comparacoes: comparacoes,
@@ -559,8 +560,12 @@ function primeiroNumero_(linha, desde) {
   return null;
 }
 
-/** Evolução mensal (tab Evolução Patrimonial): carteira, investido e o mesmo dinheiro no S&P 500. */
-function lerEvolucao_() {
+/**
+ * Tab Evolução Patrimonial, lida uma só vez:
+ *  - evolucao: os meses já vividos (carteira, investido, S&P 500, património, reforço e metas);
+ *  - plano: o reforço e as taxas assumidas (linha 3) e as 4 metas de cada mês, também as futuras (até 2030).
+ */
+function lerEvolucaoEPlano_() {
   const d = grelha_(folha_('Evolução Patrimonial'), 400).valores;
   const h = acharLinha_(d, ['Mês', 'Portefólio ($)', 'Investido ($)']);
   if (h < 0) throw new Error('não encontrei a tabela EVOLUÇÃO MENSAL');
@@ -575,20 +580,49 @@ function lerEvolucao_() {
       if (t.indexOf('SPY Equiv.') === 0) spyAgora = primeiroNumero_(d[r], c + 1);
     }
   }
+  // Parâmetros do plano, por cima da tabela: "Reforço Mensal Assumido (€)" e as três taxas anuais.
+  const plano = { reforcoMensalEur: null, taxaReferencia: null, taxaBase: null, taxaAlargada: null, meses: [] };
+  for (let r = 0; r < h; r++) {
+    for (let c = 0; c < d[r].length; c++) {
+      const t = norm_(d[r][c]);
+      if (t === 'Reforço Mensal Assumido (€)') plano.reforcoMensalEur = num_(primeiroNumero_(d[r], c + 1));
+      if (t.indexOf('Taxa Anual') === 0) {
+        const taxa = num_(primeiroNumero_(d[r], c + 1));
+        if (t.indexOf('Refer') >= 0) plano.taxaReferencia = taxa;
+        else if (t.indexOf('Base') >= 0) plano.taxaBase = taxa;
+        else if (t.indexOf('Alargada') >= 0) plano.taxaAlargada = taxa;
+      }
+    }
+  }
   const out = [];
   for (let r = h + 1; r < d.length; r++) {
     const data = d[r][m['Mês']];
     if (!(data instanceof Date)) break;
+    const mes = Utilities.formatDate(data, fuso_(), 'yyyy-MM');
+    const metas = {
+      referenciaEur: num_(campo_(d[r], m, 'Meta Referência (€)')),
+      baseEur: num_(campo_(d[r], m, 'Meta Base (€)')),
+      alargadaEur: num_(campo_(d[r], m, 'Meta Alargada (€)')),
+      historicaEur: num_(campo_(d[r], m, 'Meta Histórica (TTWROR real, €)'))
+    };
+    if (metas.referenciaEur !== null || metas.baseEur !== null || metas.alargadaEur !== null || metas.historicaEur !== null) {
+      plano.meses.push({
+        mes: mes, referenciaEur: metas.referenciaEur, baseEur: metas.baseEur,
+        alargadaEur: metas.alargadaEur, historicaEur: metas.historicaEur
+      });
+    }
     const carteira = num_(campo_(d[r], m, 'Portefólio ($)'));
     if (carteira === null) continue; // meses futuros: só têm as metas
     out.push({
-      mes: Utilities.formatDate(data, fuso_(), 'yyyy-MM'),
+      mes: mes,
       carteiraUsd: carteira,
       investidoUsd: num_(campo_(d[r], m, 'Investido ($)')),
       sp500Usd: num_(campo_(d[r], m, 'S&P500 ($)')),
       netWorthEur: num_(campo_(d[r], m, 'Net Worth (€)')),
       reforcoEur: num_(campo_(d[r], m, 'Reforço (€)')),
-      metaBaseEur: num_(campo_(d[r], m, 'Meta Base (€)'))
+      metaBaseEur: metas.baseEur,
+      metaReferenciaEur: metas.referenciaEur,
+      metaAlargadaEur: metas.alargadaEur
     });
   }
   const ultimo = out[out.length - 1];
@@ -596,7 +630,7 @@ function lerEvolucao_() {
     if (ultimo.sp500Usd === null) ultimo.sp500Usd = num_(spyAgora);
     if (ultimo.netWorthEur === null) ultimo.netWorthEur = num_(netWorthAgora);
   }
-  return out;
+  return { evolucao: out, plano: plano.meses.length ? plano : null };
 }
 
 /** "Estou no caminho?" (tab Evolução Patrimonial), com os textos tal como a folha os mostra. */

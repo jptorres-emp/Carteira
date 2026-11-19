@@ -23,6 +23,7 @@ import org.json.JSONObject
 /** Ecrãs da app. Os de detalhe e de registo empilham-se por cima dos separadores. */
 sealed interface Ecra {
     data object Resumo : Ecra
+    data object Patrimonio : Ecra
     data object Posicoes : Ecra
     data object Dividendos : Ecra
     data object Watchlist : Ecra
@@ -102,7 +103,7 @@ class CarteiraViewModel(
 
     fun irPara(ecra: Ecra) = _estado.update { e ->
         when (ecra) {
-            Ecra.Resumo, Ecra.Posicoes, Ecra.Dividendos, Ecra.Watchlist -> e.copy(pilha = listOf(ecra))
+            Ecra.Resumo, Ecra.Patrimonio, Ecra.Posicoes, Ecra.Dividendos, Ecra.Watchlist -> e.copy(pilha = listOf(ecra))
             else -> e.copy(pilha = e.pilha + ecra)
         }
     }

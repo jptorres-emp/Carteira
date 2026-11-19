@@ -8,8 +8,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -146,6 +148,16 @@ fun Mosaico(rotulo: String, valor: String, modifier: Modifier = Modifier, detalh
             }
         }
     }
+}
+
+/** Linha de mosaicos todos da mesma altura (passa Modifier.weight(1f).fillMaxHeight() a cada um). */
+@Composable
+fun LinhaDeMosaicos(conteudo: @Composable RowScope.() -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        content = conteudo,
+    )
 }
 
 /** Selo colorido com a zona ou o sinal da folha (Comprar, Manter, Reduzir, Sair...). */

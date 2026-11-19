@@ -84,7 +84,7 @@ class LeitorTest {
     @Test
     fun leAsSeccoesDaPonteV2() {
         val d = Leitor.lerResposta(amostra())
-        assertEquals(2, d.versaoPonte)
+        assertEquals(3, d.versaoPonte)
         assertTrue(d.meta.avisos.isEmpty())
         assertEquals("2022-09", d.evolucao.first().mes)
         assertEquals("2026-11", d.evolucao.last().mes)
@@ -99,16 +99,61 @@ class LeitorTest {
     }
 
     @Test
+    fun leOPlanoDaPonteV3() {
+        val d = Leitor.lerResposta(amostra())
+        val p = d.plano!!
+        assertEquals(400.0, p.reforcoMensalEur!!, 1e-9)
+        assertEquals(0.05, p.taxaReferencia!!, 1e-9)
+        assertEquals(0.065, p.taxaBase!!, 1e-9)
+        assertEquals(0.08, p.taxaAlargada!!, 1e-9)
+        // Todos os meses da tabela, de set/22 a dez/30, também os que ainda não chegaram.
+        assertEquals(100, p.meses.size)
+        assertEquals("2022-09", p.meses.first().mes)
+        assertEquals("2030-12", p.meses.last().mes)
+        assertTrue(p.meses.all { it.referenciaEur!! <= it.baseEur!! && it.baseEur!! <= it.alargadaEur!! && it.historicaEur != null })
+        // A evolução traz as três metas de cada mês passado, iguais às do plano.
+        assertTrue(d.evolucao.all { it.metaReferenciaEur != null && it.metaBaseEur != null && it.metaAlargadaEur != null })
+        assertEquals(p.meses[10].baseEur!!, d.evolucao[10].metaBaseEur!!, 1e-9)
+        assertEquals(p.meses[10].alargadaEur!!, d.evolucao[10].metaAlargadaEur!!, 1e-9)
+    }
+
+    @Test
+    fun ponteV2NaoTemPlano() {
+        val v2 = org.json.JSONObject(amostra()).apply {
+            put("versaoPonte", 2)
+            val d = getJSONObject("dados")
+            d.remove("plano")
+            val evolucao = d.getJSONArray("evolucao")
+            for (k in 0 until evolucao.length()) {
+                evolucao.getJSONObject(k).apply {
+                    remove("metaReferenciaEur")
+                    remove("metaAlargadaEur")
+                }
+            }
+        }.toString()
+        val d = Leitor.lerResposta(v2)
+        assertEquals(2, d.versaoPonte)
+        assertNull(d.plano)
+        assertTrue(d.evolucao.all { it.metaReferenciaEur == null && it.metaAlargadaEur == null && it.metaBaseEur != null })
+        // Um plano sem meses é o mesmo que não ter plano.
+        val vazio = org.json.JSONObject(amostra()).apply {
+            getJSONObject("dados").put("plano", org.json.JSONObject().put("reforcoMensalEur", 400).put("meses", org.json.JSONArray()))
+        }.toString()
+        assertNull(Leitor.lerResposta(vazio).plano)
+    }
+
+    @Test
     fun pontesAntigasContinuamALer() {
         // Uma resposta da ponte v1 não tem as secções novas: ficam vazias, sem erro.
         val v1 = org.json.JSONObject(amostra()).apply {
             put("versaoPonte", 1)
             val d = getJSONObject("dados")
-            listOf("evolucao", "objetivos", "patrimonio", "comparacoes", "setores").forEach { d.remove(it) }
+            listOf("evolucao", "plano", "objetivos", "patrimonio", "comparacoes", "setores").forEach { d.remove(it) }
         }.toString()
         val d = Leitor.lerResposta(v1)
         assertEquals(1, d.versaoPonte)
         assertTrue(d.evolucao.isEmpty() && d.objetivos.isEmpty() && d.setores.isEmpty())
+        assertNull(d.plano)
         assertNull(d.patrimonio)
         assertNull(d.comparacaoPrincipal)
     }

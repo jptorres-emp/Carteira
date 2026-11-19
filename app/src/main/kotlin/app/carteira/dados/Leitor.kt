@@ -100,9 +100,28 @@ object Leitor {
                         netWorthEur = o.num("netWorthEur"),
                         reforcoEur = o.num("reforcoEur"),
                         metaBaseEur = o.num("metaBaseEur"),
+                        metaReferenciaEur = o.num("metaReferenciaEur"),
+                        metaAlargadaEur = o.num("metaAlargadaEur"),
                     )
                 }
             }.filterNotNull().filter { it.mes.length >= 7 },
+            plano = d.optJSONObject("plano")?.let { p ->
+                Plano(
+                    reforcoMensalEur = p.num("reforcoMensalEur"),
+                    taxaReferencia = p.num("taxaReferencia"),
+                    taxaBase = p.num("taxaBase"),
+                    taxaAlargada = p.num("taxaAlargada"),
+                    meses = p.lista("meses") { o ->
+                        MesPlano(
+                            mes = o.texto("mes") ?: "",
+                            referenciaEur = o.num("referenciaEur"),
+                            baseEur = o.num("baseEur"),
+                            alargadaEur = o.num("alargadaEur"),
+                            historicaEur = o.num("historicaEur"),
+                        )
+                    }.filter { it.mes.length >= 7 },
+                )
+            }?.takeIf { it.meses.isNotEmpty() },
             objetivos = d.lista("objetivos") { o ->
                 o.num("real")?.let { real ->
                     Objetivo(

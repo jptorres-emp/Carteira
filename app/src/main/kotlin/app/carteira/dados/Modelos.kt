@@ -22,6 +22,8 @@ data class Dados(
     /** Versão da ponte que respondeu (a 2 traz a evolução, os objetivos, o património e os setores). */
     val versaoPonte: Int = 1,
     val evolucao: List<PontoEvolucao> = emptyList(),
+    /** Metas do património mês a mês, também as futuras (ponte v3). */
+    val plano: Plano? = null,
     val objetivos: List<Objetivo> = emptyList(),
     val patrimonio: Patrimonio? = null,
     val comparacoes: List<Comparacao> = emptyList(),
@@ -46,6 +48,28 @@ data class PontoEvolucao(
     val netWorthEur: Double?,
     val reforcoEur: Double?,
     val metaBaseEur: Double?,
+    val metaReferenciaEur: Double? = null,
+    val metaAlargadaEur: Double? = null,
+)
+
+/**
+ * O plano da tab Evolução Patrimonial: reforço mensal e taxas anuais assumidas, e as metas de cada
+ * mês (referência, base, alargada e ao ritmo histórico), até ao fim da tabela (2030).
+ */
+data class Plano(
+    val reforcoMensalEur: Double?,
+    val taxaReferencia: Double?,
+    val taxaBase: Double?,
+    val taxaAlargada: Double?,
+    val meses: List<MesPlano>,
+)
+
+data class MesPlano(
+    val mes: String,
+    val referenciaEur: Double?,
+    val baseEur: Double?,
+    val alargadaEur: Double?,
+    val historicaEur: Double?,
 )
 
 /** Uma linha de "Estou no caminho?" (Evolução Patrimonial). */
