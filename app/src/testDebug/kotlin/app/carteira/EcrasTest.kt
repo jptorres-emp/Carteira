@@ -22,7 +22,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToString
@@ -263,10 +262,12 @@ class EcrasTest {
         foto("03-posicao")
         tocarDescricao("Voltar")
         // Um satélite: só compra em 🟢🟢; reduz e vende pelos preços da folha (BORE já passou o de reduzir).
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("BORE"))
+        // Procura-se pela caixa de pesquisa (deslizar até ao nó usa animações, que o relógio à mão não avança).
+        compose.onAllNodes(hasSetTextAction())[0].performTextInput("BORE")
         assentar()
         esperar("vende ≥ 147,00")
-        tocar("BORE")
+        compose.onAllNodes(hasText("BORE") and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
+        assentar()
         esperar("Quando comprar e vender")
         esperar("Reduzir acima de")
         foto("03b-posicao-satelite")
