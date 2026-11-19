@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
@@ -21,7 +22,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.unit.Density
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
@@ -39,6 +42,7 @@ import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -185,6 +189,10 @@ class EcrasTest {
         compose.onNode(hasScrollToIndexAction()).performScrollToIndex(indice)
         assentar()
     }
+
+    /** Os meses (nomes inteiros) que estão no ecrã. */
+    private fun mesesNoEcra(vararg meses: String) =
+        meses.filter { compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty() }
 
     private fun foto(nome: String) {
         assentar()
@@ -415,10 +423,21 @@ class EcrasTest {
         esperar("Mês a mês em 2027")
         deslizarPara(2)
         // As setas mudam de mês: de novembro para outubro.
-        tocarDescricao("Mês anterior")
-        val titulos = listOf("Outubro", "Novembro").filter { compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty() }
-        assertEquals("mês mostrado depois da seta", listOf("Outubro"), titulos)
+        val seta = compose.onNodeWithContentDescription("Mês anterior")
+        val limites = seta.fetchSemanticsNode().boundsInRoot
+        seta.performClick()
+        assentar()
         foto("33-escuro-dividendos")
+        val depoisDoToque = mesesNoEcra("Outubro", "Novembro")
+        if (depoisDoToque != listOf("Outubro")) {
+            // Diagnóstico: o toque não mudou o mês. A ação de clique (sem toque) muda?
+            seta.performSemanticsAction(SemanticsActions.OnClick)
+            assentar()
+            fail(
+                "Depois do toque: $depoisDoToque; depois da ação: ${mesesNoEcra("Setembro", "Outubro", "Novembro")}; " +
+                    "seta em $limites\n" + compose.onRoot().printToString(),
+            )
+        }
         tocar("Watchlist")
         esperar("Core A")
         foto("34-escuro-watchlist")

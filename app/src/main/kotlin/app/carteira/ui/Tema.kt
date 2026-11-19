@@ -77,9 +77,20 @@ fun corDoSinal(x: Double?): Color {
 /** Zonas da folha ("🟢 Comprar", "🟠 Reduzir", ...): cor de fundo e de texto, e o texto sem o emoji. */
 data class EstiloZona(val fundo: Color, val texto: Color, val rotulo: String)
 
-fun estiloZona(zona: String?): EstiloZona {
+fun estiloZona(zona: String?, escuro: Boolean = false): EstiloZona {
     val z = zona?.trim().orEmpty()
     val rotulo = z.replace(Regex("^[\\p{So}\\p{Sk}\\uFE0F\\u200D\\s]+"), "").ifEmpty { z.ifEmpty { "—" } }
+    // No tema escuro, os fundos claros dos selos ofuscavam: tons escuros da mesma cor, texto claro (6,7:1 ou mais).
+    if (escuro) {
+        return when {
+            z.startsWith("🟢🟢") -> EstiloZona(Color(0xFF0F6B2F), Color.White, rotulo)
+            z.startsWith("🟢") -> EstiloZona(Color(0xFF1F4D33), Color(0xFFA8E6B9), rotulo)
+            z.startsWith("🟡") -> EstiloZona(Color(0xFF4D4119), Color(0xFFF2D27A), rotulo)
+            z.startsWith("🟠") -> EstiloZona(Color(0xFF5A3615), Color(0xFFFFC08A), rotulo)
+            z.startsWith("🔴") -> EstiloZona(Color(0xFF5C2723), Color(0xFFFFB4AB), rotulo)
+            else -> EstiloZona(Color(0xFF41444D), Color(0xFFD5D9E0), rotulo)
+        }
+    }
     return when {
         z.startsWith("🟢🟢") -> EstiloZona(Color(0xFF0F6B2F), Color.White, rotulo)
         z.startsWith("🟢") -> EstiloZona(Color(0xFFCDEFD6), Color(0xFF0F5226), rotulo)

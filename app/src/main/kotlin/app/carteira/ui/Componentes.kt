@@ -5,6 +5,7 @@ package app.carteira.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -182,7 +183,7 @@ fun LinhaDeMosaicos(conteudo: @Composable RowScope.() -> Unit) {
 @Composable
 fun SeloZona(zona: String?, modifier: Modifier = Modifier) {
     if (zona.isNullOrBlank()) return
-    val e = estiloZona(zona)
+    val e = estiloZona(zona, isSystemInDarkTheme())
     Surface(color = e.fundo, shape = RoundedCornerShape(50), modifier = modifier) {
         Text(
             e.rotulo,
