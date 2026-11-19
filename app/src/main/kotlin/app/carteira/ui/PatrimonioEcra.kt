@@ -2,7 +2,6 @@ package app.carteira.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +18,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,56 +38,12 @@ import app.carteira.dados.PosicaoPlano
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Separador Património: como evoluiu o teu património total (tab Evolução Patrimonial), onde estás
- * face ao plano da folha, os marcos, o ano a ano e a composição de hoje.
+/*
+ * Peças da vista Património do separador Evolução (EvolucaoEcra): o topo, o gráfico com o plano,
+ * "Face ao plano", os marcos, o ano a ano e a composição de hoje.
  */
-@Composable
-fun PatrimonioEcra(estado: Estado, vm: CarteiraViewModel) {
-    val d = estado.dados ?: return SemDados(estado, vm)
-    val a = remember(d) { AnalisePatrimonio.de(d) }
-    ListaAtualizavel(estado, vm) {
-        if (a == null) {
-            item {
-                Cartao("Património") {
-                    Text(
-                        "A folha ainda não tem valores de património (tab Evolução Patrimonial, coluna Net Worth).",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        } else {
-            item { TopoPatrimonio(a) }
-            if (a.serie.size >= 2) item { Cartao("Evolução") { GraficoPatrimonio(a) } }
-            if (a.metaHoje != null || a.fimDoPlano != null) item { CartaoPlano(a) }
-            if (a.proximoMarcoEur != null) item { CartaoMarcos(a) }
-            if (a.anos.isNotEmpty()) item { CartaoAnoAAno(a) }
-        }
-        val p = d.patrimonio
-        if (p != null && p.classes.isNotEmpty()) item { CartaoComposicao(p) }
-        if (d.versaoPonte < 3) {
-            item {
-                Cartao("Há mais para ver") {
-                    Text(
-                        "Atualiza a ponte da folha (versão 3) para veres o plano até 2030: as metas de referência, base e " +
-                            "alargada, mês a mês.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    TextButton(onClick = { vm.irPara(Ecra.Definicoes) }) { Text("Como atualizar") }
-                }
-            }
-        }
-        item {
-            TextoPequeno(
-                "Da tab Evolução Patrimonial: cada mês é o património no fim do mês; o deste mês é o valor de agora " +
-                    "(tab Investimentos).",
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            )
-        }
-    }
-}
 
-private fun textoPosicao(p: PosicaoPlano): Pair<String, Color> = when (p) {
+internal fun textoPosicao(p: PosicaoPlano): Pair<String, Color> = when (p) {
     PosicaoPlano.ACIMA_BASE -> "Acima da meta base" to Paleta.verde
     PosicaoPlano.ENTRE_REFERENCIA_E_BASE -> "No limite" to Paleta.ambar
     PosicaoPlano.ABAIXO_REFERENCIA -> "Abaixo da referência" to Paleta.vermelho
@@ -99,7 +52,7 @@ private fun textoPosicao(p: PosicaoPlano): Pair<String, Color> = when (p) {
 // ───────────────────────────── Topo ─────────────────────────────
 
 @Composable
-private fun TopoPatrimonio(a: AnalisePatrimonio) {
+internal fun TopoPatrimonio(a: AnalisePatrimonio) {
     val branco = Color.White
     val ano = a.mesAtual.take(4)
     Box(
@@ -109,40 +62,21 @@ private fun TopoPatrimonio(a: AnalisePatrimonio) {
             .background(Brush.linearGradient(listOf(Paleta.marinho, Paleta.marinhoClaro))),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Património total",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = branco.copy(alpha = 0.75f),
-                )
-                a.posicaoPlano?.let { p ->
-                    val (texto, cor) = textoPosicao(p)
-                    Surface(color = cor.copy(alpha = 0.45f), shape = RoundedCornerShape(50)) {
-                        Text(
-                            texto,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = branco,
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
+            Text("Património total", style = MaterialTheme.typography.labelLarge, color = branco.copy(alpha = 0.75f))
             Text(
                 Formatos.eur(a.atualEur, 0),
                 style = MaterialTheme.typography.displaySmall.numeros(),
                 fontWeight = FontWeight.SemiBold,
                 color = branco,
             )
-            a.vsMesAnteriorEur?.let { v ->
-                Surface(color = (if (v >= 0) Paleta.verde else Paleta.vermelho).copy(alpha = 0.45f), shape = RoundedCornerShape(50)) {
-                    Text(
-                        "${if (v >= 0) "▲" else "▼"} ${Formatos.eurSinal(v)} este mês",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge.numeros(),
-                        color = branco,
-                    )
+            // Os selos passam para baixo um do outro se não couberem lado a lado.
+            LinhaLegendas(espaco = 8.dp) {
+                a.vsMesAnteriorEur?.let { v ->
+                    SeloTopo("${if (v >= 0) "▲" else "▼"} ${Formatos.eurSinal(v)} este mês", if (v >= 0) Paleta.verde else Paleta.vermelho)
+                }
+                a.posicaoPlano?.let { p ->
+                    val (texto, cor) = textoPosicao(p)
+                    SeloTopo(texto, cor)
                 }
             }
             a.esteAnoEur?.let { v ->
@@ -172,18 +106,29 @@ private fun TopoPatrimonio(a: AnalisePatrimonio) {
 }
 
 @Composable
+private fun SeloTopo(texto: String, cor: Color) {
+    Surface(color = cor.copy(alpha = 0.45f), shape = RoundedCornerShape(50)) {
+        Text(
+            texto,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelLarge.numeros(),
+            color = Color.White,
+        )
+    }
+}
+
+@Composable
 private fun ColunaTopo(rotulo: String, valor: String, detalhe: String?, modifier: Modifier) {
     Column(modifier) {
-        Text(rotulo, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f), maxLines = 1)
+        Text(rotulo, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f))
         Text(
             valor,
             style = MaterialTheme.typography.titleSmall.numeros(),
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
-            maxLines = 1,
         )
         if (detalhe != null) {
-            Text(detalhe, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f), maxLines = 1)
+            Text(detalhe, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f))
         }
     }
 }
@@ -191,20 +136,20 @@ private fun ColunaTopo(rotulo: String, valor: String, detalhe: String?, modifier
 // ───────────────────────────── Plano ─────────────────────────────
 
 @Composable
-private fun CartaoPlano(a: AnalisePatrimonio) {
+internal fun CartaoPlano(a: AnalisePatrimonio) {
     val plano = a.plano
     Cartao("Face ao plano") {
         val hoje = a.metaHoje
         val base = hoje?.baseEur
         if (hoje != null && base != null) {
             ReguaPlano(a.atualEur, hoje.referenciaEur, base, hoje.alargadaEur)
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            LinhaLegendas {
                 Legenda(MaterialTheme.colorScheme.primary, "Hoje", Formatos.eur(a.atualEur, 0))
                 Legenda(Paleta.dourado, "Meta base", Formatos.eur(base, 0))
                 val r = hoje.referenciaEur
                 val al = hoje.alargadaEur
                 if (r != null && al != null) {
-                    Legenda(Paleta.dourado.copy(alpha = 0.45f), "Intervalo", Formatos.compacto(r) + "–" + Formatos.compacto(al) + " €")
+                    Legenda(Paleta.dourado.copy(alpha = 0.45f), "Intervalo", Formatos.intervaloEur(r, al))
                 }
             }
             val dif = a.atualEur - base
@@ -243,23 +188,12 @@ private fun CartaoPlano(a: AnalisePatrimonio) {
         val fim = a.fimDoPlano
         if (fim != null && fim.mes > a.mesAtual) {
             HorizontalDivider(color = corBordaCartao())
-            Text("Onde o plano te leva", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text("Onde o plano te leva (${mesCurto(fim.mes)})", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            fim.baseEur?.let { LinhaValor("Meta base", Formatos.eur(it, 0), destaque = true) }
             val r = fim.referenciaEur
             val al = fim.alargadaEur
-            val textoFim = buildString {
-                append("Em ").append(mesCurto(fim.mes)).append(": ")
-                if (r != null && al != null) {
-                    append("entre ").append(Formatos.eur(r, 0)).append(" e ").append(Formatos.eur(al, 0))
-                    fim.baseEur?.let { append(" (base ").append(Formatos.eur(it, 0)).append(")") }
-                } else {
-                    append(Formatos.eur(fim.baseEur ?: r ?: al, 0)).append(" pela meta base")
-                }
-                append(".")
-            }
-            Text(textoFim, style = MaterialTheme.typography.bodyMedium)
-            fim.historicaEur?.let {
-                TextoPequeno("Ao ritmo histórico da carteira (TTWROR real): ${Formatos.eur(it, 0)}.")
-            }
+            if (r != null && al != null) LinhaValor("Intervalo", Formatos.intervaloEur(r, al))
+            fim.historicaEur?.let { LinhaValor("Ao ritmo histórico (TTWROR real)", Formatos.eur(it, 0)) }
             if (plano?.taxaBase != null) {
                 val taxas = listOfNotNull(plano.taxaReferencia, plano.taxaBase, plano.taxaAlargada).joinToString(" / ") { Formatos.pct(it) }
                 TextoPequeno(
@@ -302,7 +236,7 @@ private fun ReguaPlano(atual: Double, referencia: Double?, base: Double, alargad
 // ───────────────────────────── Marcos ─────────────────────────────
 
 @Composable
-private fun CartaoMarcos(a: AnalisePatrimonio) {
+internal fun CartaoMarcos(a: AnalisePatrimonio) {
     val proximo = a.proximoMarcoEur ?: return
     val anterior = a.marcoAnteriorEur ?: 0.0
     Cartao("Marcos") {
@@ -332,7 +266,7 @@ private fun CartaoMarcos(a: AnalisePatrimonio) {
         }
         if (a.marcosAtingidos.isNotEmpty()) {
             HorizontalDivider(color = corBordaCartao())
-            TextoPequeno("Já passaste")
+            TextoPequeno("Já passaste (e quantos meses levou cada um)")
             val cronologico = a.marcosAtingidos.reversed()
             a.marcosAtingidos.forEach { m ->
                 val k = cronologico.indexOf(m)
@@ -342,14 +276,11 @@ private fun CartaoMarcos(a: AnalisePatrimonio) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(Paleta.verde))
                     Spacer(Modifier.width(8.dp))
                     Text(Formatos.eur(m.valorEur, 0), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium.numeros())
-                    Text(mesCurto(m.atingidoEm), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        if (meses > 0) "$meses meses" else "",
-                        modifier = Modifier.width(78.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        mesCurto(m.atingidoEm) + if (meses > 0) " · $meses meses" else "",
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.End,
-                        maxLines = 1,
                     )
                 }
             }
@@ -360,7 +291,7 @@ private fun CartaoMarcos(a: AnalisePatrimonio) {
 // ───────────────────────────── Ano a ano ─────────────────────────────
 
 @Composable
-private fun CartaoAnoAAno(a: AnalisePatrimonio) {
+internal fun CartaoAnoAAno(a: AnalisePatrimonio) {
     Cartao("Ano a ano") {
         BarrasAnuais(
             a.anos.map { y ->
@@ -373,11 +304,13 @@ private fun CartaoAnoAAno(a: AnalisePatrimonio) {
             },
             formatar = { Formatos.compacto(it) },
         )
-        TextoPequeno("Património no fim de cada ano (o deste ano é o de agora), em euros.")
-        a.anos.reversed().forEach { y ->
-            HorizontalDivider(color = corBordaCartao())
-            LinhaAno(y)
+        TextoPequeno("Património no fim de cada ano (o deste ano é o de agora).")
+        HorizontalDivider(color = corBordaCartao())
+        LinhaLegendas {
+            Legenda(MaterialTheme.colorScheme.primary, "Reforços")
+            Legenda(Paleta.dourado, "Mercado e outras poupanças")
         }
+        a.anos.reversed().forEach { y -> LinhaAno(y) }
         TextoPequeno(
             "Reforços: compras − vendas de ações e ETFs (tab Transações). O resto é a valorização e o que juntaste " +
                 "fora da carteira (contas, certificados...).",
@@ -393,7 +326,7 @@ private fun LinhaAno(y: AnoPatrimonio) {
         else -> null
     }
     val resto = y.crescimentoEur - y.reforcosEur
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(y.ano.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             if (periodo != null) {
@@ -414,10 +347,7 @@ private fun LinhaAno(y: AnoPatrimonio) {
                 altura = 8.dp,
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Legenda(MaterialTheme.colorScheme.primary, "Reforços", Formatos.eurSinal(y.reforcosEur))
-            Legenda(Paleta.dourado, "Mercado e outras poupanças", Formatos.eurSinal(resto))
-        }
+        TextoPequeno("Reforços ${Formatos.eurSinal(y.reforcosEur)} · mercado e outras ${Formatos.eurSinal(resto)}")
     }
 }
 
@@ -449,7 +379,7 @@ internal fun agruparClasses(classes: List<ClassePatrimonio>): List<Pair<String, 
 }
 
 @Composable
-private fun CartaoComposicao(p: Patrimonio) {
+internal fun CartaoComposicao(p: Patrimonio) {
     val grupos = agruparClasses(p.classes)
     if (grupos.isEmpty()) return
     val total = p.totalEur ?: grupos.sumOf { it.second }
@@ -459,7 +389,7 @@ private fun CartaoComposicao(p: Patrimonio) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).clip(CircleShape).background(Paleta.categoria(k)))
                 Spacer(Modifier.width(8.dp))
-                Text(nome, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                Text(nome, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 Text(Formatos.eur(valor, 0), style = MaterialTheme.typography.bodyMedium.numeros())
                 Text(
                     Formatos.pct(if (total > 0) valor / total else null, 0),
@@ -472,50 +402,5 @@ private fun CartaoComposicao(p: Patrimonio) {
             }
         }
         TextoPequeno("Da tab Investimentos: ações e ETFs ao vivo; o resto é o último saldo que lá puseste.")
-    }
-}
-
-// ───────────────────────────── Cartão do Início ─────────────────────────────
-
-/** Resumo do património no Início: valor, este ano, a linha dos últimos 2 anos e o próximo marco. */
-@Composable
-fun CartaoPatrimonioResumo(a: AnalisePatrimonio, vm: CarteiraViewModel) {
-    val abrir = { vm.irPara(Ecra.Patrimonio) }
-    Cartao(
-        "Património",
-        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable(onClick = abrir),
-        acao = "Ver evolução",
-        aoAcao = abrir,
-    ) {
-        Row(verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1f)) {
-                Text(Formatos.eur(a.atualEur, 0), style = MaterialTheme.typography.headlineSmall.numeros(), fontWeight = FontWeight.SemiBold)
-                a.esteAnoEur?.let { v ->
-                    Text(
-                        Formatos.eurSinal(v) + (a.esteAnoPct?.let { " (${Formatos.pctSinal(it)})" } ?: "") + " em ${a.mesAtual.take(4)}",
-                        style = MaterialTheme.typography.bodySmall.numeros(),
-                        color = corDoSinal(v),
-                    )
-                }
-            }
-            a.posicaoPlano?.let { p ->
-                val (texto, cor) = textoPosicao(p)
-                Spacer(Modifier.width(8.dp))
-                SeloEstado(texto, cor)
-            }
-        }
-        val meses = remember(a) {
-            val inicio = AnalisePatrimonio.somarMeses(a.mesAtual, -24).let { if (it < a.inicio.mes) a.inicio.mes else it }
-            (0..AnalisePatrimonio.mesesEntre(inicio, a.mesAtual)).map { AnalisePatrimonio.somarMeses(inicio, it) }
-        }
-        val porMes = remember(a) { a.serie.associateBy { it.mes } }
-        MiniGrafico(meses.map { porMes[it]?.valorEur }, meses.map { a.metaDe(it)?.baseEur })
-        val proximo = a.proximoMarcoEur
-        if (proximo != null) {
-            TextoPequeno(
-                "Próximo marco: ${Formatos.eur(proximo, 0)} · faltam ${Formatos.eur(proximo - a.atualEur, 0)}" +
-                    (a.marcoAoRitmo?.let { " · ${mesCurto(it)} ao ritmo atual" } ?: ""),
-            )
-        }
     }
 }

@@ -50,6 +50,11 @@ data class PontoEvolucao(
     val metaBaseEur: Double?,
     val metaReferenciaEur: Double? = null,
     val metaAlargadaEur: Double? = null,
+    /**
+     * O que está escrito na célula Net Worth (€) do mês (ponte v3). O netWorthEur do mês corrente pode
+     * ser o valor de agora; este diz se o mês já foi gravado na folha.
+     */
+    val netWorthFolhaEur: Double? = null,
 )
 
 /**

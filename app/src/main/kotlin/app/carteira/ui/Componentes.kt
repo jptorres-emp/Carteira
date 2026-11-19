@@ -132,18 +132,18 @@ fun Mosaico(rotulo: String, valor: String, modifier: Modifier = Modifier, detalh
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
             )
+            // Sem cortes: com letra grande, o texto passa para a linha de baixo (os mosaicos lado a lado
+            // ficam todos da altura do maior).
             Text(
                 valor,
                 style = MaterialTheme.typography.titleMedium.numeros(),
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
             )
             if (detalhe != null) {
                 Text(
                     detalhe,
                     style = MaterialTheme.typography.labelMedium,
                     color = if (corDetalhe == Color.Unspecified) MaterialTheme.colorScheme.onSurfaceVariant else corDetalhe,
-                    maxLines = 1,
                 )
             }
         }
@@ -188,6 +188,7 @@ fun SeloEstado(texto: String, cor: Color, modifier: Modifier = Modifier) {
             color = cor,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

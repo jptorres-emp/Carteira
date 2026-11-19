@@ -175,7 +175,7 @@ fun CartaoDefinicoesAlertas(estado: Estado, vm: CarteiraViewModel) {
 }
 
 @Composable
-private fun LinhaInterruptor(titulo: String, detalhe: String, ligado: Boolean, aoMudar: (Boolean) -> Unit) {
+internal fun LinhaInterruptor(titulo: String, detalhe: String, ligado: Boolean, aoMudar: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(titulo, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)

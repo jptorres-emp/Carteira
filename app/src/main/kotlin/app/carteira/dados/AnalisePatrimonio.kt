@@ -118,10 +118,15 @@ data class AnalisePatrimonio(
                 .distinctBy { it.mes }
                 .sortedBy { it.mes }
                 .toMutableList()
-            // O valor de agora (tab Investimentos), se a tabela ainda não tiver a linha do mês corrente.
+            // O mês corrente é sempre o valor de agora (tab Investimentos): o que estiver gravado na folha a
+            // meio do mês fica para trás assim que os preços mexem.
             val agora = agoraEur
-            if (agora != null && mesHoje != null && (serie.isEmpty() || serie.last().mes < mesHoje)) {
-                serie += PontoPatrimonio(mesHoje, agora, null)
+            if (agora != null && mesHoje != null) {
+                val ultimo = serie.lastOrNull()
+                when {
+                    ultimo == null || ultimo.mes < mesHoje -> serie += PontoPatrimonio(mesHoje, agora, null)
+                    ultimo.mes == mesHoje -> serie[serie.lastIndex] = ultimo.copy(valorEur = agora)
+                }
             }
             if (serie.isEmpty()) return null
 

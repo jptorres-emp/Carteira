@@ -98,10 +98,18 @@ fun DefinicoesEcra(estado: Estado, vm: CarteiraViewModel) {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
         if (estado.configurado) CartaoDefinicoesAlertas(estado, vm)
+        Cartao("Privacidade") {
+            LinhaInterruptor(
+                "Esconder os valores",
+                "Os montantes em € e $ e as quantidades aparecem como •••; as percentagens e os preços ficam. " +
+                    "Também se liga no olho, no topo dos separadores.",
+                estado.privado,
+            ) { vm.alternarPrivacidade() }
+        }
         Cartao("Atualizar a ponte") {
             Text(
-                "Quando receberes uma versão nova do código da ponte (a versão 3 traz o plano do património até 2030, " +
-                    "para o separador Património):",
+                "Quando receberes uma versão nova do código da ponte (a versão 3 traz o plano do património até 2030 e " +
+                    "deixa gravar o património do mês, no separador Evolução):",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextoPequeno("1. Na folha: Extensões > Apps Script. Apaga o código antigo, cola o novo e guarda.")

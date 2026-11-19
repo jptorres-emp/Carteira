@@ -36,10 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.carteira.alertas.Alerta
 import app.carteira.alertas.TipoAlerta
-import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.Dados
-import app.carteira.dados.ItemWatchlist
-import app.carteira.dados.Objetivo
 import app.carteira.dados.Sinais
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -47,53 +44,30 @@ import kotlin.math.abs
 import kotlin.math.max
 
 /**
- * Ecrã inicial: o que interessa ao abrir a app, do mais importante para o resto.
- * Valor e dia → alertas recentes → património → evolução → indicadores → objetivos → o que precisa
- * de atenção → hoje → alocação → dividendos → oportunidades → desempenho → movimentos.
+ * Ecrã inicial: só o estado atual da carteira — valor e o dia de hoje, alertas, o que precisa de
+ * atenção, quem mais mexeu hoje e a alocação. A evolução e o desempenho estão no separador Evolução.
  */
 @Composable
 fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
     val d = estado.dados ?: return SemDados(estado, vm)
     val atencao = itensAtencao(d)
-    // Primeiro as que passam o teste de troca da folha (pelo ganho por ano); depois pela margem.
-    val oportunidades = d.watchlist.filter { Sinais.compra(it.sinal) }
-        .sortedWith(compareByDescending<ItemWatchlist> { ganhoDaTroca(it) ?: -1.0 }.thenByDescending { it.margem ?: 0.0 })
     val recentes = estado.alertas.filter { recente(it.quando, 3) }.take(3)
-    val patrimonio = remember(d) { AnalisePatrimonio.de(d) }
 
     ListaAtualizavel(estado, vm) {
         item { CartaoPrincipal(d) }
         if (estado.conviteAlertas) item { ConviteAlertas(estado, vm) }
         if (recentes.isNotEmpty()) item { CartaoAlertasRecentes(recentes, estado.alertasNaoVistos, vm) }
-        if (patrimonio != null) item { CartaoPatrimonioResumo(patrimonio, vm) }
-        if (d.evolucao.size >= 2) {
-            item { Cartao("Evolução") { GraficoEvolucao(d.evolucao) } }
-        } else if (d.versaoPonte < 2) {
-            item { AvisoPonteAntiga(vm) }
-        }
-        item { GrelhaIndicadores(d) }
-        if (d.objetivos.isNotEmpty()) item { CartaoObjetivos(d.objetivos) }
         if (atencao.isNotEmpty()) item { CartaoAtencao(atencao, vm) }
         item { CartaoHoje(d, vm) }
         item { CartaoAlocacao(d) }
-        item { CartaoDividendosResumo(d, vm) }
-        if (oportunidades.isNotEmpty()) item { CartaoOportunidades(oportunidades, vm) }
-        item { CartaoDesempenho(d) }
-        if (d.transacoes.isNotEmpty()) item { CartaoMovimentos(d) }
         item {
             TextoPequeno(
-                "Dados da folha de ${Formatos.momento(d.meta.atualizadoEm)}. Puxa para baixo para atualizar.",
+                "Dados da folha de ${Formatos.momento(d.meta.atualizadoEm)}. Puxa para baixo para atualizar. " +
+                    "A evolução, o desempenho e os objetivos estão no separador Evolução.",
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
         }
     }
-}
-
-/** "✓ Avaliar troca com DUNA: +15,3%/ano" → 15,3. Só conta se o teste passou (✓). */
-private fun ganhoDaTroca(w: ItemWatchlist): Double? {
-    val t = w.testeTroca ?: return null
-    if (!t.startsWith("✓")) return null
-    return Regex("""\+(\d+(?:,\d+)?)%/ano""").find(t)?.groupValues?.get(1)?.replace(',', '.')?.toDoubleOrNull()
 }
 
 private fun recente(quando: String, dias: Long): Boolean {
@@ -193,7 +167,6 @@ private fun ColunaHero(rotulo: String, valor: String, modifier: Modifier) {
             style = MaterialTheme.typography.titleSmall.numeros(),
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
-            maxLines = 1,
         )
     }
 }
@@ -266,106 +239,6 @@ fun LinhaAlerta(a: Alerta, aoTocar: () -> Unit) {
     }
 }
 
-@Composable
-private fun AvisoPonteAntiga(vm: CarteiraViewModel) {
-    Cartao("Há mais para ver") {
-        Text(
-            "Atualiza a ponte da folha para veres a evolução da carteira face ao S&P 500, os teus objetivos, " +
-                "o património total e os setores.",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        TextButton(onClick = { vm.irPara(Ecra.Definicoes) }) { Text("Como atualizar") }
-    }
-}
-
-// ───────────────────────────── Indicadores ─────────────────────────────
-
-@Composable
-private fun GrelhaIndicadores(d: Dados) {
-    val doze = d.indicador("Retorno Rolling 12 Meses")?.valor
-    val anual = d.indicador("TTWROR Anualizado c/ Dividendos")?.valor ?: d.indicador("TTWROR Anualizado")?.valor
-    val comparacao = d.comparacaoPrincipal
-    val vsSp = comparacao?.diferencaEur ?: d.indicador("vs S&P 500 (VUAA, c/ dividendos)")?.valor
-    val vsPct = comparacao?.diferencaPct
-    val ano = d.dividendos.previsaoAno
-    val liquido = ano?.let { d.dividendos.indicador("LÍQUIDO $it (€)")?.valor }
-    val dividendosAno = d.indicador("DIVIDENDOS/ANO — AÇÕES (EUR)")?.valor
-    val queda = d.indicador("Máximo Drawdown")?.valor
-    val volatilidade = d.indicador("Volatilidade Anualizada")?.valor
-
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        LinhaDeMosaicos {
-            Mosaico(
-                "Últimos 12 meses",
-                Formatos.pctSinal(doze),
-                Modifier.weight(1f).fillMaxHeight(),
-                detalhe = anual?.let { "${Formatos.pct(it)}/ano desde o início" },
-            )
-            Mosaico(
-                "vs S&P 500",
-                Formatos.eurSinal(vsSp),
-                Modifier.weight(1f).fillMaxHeight(),
-                detalhe = when {
-                    vsPct != null -> (if (vsPct >= 0) "à frente " else "atrás ") + Formatos.pct(abs(vsPct))
-                    vsSp != null -> if (vsSp >= 0) "à frente, c/ dividendos" else "atrás, c/ dividendos"
-                    else -> null
-                },
-                corDetalhe = corDoSinal(vsSp),
-            )
-        }
-        LinhaDeMosaicos {
-            if (liquido != null) {
-                Mosaico(
-                    "Dividendos $ano (líquidos)",
-                    Formatos.eur(liquido, 0),
-                    Modifier.weight(1f).fillMaxHeight(),
-                    detalhe = "≈ ${Formatos.eur(liquido / 12, 0)} por mês",
-                )
-            } else {
-                Mosaico("Dividendos/ano", Formatos.eur(dividendosAno, 0), Modifier.weight(1f).fillMaxHeight(), detalhe = "estimativa bruta")
-            }
-            Mosaico(
-                "Maior queda",
-                Formatos.pctSinal(queda),
-                Modifier.weight(1f).fillMaxHeight(),
-                detalhe = volatilidade?.let { "volatilidade ${Formatos.pct(it)}" },
-            )
-        }
-    }
-}
-
-// ───────────────────────────── Objetivos ─────────────────────────────
-
-@Composable
-private fun CartaoObjetivos(objetivos: List<Objetivo>) {
-    Cartao("Estou no caminho?") {
-        objetivos.forEachIndexed { k, o ->
-            if (k > 0) HorizontalDivider(color = corBordaCartao())
-            // Rentabilidades vêm em fração (0,139); património e reforço em euros.
-            val emPercentagem = abs(o.real) < 2 && (o.meta == null || abs(o.meta) < 2)
-            val formatar: (Double?) -> String = { x -> if (emPercentagem) Formatos.pct(x) else Formatos.eur(x, 0) }
-            val cor = corDoEstado(o.estado)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f)) {
-                        Text(o.objetivo, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                        val diferenca = o.meta?.let { m -> if (emPercentagem) Formatos.pp(o.real - m) else Formatos.eurSinal(o.real - m) }
-                        TextoPequeno(
-                            "${formatar(o.real)} · meta ${formatar(o.meta)}" + (diferenca?.let { " ($it)" } ?: ""),
-                        )
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    SeloEstado(o.estado, cor)
-                }
-                val meta = o.meta
-                if (meta != null && meta > 0 && o.real >= 0) {
-                    BarraComMarca(valor = o.real, marca = meta, escala = max(o.real, meta) * 1.1, cor = cor)
-                }
-            }
-        }
-    }
-}
-
 // ───────────────────────────── Precisa de atenção ─────────────────────────────
 
 private enum class Nivel { COMPRA, REDUZIR, SAIR, SETOR, REGRA }
@@ -379,7 +252,7 @@ private fun itensAtencao(d: Dados): List<ItemAtencao> {
         itens += ItemAtencao(
             Nivel.COMPRA,
             "${p.ticker} · ${Sinais.semEmoji(p.sinal)}",
-            listOfNotNull(p.nome, p.precoUsd?.let { Formatos.usd(it) }, p.zona?.let { "zona ${Sinais.semEmoji(it)}" }).joinToString(" · "),
+            listOfNotNull(p.nome, p.precoUsd?.let { Formatos.preco(it, "USD") }, p.zona?.let { "zona ${Sinais.semEmoji(it)}" }).joinToString(" · "),
             "P:${p.ticker}",
         )
     }
@@ -599,156 +472,6 @@ fun nomeSetor(setor: String): String = when (setor.trim().lowercase()) {
     "materials", "basic materials" -> "Materiais"
     "utilities" -> "Utilities"
     else -> setor
-}
-
-// ───────────────────────────── Dividendos ─────────────────────────────
-
-@Composable
-private fun CartaoDividendosResumo(d: Dados, vm: CarteiraViewModel) {
-    val div = d.dividendos
-    val ano = div.previsaoAno
-    val anoAtual = d.meta.hoje.take(4).toIntOrNull()
-    val porAno = div.anos.associateBy { it.ano }
-    val esteAno = anoAtual?.let { porAno[it]?.totalUsd }
-    val anoPassado = anoAtual?.let { porAno[it - 1]?.totalUsd }
-    val bruto = ano?.let { div.indicador("BRUTO $it ($)")?.valor }
-    val liquido = ano?.let { div.indicador("LÍQUIDO $it (€)")?.valor }
-    val mes = d.meta.hoje.takeIf { it.length >= 7 }?.substring(5, 7)?.toIntOrNull()?.minus(1)?.takeIf { it in 0..11 }
-    if (esteAno == null && bruto == null && div.calendario.isEmpty()) return
-
-    Cartao("Dividendos", acao = "Ver tudo", aoAcao = { vm.irPara(Ecra.Dividendos) }) {
-        Row(Modifier.fillMaxWidth()) {
-            Column(Modifier.weight(1f)) {
-                TextoPequeno("Recebido em ${anoAtual ?: ""}")
-                Text(Formatos.usd(esteAno, 0), style = MaterialTheme.typography.titleMedium.numeros(), fontWeight = FontWeight.SemiBold)
-                if (anoAtual != null && anoPassado != null) TextoPequeno("${anoAtual - 1}: ${Formatos.usd(anoPassado, 0)}")
-            }
-            if (ano != null && (bruto != null || liquido != null)) {
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    TextoPequeno("Previsão $ano")
-                    Text(
-                        Formatos.eur(liquido, 0) + " líq.",
-                        style = MaterialTheme.typography.titleMedium.numeros(),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    TextoPequeno("${Formatos.usd(bruto, 0)} brutos")
-                }
-            }
-        }
-        if (div.calendario.size == 12) {
-            BarrasMensais(
-                previsto = div.calendario.map { it.previstoBrutoUsd ?: 0.0 },
-                recebido = div.calendario.map { it.recebidoAnoAnteriorUsd },
-                destacado = mes,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Legenda(MaterialTheme.colorScheme.primary, "Previsão ${ano ?: ""}")
-                Legenda(Paleta.dourado, "Recebido em ${(ano ?: 1) - 1}")
-            }
-            val quem = mes?.let { div.calendario.getOrNull(it)?.quemPaga }
-            if (mes != null && !quem.isNullOrBlank()) TextoPequeno("Costumam pagar em ${div.calendario[mes].mes.lowercase()}: $quem")
-        }
-    }
-}
-
-// ───────────────────────────── Oportunidades ─────────────────────────────
-
-@Composable
-private fun CartaoOportunidades(lista: List<ItemWatchlist>, vm: CarteiraViewModel) {
-    Cartao("Oportunidades na watchlist", acao = "Ver todas", aoAcao = { vm.irPara(Ecra.Watchlist) }) {
-        TextoPequeno(
-            "${lista.size} abaixo do valor justo (🟢 Subvalorizada). Primeiro as que passam o teste de troca da folha, " +
-                "pelo ganho por ano.",
-        )
-        lista.take(3).forEachIndexed { k, w ->
-            if (k > 0) HorizontalDivider(color = corBordaCartao())
-            Row(
-                Modifier.fillMaxWidth().clickable { vm.abrir("W:${w.ticker}") }.padding(vertical = 2.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(w.ticker, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.width(6.dp))
-                        TextoPequeno(w.empresa ?: "", modifier = Modifier.weight(1f, fill = false))
-                    }
-                    w.testeTroca?.takeIf { it.startsWith("✓") }?.let { TextoPequeno(it, cor = Paleta.verde) }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        "${Formatos.numero(w.preco)} → ${Formatos.numero(w.valorJusto)}",
-                        style = MaterialTheme.typography.bodySmall.numeros(),
-                    )
-                    Text(
-                        "margem ${Formatos.pctSinal(w.margem)}",
-                        style = MaterialTheme.typography.labelMedium.numeros(),
-                        color = corDoSinal(w.margem),
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ───────────────────────────── Desempenho ─────────────────────────────
-
-@Composable
-private fun CartaoDesempenho(d: Dados) {
-    // (rótulo da folha, nome na app, é percentagem?)
-    val linhas = listOf(
-        Triple("TTWROR Anualizado", "Rendibilidade anual (TWR)", true),
-        Triple("TTWROR Anualizado c/ Dividendos", "Anual com dividendos", true),
-        Triple("TTWROR (acumulado, desde Set/22)", "Acumulada desde o início", true),
-        Triple("Volatilidade Anualizada", "Volatilidade anual", true),
-        Triple("Sharpe Ratio", "Sharpe", false),
-        Triple("Beta vs S&P500", "Beta vs S&P 500", false),
-        Triple("Melhor Mês", "Melhor mês", true),
-        Triple("Pior Mês", "Pior mês", true),
-        Triple("% Meses Positivos", "Meses positivos", true),
-    ).mapNotNull { (rotulo, nome, pct) ->
-        d.indicador(rotulo)?.let { i -> nome to if (pct) Formatos.pct(i.valor) else Formatos.numero(i.valor, 2) }
-    }
-    if (linhas.isEmpty()) return
-    Cartao("Desempenho e risco") {
-        linhas.chunked(2).forEach { par ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                par.forEach { (nome, valor) ->
-                    Column(Modifier.weight(1f)) {
-                        TextoPequeno(nome)
-                        Text(valor, style = MaterialTheme.typography.titleSmall.numeros(), fontWeight = FontWeight.SemiBold)
-                    }
-                }
-                if (par.size == 1) Spacer(Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-// ───────────────────────────── Movimentos ─────────────────────────────
-
-@Composable
-private fun CartaoMovimentos(d: Dados) {
-    Cartao("Últimos movimentos") {
-        d.transacoes.take(4).forEachIndexed { k, t ->
-            if (k > 0) HorizontalDivider(color = corBordaCartao())
-            val moeda = t.moeda ?: "USD"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        "${t.tipo ?: ""} ${Formatos.numeroLivre(t.unidades)} ${t.ticker}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    TextoPequeno("${Formatos.data(t.data)} · a ${Formatos.moeda(t.preco, moeda)}")
-                }
-                Text(
-                    Formatos.moeda(t.valor, moeda, 0),
-                    style = MaterialTheme.typography.bodyMedium.numeros(),
-                    color = if (t.tipo == "Venda") Paleta.verde else MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-    }
 }
 
 /** Botão que liga os alertas (e pede a autorização das notificações no Android 13+). */

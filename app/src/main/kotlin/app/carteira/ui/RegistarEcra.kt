@@ -106,7 +106,7 @@ private fun CampoTicker(valor: String, sugestoes: List<TickerInfo>, aoMudar: (St
 }
 
 @Composable
-private fun CampoNumero(valor: String, rotulo: String, aoMudar: (String) -> Unit, erro: String? = null, sufixo: String? = null) {
+internal fun CampoNumero(valor: String, rotulo: String, aoMudar: (String) -> Unit, erro: String? = null, sufixo: String? = null) {
     OutlinedTextField(
         value = valor,
         onValueChange = aoMudar,
@@ -140,7 +140,7 @@ private fun CampoData(valor: String, aoMudar: (String) -> Unit) {
 }
 
 @Composable
-private fun BotaoEnviar(texto: String, ativo: Boolean, aEnviar: Boolean, aoCarregar: () -> Unit) {
+internal fun BotaoEnviar(texto: String, ativo: Boolean, aEnviar: Boolean, aoCarregar: () -> Unit) {
     Button(onClick = aoCarregar, enabled = ativo && !aEnviar, modifier = Modifier.fillMaxWidth()) {
         if (aEnviar) {
             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -195,7 +195,7 @@ private fun FormTransacao(d: Dados, estado: Estado, vm: CarteiraViewModel, ticke
     }
     if (info != null) {
         TextoPequeno(
-            "${info.nome ?: info.ticker} · tens ${Formatos.numeroLivre(info.quantidade)}" +
+            "${info.nome ?: info.ticker} · tens ${Formatos.quantidade(info.quantidade)}" +
                 (precoAtual?.let { " · preço atual ${Formatos.numero(it)} $moeda" } ?: ""),
         )
     } else if (ticker.isNotBlank()) {
@@ -266,7 +266,7 @@ private fun FormDividendo(d: Dados, estado: Estado, vm: CarteiraViewModel, ticke
     val posicao = d.posicoes.firstOrNull { it.ticker == ticker.trim() }
     if (posicao?.divAnualPorAcaoUsd != null) {
         TextoPequeno(
-            "${posicao.nome}: ${Formatos.usd(posicao.divAnualPorAcaoUsd)} por ação por ano · ${posicao.frequencia ?: ""}",
+            "${posicao.nome}: ${Formatos.preco(posicao.divAnualPorAcaoUsd, "USD")} por ação por ano · ${posicao.frequencia ?: ""}",
         )
     }
     CampoData(data) { data = it }

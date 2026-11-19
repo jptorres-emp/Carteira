@@ -1,5 +1,8 @@
 package app.carteira.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -8,6 +11,14 @@ import kotlin.math.abs
 
 /** Números à portuguesa: espaço nos milhares e vírgula nas décimas ("1 234,56 €"). */
 object Formatos {
+    /**
+     * Modo privado: os valores em dinheiro e as quantidades aparecem como "•••". É estado do Compose, por
+     * isso os ecrãs redesenham-se sozinhos quando muda. Percentagens e preços de mercado (preco) ficam.
+     */
+    var privado by mutableStateOf(false)
+
+    const val OCULTO = "•••"
+
     private val simbolos = DecimalFormatSymbols(Locale.forLanguageTag("pt-PT")).apply {
         groupingSeparator = ' '
         decimalSeparator = ','
@@ -27,17 +38,29 @@ object Formatos {
         return f.format(x)
     }
 
-    fun eur(x: Double?, casas: Int = 2): String = if (x == null) "—" else numero(x, casas) + " €"
+    /** Dinheiro em euros (escondido no modo privado). */
+    fun eur(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO €" else numero(x, casas) + " €"
 
-    fun usd(x: Double?, casas: Int = 2): String = if (x == null) "—" else numero(x, casas) + " $"
+    /** Dinheiro em dólares (escondido no modo privado). */
+    fun usd(x: Double?, casas: Int = 2): String = if (x == null) "—" else if (privado) "$OCULTO $" else numero(x, casas) + " $"
 
-    /** Valor com a moeda dada ("USD", "EUR", "GBP", "DKK", ...). */
-    fun moeda(x: Double?, moeda: String?, casas: Int = 2): String = when (moeda) {
-        null, "USD" -> usd(x, casas)
-        "EUR" -> eur(x, casas)
-        "GBP" -> if (x == null) "—" else numero(x, casas) + " £"
-        else -> if (x == null) "—" else numero(x, casas) + " " + moeda
+    private fun simbolo(moeda: String?): String = when (moeda) {
+        null, "USD" -> "$"
+        "EUR" -> "€"
+        "GBP" -> "£"
+        else -> moeda
     }
+
+    /** Dinheiro na moeda dada ("USD", "EUR", "GBP", "DKK", ...), escondido no modo privado. */
+    fun moeda(x: Double?, moeda: String?, casas: Int = 2): String =
+        if (x != null && privado) "$OCULTO ${simbolo(moeda)}" else preco(x, moeda, casas)
+
+    /** Preço de mercado (por ação ou unidade) na moeda dada: aparece também no modo privado. */
+    fun preco(x: Double?, moeda: String?, casas: Int = 2): String =
+        if (x == null) "—" else numero(x, casas) + " " + simbolo(moeda)
+
+    /** Número de ações ou unidades: escondido no modo privado (com o preço, dava o valor). */
+    fun quantidade(x: Double?): String = if (x == null) "—" else if (privado) OCULTO else numeroLivre(x)
 
     /** Percentagem guardada como fração (0,2096 → "20,96%"). */
     fun pct(x: Double?, casas: Int = 1): String = if (x == null) "—" else numero(x * 100, casas) + "%"
@@ -52,25 +75,44 @@ object Formatos {
     /** Valor com sinal (+1 234 € / −56 €). */
     fun eurSinal(x: Double?, casas: Int = 0): String {
         if (x == null) return "—"
+        if (privado) return "$OCULTO €"
         val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
         return sinal + numero(abs(x), casas) + " €"
     }
 
     fun usdSinal(x: Double?, casas: Int = 0): String {
         if (x == null) return "—"
+        if (privado) return "$OCULTO $"
         val sinal = if (x > 0) "+" else if (x < 0) "−" else ""
         return sinal + numero(abs(x), casas) + " $"
     }
 
-    /** Números grandes em curto, para eixos: 60 k, 1,2 M. */
+    /** Números grandes em curto, para eixos: 60 k, 1,2 M (dinheiro: escondido no modo privado). */
     fun compacto(x: Double?): String {
         if (x == null) return "—"
+        if (privado) return OCULTO
         val a = abs(x)
         return when {
             a >= 1_000_000 -> numeroLivre(x / 1_000_000, 1) + " M"
             a >= 10_000 -> numero(x / 1_000, 0) + " k"
             a >= 1_000 -> numeroLivre(x / 1_000, 1) + " k"
             else -> numero(x, 0)
+        }
+    }
+
+    /**
+     * Intervalo de dinheiro em curto, com a unidade uma só vez: "41,9–42,6 k €", "246–263 k €". Abaixo de
+     * 100 mil leva uma casa decimal, para dois valores próximos não darem o mesmo número.
+     */
+    fun intervaloEur(de: Double?, ate: Double?): String {
+        if (de == null || ate == null) return "—"
+        if (privado) return "$OCULTO €"
+        val maior = maxOf(abs(de), abs(ate))
+        return when {
+            maior >= 1_000_000 -> numero(de / 1_000_000, 2) + "–" + numero(ate / 1_000_000, 2) + " M €"
+            maior >= 100_000 -> numero(de / 1_000, 0) + "–" + numero(ate / 1_000, 0) + " k €"
+            maior >= 1_000 -> numero(de / 1_000, 1) + "–" + numero(ate / 1_000, 1) + " k €"
+            else -> numero(de, 0) + "–" + numero(ate, 0) + " €"
         }
     }
 

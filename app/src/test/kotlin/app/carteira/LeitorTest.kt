@@ -115,6 +115,10 @@ class LeitorTest {
         assertTrue(d.evolucao.all { it.metaReferenciaEur != null && it.metaBaseEur != null && it.metaAlargadaEur != null })
         assertEquals(p.meses[10].baseEur!!, d.evolucao[10].metaBaseEur!!, 1e-9)
         assertEquals(p.meses[10].alargadaEur!!, d.evolucao[10].metaAlargadaEur!!, 1e-9)
+        // O que está gravado na folha: os meses fechados sim, o corrente ainda não.
+        assertEquals(d.evolucao[10].netWorthEur!!, d.evolucao[10].netWorthFolhaEur!!, 1e-9)
+        assertNull(d.evolucao.last().netWorthFolhaEur)
+        assertNotNull(d.evolucao.last().netWorthEur)
     }
 
     @Test

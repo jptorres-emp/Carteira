@@ -50,8 +50,8 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
         }
         item {
             Cartao("A tua posição") {
-                LinhaValor("Ações", Formatos.numeroLivre(p.quantidade))
-                LinhaValor("Preço médio", Formatos.usd(p.precoCompraUsd))
+                LinhaValor("Ações", Formatos.quantidade(p.quantidade))
+                LinhaValor("Preço médio", Formatos.preco(p.precoCompraUsd, "USD"))
                 LinhaValor("Custo", "${Formatos.eur(p.custoEur, 0)} · ${Formatos.usd(p.custoUsd, 0)}")
                 LinhaValor("Valor", "${Formatos.eur(p.valorEur, 0)} · ${Formatos.usd(p.valorUsd, 0)}", destaque = true)
                 // Cada valor com a sua percentagem: em euros conta o câmbio, em dólares não.
@@ -79,14 +79,14 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
         if (a != null) {
             item {
                 Cartao("Avaliação (${moedaLocal})") {
-                    LinhaValor("Valor intrínseco", Formatos.moeda(a.valorIntrinseco, moedaLocal))
+                    LinhaValor("Valor intrínseco", Formatos.preco(a.valorIntrinseco, moedaLocal))
                     LinhaValor("Potencial", Formatos.pctSinal(a.potencial), cor = corDoSinal(a.potencial))
                     LinhaValor("Rendibilidade implícita", "${Formatos.pct(a.rendImplicita)} (hurdle ${Formatos.pct(a.hurdle)})")
-                    a.reforcarForteAbaixo?.let { LinhaValor("Reforçar forte abaixo de", Formatos.moeda(it, moedaLocal)) }
-                    a.reforcarAbaixo?.let { LinhaValor("Reforçar abaixo de", Formatos.moeda(it, moedaLocal)) }
-                    a.comprarAbaixo?.let { LinhaValor("Comprar abaixo de", Formatos.moeda(it, moedaLocal)) }
-                    a.reduzirAcima?.let { LinhaValor("Reduzir acima de", Formatos.moeda(it, moedaLocal)) }
-                    a.venderAcima?.let { LinhaValor("Vender acima de", Formatos.moeda(it, moedaLocal)) }
+                    a.reforcarForteAbaixo?.let { LinhaValor("Reforçar forte abaixo de", Formatos.preco(it, moedaLocal)) }
+                    a.reforcarAbaixo?.let { LinhaValor("Reforçar abaixo de", Formatos.preco(it, moedaLocal)) }
+                    a.comprarAbaixo?.let { LinhaValor("Comprar abaixo de", Formatos.preco(it, moedaLocal)) }
+                    a.reduzirAcima?.let { LinhaValor("Reduzir acima de", Formatos.preco(it, moedaLocal)) }
+                    a.venderAcima?.let { LinhaValor("Vender acima de", Formatos.preco(it, moedaLocal)) }
                     a.pesoVsMaximo?.let { LinhaValor("Peso vs máximo", it) }
                     if (a.temaIa) LinhaValor("Tema IA-capex", "Sim (conta para o teto)")
                 }
@@ -95,7 +95,7 @@ fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
         item {
             Cartao("Dividendos") {
                 val anual = p.divAnualPorAcaoUsd?.let { it * p.quantidade }
-                LinhaValor("Por ação, por ano", Formatos.usd(p.divAnualPorAcaoUsd))
+                LinhaValor("Por ação, por ano", Formatos.preco(p.divAnualPorAcaoUsd, "USD"))
                 LinhaValor("Total por ano", Formatos.usd(anual))
                 LinhaValor("Yield / yield on cost", "${Formatos.pct(p.yieldPct, 2)} / ${Formatos.pct(p.yieldCustoPct, 2)}")
                 p.frequencia?.let { LinhaValor("Pagamento", it) }
@@ -133,7 +133,7 @@ private fun CabecalhoPosicao(p: Posicao, moedaLocal: String) {
             Column(horizontalAlignment = Alignment.End) {
                 val precoLocal = p.avaliacao?.precoLocal
                 Text(
-                    if (precoLocal != null && moedaLocal != "USD") Formatos.moeda(precoLocal, moedaLocal) else Formatos.usd(p.precoUsd),
+                    if (precoLocal != null && moedaLocal != "USD") Formatos.preco(precoLocal, moedaLocal) else Formatos.preco(p.precoUsd, "USD"),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -171,7 +171,7 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
                 Text(e.ticker, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 e.nome?.let { TextoPequeno(it) }
                 Text(
-                    "${Formatos.eur(e.precoEur)} · hoje ${Formatos.pctSinal(e.varDiaPct, 2)}",
+                    "${Formatos.preco(e.precoEur, "EUR")} · hoje ${Formatos.pctSinal(e.varDiaPct, 2)}",
                     color = corDoSinal(e.varDiaPct),
                 )
             }
@@ -190,8 +190,8 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
         }
         item {
             Cartao("A tua posição") {
-                LinhaValor("Unidades", Formatos.numeroLivre(e.quantidade))
-                LinhaValor("Preço médio", Formatos.eur(e.precoCompraEur))
+                LinhaValor("Unidades", Formatos.quantidade(e.quantidade))
+                LinhaValor("Preço médio", Formatos.preco(e.precoCompraEur, "EUR"))
                 LinhaValor("Custo", Formatos.eur(e.custoEur, 0))
                 LinhaValor("Valor", Formatos.eur(e.valorEur, 0), destaque = true)
                 LinhaValor("Ganho", "${Formatos.eurSinal(e.ganhoEur)} (${Formatos.pctSinal(e.ganhoPct)})", cor = corDoSinal(e.ganhoEur))

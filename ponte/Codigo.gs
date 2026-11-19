@@ -48,6 +48,7 @@ function doPost(e) {
       let r;
       if (p.acao === 'transacao') r = registarTransacao_(p);
       else if (p.acao === 'dividendo') r = registarDividendo_(p);
+      else if (p.acao === 'patrimonio') r = registarPatrimonio_(p);
       else throw new Error('Ação desconhecida: ' + p.acao);
       r.ok = true;
       r.versaoPonte = VERSAO_PONTE;
@@ -619,6 +620,8 @@ function lerEvolucaoEPlano_() {
       investidoUsd: num_(campo_(d[r], m, 'Investido ($)')),
       sp500Usd: num_(campo_(d[r], m, 'S&P500 ($)')),
       netWorthEur: num_(campo_(d[r], m, 'Net Worth (€)')),
+      // O que está escrito na célula; o netWorthEur do mês corrente pode vir do valor de agora.
+      netWorthFolhaEur: num_(campo_(d[r], m, 'Net Worth (€)')),
       reforcoEur: num_(campo_(d[r], m, 'Reforço (€)')),
       metaBaseEur: metas.baseEur,
       metaReferenciaEur: metas.referenciaEur,
@@ -947,6 +950,55 @@ function registarDividendo_(p) {
     mensagem: msg,
     aviso: novaLinha ? ticker + ' não tinha linha na tabela de ' + ano + ': criei-a.' : null
   };
+}
+
+/**
+ * Grava o património (net worth) de um mês na coluna Net Worth (€) da tab Evolução Patrimonial, na
+ * linha desse mês — o que se fazia à mão a partir do "Preenchimento rápido". Não mexe em células com
+ * fórmulas nem em meses que ainda não chegaram; deixa uma nota na célula.
+ */
+function registarPatrimonio_(p) {
+  const mes = String(p.mes || '');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) throw new Error('Mês inválido: ' + p.mes);
+  const valor = Math.round(Number(p.valor) * 100) / 100;
+  if (!(valor > 0) || !(valor < 1e9)) throw new Error('O valor tem de ser maior que zero');
+  const nome = MESES[Number(mes.slice(5, 7)) - 1].toLowerCase() + ' de ' + mes.slice(0, 4);
+  if (mes > Utilities.formatDate(new Date(), fuso_(), 'yyyy-MM')) throw new Error('Ainda não chegou ' + nome + '.');
+
+  const sh = folha_('Evolução Patrimonial');
+  const d = grelha_(sh, 400).valores;
+  const h = acharLinha_(d, ['Mês', 'Portefólio ($)', 'Investido ($)']);
+  if (h < 0) throw new Error('Não encontrei a tabela EVOLUÇÃO MENSAL em Evolução Patrimonial');
+  const m = indice_(d[h]);
+  const cMes = m[norm_('Mês')];
+  const cValor = m[norm_('Net Worth (€)')];
+  if (cValor === undefined) throw new Error('Não encontrei a coluna "Net Worth (€)" em Evolução Patrimonial');
+  let linha = -1;
+  for (let r = h + 1; r < d.length; r++) {
+    const data = d[r][cMes];
+    if (!(data instanceof Date)) break;
+    if (Utilities.formatDate(data, fuso_(), 'yyyy-MM') === mes) { linha = r + 1; break; }
+  }
+  if (linha < 0) throw new Error('Não encontrei a linha de ' + nome + ' em Evolução Patrimonial');
+
+  const celula = sh.getRange(linha, cValor + 1);
+  if (celula.getFormula()) throw new Error('O Net Worth de ' + nome + ' tem uma fórmula: muda-o na folha');
+  const antes = num_(celula.getValue());
+  celula.setValue(valor);
+  const quando = Utilities.formatDate(new Date(), fuso_(), 'dd/MM/yyyy');
+  const nota = celula.getNote();
+  celula.setNote((nota ? nota + '\n' : '') + 'App ' + quando + ': ' + eur_(valor) + (antes !== null ? ' (antes ' + eur_(antes) + ')' : ''));
+  SpreadsheetApp.flush();
+
+  let msg = 'Património de ' + nome + ' gravado na folha: ' + eur_(valor) + '.';
+  if (antes !== null && antes !== valor) msg += ' Antes: ' + eur_(antes) + '.';
+  return { mensagem: msg, aviso: null, linha: linha };
+}
+
+/** 12345.6 → "12 345,60 €". */
+function eur_(n) {
+  const partes = fmt_(n).split(',');
+  return partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (partes[1] ? ',' + partes[1] : '') + ' €';
 }
 
 function fmt_(n) {

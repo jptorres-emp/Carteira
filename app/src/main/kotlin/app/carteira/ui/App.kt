@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,7 +38,7 @@ private data class Separador(val ecra: Ecra, val rotulo: String, val icone: Int)
 
 private val separadores = listOf(
     Separador(Ecra.Resumo, "Início", R.drawable.ic_resumo),
-    Separador(Ecra.Patrimonio, "Património", R.drawable.ic_patrimonio),
+    Separador(Ecra.Evolucao, "Evolução", R.drawable.ic_evolucao),
     Separador(Ecra.Posicoes, "Posições", R.drawable.ic_posicoes),
     Separador(Ecra.Dividendos, "Dividendos", R.drawable.ic_dividendos),
     Separador(Ecra.Watchlist, "Watchlist", R.drawable.ic_watchlist),
@@ -83,6 +84,23 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                 },
                 actions = {
                     if (emSeparador) {
+                        IconButton(onClick = { vm.alternarPrivacidade() }) {
+                            Icon(
+                                painterResource(if (estado.privado) R.drawable.ic_oculto else R.drawable.ic_visivel),
+                                contentDescription = if (estado.privado) "Mostrar valores" else "Esconder valores",
+                            )
+                        }
+                        // Registar fica aqui em cima: um botão a flutuar tapava os valores à direita das listas.
+                        val modo = when (ecra) {
+                            Ecra.Resumo, Ecra.Posicoes -> ModoRegisto.TRANSACAO
+                            Ecra.Dividendos -> ModoRegisto.DIVIDENDO
+                            else -> null
+                        }
+                        if (modo != null && dados != null) {
+                            IconButton(onClick = { vm.irPara(Ecra.Registar(modo)) }) {
+                                Icon(painterResource(R.drawable.ic_adicionar), contentDescription = "Registar")
+                            }
+                        }
                         IconButton(onClick = { vm.irPara(Ecra.Alertas) }) {
                             BadgedBox(
                                 badge = {
@@ -91,9 +109,6 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                             ) {
                                 Icon(painterResource(R.drawable.ic_alertas), contentDescription = "Alertas")
                             }
-                        }
-                        IconButton(onClick = { vm.atualizar() }, enabled = !estado.aCarregar) {
-                            Icon(painterResource(R.drawable.ic_atualizar), contentDescription = "Atualizar")
                         }
                         IconButton(onClick = { vm.irPara(Ecra.Definicoes) }) {
                             Icon(painterResource(R.drawable.ic_definicoes), contentDescription = "Definições")
@@ -104,6 +119,12 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
         },
         bottomBar = {
             if (emSeparador) {
+                // Os rótulos não crescem além de 1,1× com a letra grande do telemóvel: cinco não cabiam e
+                // ficavam cortados ("Divide…"). O resto da app segue o tamanho escolhido.
+                val escala = LocalDensity.current.fontScale
+                val estiloRotulo = MaterialTheme.typography.labelMedium.let { e ->
+                    if (escala > 1.1f) e.copy(fontSize = e.fontSize * (1.1f / escala)) else e
+                }
                 NavigationBar {
                     separadores.forEach { s ->
                         NavigationBarItem(
@@ -111,23 +132,10 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
                             onClick = { vm.irPara(s.ecra) },
                             icon = { Icon(painterResource(s.icone), contentDescription = null) },
                             // Uma só linha: com letra grande, cinco separadores não cabem em duas.
-                            label = { Text(s.rotulo, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis) },
+                            label = { Text(s.rotulo, style = estiloRotulo, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis) },
                         )
                     }
                 }
-            }
-        },
-        floatingActionButton = {
-            if (emSeparador && ecra != Ecra.Watchlist && ecra != Ecra.Patrimonio && dados != null) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        val modo = if (ecra == Ecra.Dividendos) ModoRegisto.DIVIDENDO else ModoRegisto.TRANSACAO
-                        vm.irPara(Ecra.Registar(modo))
-                    },
-                    // O Material 3 tira o texto deste botão da acessibilidade; a descrição vai no ícone.
-                    icon = { Icon(painterResource(R.drawable.ic_adicionar), contentDescription = "Registar") },
-                    text = { Text("Registar") },
-                )
             }
         },
         snackbarHost = { SnackbarHost(avisos) },
@@ -135,13 +143,14 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
         Box(Modifier.padding(margens).fillMaxSize()) {
             when (ecra) {
                 Ecra.Resumo -> InicioEcra(estado, vm)
-                Ecra.Patrimonio -> PatrimonioEcra(estado, vm)
+                Ecra.Evolucao -> EvolucaoEcra(estado, vm)
                 Ecra.Posicoes -> PosicoesEcra(estado, vm)
                 Ecra.Dividendos -> DividendosEcra(estado, vm)
                 Ecra.Watchlist -> WatchlistEcra(estado, vm)
                 is Ecra.Posicao -> PosicaoDetalheEcra(estado, vm, ecra.ticker)
                 is Ecra.Etf -> EtfDetalheEcra(estado, vm, ecra.ticker)
                 is Ecra.Registar -> RegistarEcra(estado, vm, ecra)
+                is Ecra.AtualizarPatrimonio -> AtualizarPatrimonioEcra(estado, vm, ecra)
                 Ecra.Definicoes -> DefinicoesEcra(estado, vm)
                 Ecra.Alertas -> AlertasEcra(estado, vm)
             }
@@ -154,13 +163,14 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
 
 private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     Ecra.Resumo -> "Carteira"
-    Ecra.Patrimonio -> "Património"
+    Ecra.Evolucao -> "Evolução"
     Ecra.Posicoes -> "Posições"
     Ecra.Dividendos -> "Dividendos"
     Ecra.Watchlist -> "Watchlist"
     is Ecra.Posicao -> estado.dados?.posicoes?.firstOrNull { it.ticker == ecra.ticker }?.nome ?: ecra.ticker
     is Ecra.Etf -> ecra.ticker
     is Ecra.Registar -> if (ecra.modo == ModoRegisto.DIVIDENDO) "Registar dividendo" else "Registar compra ou venda"
+    is Ecra.AtualizarPatrimonio -> "Atualizar património"
     Ecra.Definicoes -> "Definições"
     Ecra.Alertas -> "Alertas"
 }

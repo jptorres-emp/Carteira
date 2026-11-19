@@ -18,6 +18,11 @@ class Repositorio(contexto: Context) {
 
     val configurado: Boolean get() = url.isNotBlank() && chave.isNotBlank()
 
+    /** Modo privado: esconder os valores em dinheiro. */
+    var privado: Boolean
+        get() = preferencias.getBoolean("privado", false)
+        set(v) = preferencias.edit().putBoolean("privado", v).apply()
+
     fun guardarCache(texto: String) {
         runCatching { ficheiroCache.writeText(texto) }
     }

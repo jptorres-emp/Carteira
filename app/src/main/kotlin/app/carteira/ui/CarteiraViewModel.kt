@@ -23,18 +23,24 @@ import org.json.JSONObject
 /** Ecrãs da app. Os de detalhe e de registo empilham-se por cima dos separadores. */
 sealed interface Ecra {
     data object Resumo : Ecra
-    data object Patrimonio : Ecra
+    data object Evolucao : Ecra
     data object Posicoes : Ecra
     data object Dividendos : Ecra
     data object Watchlist : Ecra
     data class Posicao(val ticker: String) : Ecra
     data class Etf(val ticker: String) : Ecra
     data class Registar(val modo: ModoRegisto, val ticker: String? = null, val tipo: String? = null) : Ecra
+
+    /** Gravar o património de um mês na folha (mes: "aaaa-mm"; null = o que a app sugere). */
+    data class AtualizarPatrimonio(val mes: String? = null) : Ecra
     data object Definicoes : Ecra
     data object Alertas : Ecra
 }
 
 enum class ModoRegisto { TRANSACAO, DIVIDENDO }
+
+/** As duas vistas do separador Evolução. */
+enum class VistaEvolucao(val rotulo: String) { PATRIMONIO("Património"), CARTEIRA("Carteira") }
 
 /** O que o utilizador escolheu para os alertas (guardado no telemóvel). */
 data class DefinicoesAlertas(
@@ -66,6 +72,9 @@ data class Estado(
     val conviteAlertas: Boolean = false,
     /** Empresa da watchlist a abrir e mostrar (vinda de um alerta). */
     val destaqueWatchlist: String? = null,
+    /** Modo privado: os valores em dinheiro aparecem escondidos. */
+    val privado: Boolean = false,
+    val vistaEvolucao: VistaEvolucao = VistaEvolucao.PATRIMONIO,
 ) {
     val ecra: Ecra get() = pilha.last()
 }
@@ -88,10 +97,12 @@ class CarteiraViewModel(
     init {
         val cache = repositorio.lerCache()
         val configurado = repositorio.configurado
+        Formatos.privado = repositorio.privado
         _estado.update {
             it.copy(
                 dados = cache,
                 configurado = configurado,
+                privado = repositorio.privado,
                 pilha = if (configurado) listOf(Ecra.Resumo) else listOf(Ecra.Resumo, Ecra.Definicoes),
             )
         }
@@ -103,7 +114,7 @@ class CarteiraViewModel(
 
     fun irPara(ecra: Ecra) = _estado.update { e ->
         when (ecra) {
-            Ecra.Resumo, Ecra.Patrimonio, Ecra.Posicoes, Ecra.Dividendos, Ecra.Watchlist -> e.copy(pilha = listOf(ecra))
+            Ecra.Resumo, Ecra.Evolucao, Ecra.Posicoes, Ecra.Dividendos, Ecra.Watchlist -> e.copy(pilha = listOf(ecra))
             else -> e.copy(pilha = e.pilha + ecra)
         }
     }
@@ -134,6 +145,16 @@ class CarteiraViewModel(
     }
 
     fun destaqueMostrado() = _estado.update { it.copy(destaqueWatchlist = null) }
+
+    fun escolherVistaEvolucao(vista: VistaEvolucao) = _estado.update { it.copy(vistaEvolucao = vista) }
+
+    /** Liga ou desliga o modo privado (fica guardado no telemóvel). */
+    fun alternarPrivacidade() {
+        val novo = !_estado.value.privado
+        repositorio.privado = novo
+        Formatos.privado = novo
+        _estado.update { it.copy(privado = novo) }
+    }
 
     /** Só apaga se ainda for a mesma mensagem (entretanto pode ter chegado outra). */
     fun mensagemMostrada(mensagem: String) =
@@ -328,6 +349,15 @@ class CarteiraViewModel(
             .put("ticker", ticker)
             .put("valor", valor)
             .put("moeda", moeda)
+        enviar(pedido, aoTerminar)
+    }
+
+    /** Grava o património (net worth) de um mês na tab Evolução Patrimonial. */
+    fun registarPatrimonio(mes: String, valor: Double, aoTerminar: (Boolean) -> Unit) {
+        val pedido = JSONObject()
+            .put("acao", "patrimonio")
+            .put("mes", mes)
+            .put("valor", valor)
         enviar(pedido, aoTerminar)
     }
 

@@ -102,6 +102,7 @@ object Leitor {
                         metaBaseEur = o.num("metaBaseEur"),
                         metaReferenciaEur = o.num("metaReferenciaEur"),
                         metaAlargadaEur = o.num("metaAlargadaEur"),
+                        netWorthFolhaEur = o.num("netWorthFolhaEur"),
                     )
                 }
             }.filterNotNull().filter { it.mes.length >= 7 },

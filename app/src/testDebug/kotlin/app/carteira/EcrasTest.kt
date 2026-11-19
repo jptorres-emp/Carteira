@@ -31,6 +31,7 @@ import app.carteira.dados.FonteDados
 import app.carteira.dados.Ponte
 import app.carteira.ui.AppCarteira
 import app.carteira.ui.CarteiraViewModel
+import app.carteira.ui.Formatos
 import app.carteira.ui.TemaCarteira
 import java.io.File
 import kotlinx.coroutines.runBlocking
@@ -82,6 +83,7 @@ class EcrasTest {
     @After
     fun repor() {
         VerificadorAlertas.criarFonte = { url, chave -> Ponte(url, chave) }
+        Formatos.privado = false
     }
 
     /** escalaLetra: como o tamanho do texto nas definições do telemóvel (1,3 = letra grande). */
@@ -141,16 +143,31 @@ class EcrasTest {
         assentar()
     }
 
-    /** Os separadores de baixo (o cartão do património no Início também diz "Património" e abre-se ao tocar). */
+    /** Os separadores de baixo (há outros textos iguais, como o filtro "Carteira"). */
     private fun tocarSeparador(nome: String) {
         compose.onNode(hasText(nome) and isSelectable()).performClick()
         assentar()
     }
 
-    /** Toca num mês do gráfico mês a mês dos dividendos (cada barra tem a descrição "Março: …"). */
+    /** Toca num mês do gráfico mês a mês dos dividendos (cada mês tem a descrição "Março: …"). */
     private fun tocarMes(mes: String) {
-        compose.onAllNodes(hasContentDescription(mes, substring = true) and hasClickAction()).onFirst().performClick()
+        val nos = compose.onAllNodes(hasContentDescription(mes, substring = true) and isSelectable())
+        assertEquals("meses com a descrição \"$mes\"", 1, nos.fetchSemanticsNodes().size)
+        nos.onFirst().performClick()
         assentar()
+    }
+
+    /** Fotografa a lista do ecrã item a item, do primeiro ao último (para rever o layout). */
+    private fun percorrer(prefixo: String, maximo: Int = 20) {
+        for (k in 0 until maximo) {
+            try {
+                compose.onNode(hasScrollToIndexAction()).performScrollToIndex(k)
+            } catch (e: IllegalArgumentException) {
+                break // passou do último item
+            }
+            assentar()
+            foto("$prefixo-${k.toString().padStart(2, '0')}")
+        }
     }
 
     /** Junta a vistas os textos que estão no ecrã (inteiros). */
@@ -197,31 +214,29 @@ class EcrasTest {
         abrir()
         esperar("Valor da carteira")
         foto("01-inicio")
-        // Um texto de cada cartão: todos têm de aparecer (e nenhum pode rebentar ao desenhar).
-        val marcas = listOf(
-            "Ver evolução", "Evolução", "Últimos 12 meses", "Estou no caminho?", "Precisa de atenção", "Sobem mais",
-            "Alocação", "Recebido em 2026", "Oportunidades na watchlist", "Desempenho e risco", "Últimos movimentos",
-        )
+        // Só o estado atual da carteira; um texto de cada cartão (e nenhum pode rebentar ao desenhar).
+        val marcas = listOf("Valor da carteira", "Ativar alertas", "Precisa de atenção", "Sobem mais", "Alocação")
         val vistas = mutableSetOf<String>()
-        // Itens: 0 principal, 1 convite dos alertas, 2 património, 3 evolução, 4 indicadores, 5 objetivos,
-        // 6 atenção, 7 hoje, 8 alocação, 9 dividendos, 10 oportunidades, 11 desempenho, 12 movimentos, 13 rodapé.
+        // Itens: 0 principal, 1 convite dos alertas, 2 atenção, 3 hoje, 4 alocação, 5 rodapé.
         // (Desliza por índice: o deslizar "até um texto" anima e, com o relógio parado, não acaba.)
-        for (k in 0..13) {
+        for (k in 0..5) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
-                2 -> foto("01b-inicio-patrimonio")
-                3 -> foto("01c-inicio-evolucao")
-                5 -> foto("01d-inicio-objetivos")
-                7 -> {
-                    foto("01e-inicio-alocacao")
+                2 -> foto("01b-inicio-atencao")
+                3 -> foto("01c-inicio-hoje")
+                4 -> {
+                    foto("01d-inicio-alocacao")
                     tocar("Setores")
-                    foto("01f-inicio-setores")
+                    foto("01e-inicio-setores")
                 }
-                9 -> foto("01g-inicio-dividendos")
             }
         }
         assertEquals(marcas.toSet(), vistas)
+        // A evolução, os objetivos e os dividendos saíram do Início.
+        listOf("Estou no caminho?", "Desempenho e risco", "Oportunidades na watchlist", "Últimos movimentos").forEach {
+            assertTrue("$it ainda está no Início", compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isEmpty())
+        }
     }
 
     @Test
@@ -240,7 +255,10 @@ class EcrasTest {
         foto("04-dividendos")
         tocar("Watchlist")
         esperar("Core A")
+        esperar("Oportunidades agora")
         foto("05-watchlist")
+        tocarSeparador("Evolução")
+        esperar("Património total")
         tocar("Início")
         tocarDescricao("Definições")
         esperar("Ligação à folha")
@@ -259,11 +277,15 @@ class EcrasTest {
         registar(marcas, vistas)
         // O mês a mês abre no mês de hoje (novembro); tocar em março mostra março.
         deslizarPara(2)
+        assertTrue(compose.onAllNodes(hasText("Novembro")).fetchSemanticsNodes().isNotEmpty())
         tocarMes("Março")
         esperar("Previsto (bruto)")
-        assertTrue(compose.onAllNodes(hasText("Março")).fetchSemanticsNodes().isNotEmpty())
-        registar(marcas, vistas)
         foto("04b-dividendos-mes")
+        val titulos = listOf("Janeiro", "Fevereiro", "Março", "Novembro").filter {
+            compose.onAllNodes(hasText(it)).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals("mês mostrado depois de tocar em março", listOf("Março"), titulos)
+        registar(marcas, vistas)
         deslizarPara(3)
         registar(marcas, vistas)
         foto("04c-dividendos-anos")
@@ -277,63 +299,148 @@ class EcrasTest {
     }
 
     @Test
-    fun separadorPatrimonio() {
+    fun separadorEvolucao() {
         abrir()
         esperar("Valor da carteira")
-        tocarSeparador("Património")
+        tocarSeparador("Evolução")
         esperar("Património total")
-        val marcas = listOf("Património total", "Acima da meta base", "Evolução", "Face ao plano", "Onde o plano te leva",
-            "Marcos", "Próximo marco", "Já passaste", "Ano a ano", "Composição hoje")
+        val marcas = listOf("Património total", "Acima da meta base", "Registo na folha", "Mês a mês", "Face ao plano",
+            "Onde o plano te leva (dez/30)", "Marcos", "Próximo marco", "Ano a ano", "Composição hoje")
         val vistas = mutableSetOf<String>()
         registar(marcas, vistas)
-        foto("11-patrimonio")
-        tocar("Até 2030")
-        foto("11b-patrimonio-ate-2030")
-        tocar("1A")
-        foto("11c-patrimonio-1-ano")
-        for (k in 2..6) {
+        foto("11-evolucao")
+        // Itens: 0 filtros, 1 topo, 2 registo, 3 gráfico, 4 plano, 5 marcos, 6 ano a ano, 7 composição, 8 rodapé.
+        for (k in 2..8) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
-                2 -> foto("11d-patrimonio-plano")
-                3 -> foto("11e-patrimonio-marcos")
-                4 -> foto("11f-patrimonio-anos")
-                5 -> foto("11g-patrimonio-composicao")
+                2 -> foto("11b-evolucao-registo")
+                3 -> {
+                    foto("11c-evolucao-grafico")
+                    tocar("Até 2030")
+                    foto("11d-evolucao-ate-2030")
+                }
+                4 -> foto("11e-evolucao-plano")
+                5 -> foto("11f-evolucao-marcos")
+                6 -> foto("11g-evolucao-anos")
+                7 -> foto("11h-evolucao-composicao")
             }
         }
         assertEquals(marcas.toSet(), vistas)
-        // O cartão do Início também abre este separador.
-        tocar("Início")
-        deslizarPara(2)
-        tocar("Ver evolução")
-        esperar("Património total")
+
+        // A outra vista: a carteira face ao S&P 500, indicadores, objetivos, risco e movimentos.
+        deslizarPara(0)
+        tocar("Carteira")
+        esperar("Carteira vs S&P 500")
+        val marcasCarteira = listOf("Carteira vs S&P 500", "Últimos 12 meses", "Estou no caminho?", "Desempenho e risco",
+            "Últimos movimentos")
+        val vistasCarteira = mutableSetOf<String>()
+        for (k in 0..6) {
+            deslizarPara(k)
+            registar(marcasCarteira, vistasCarteira)
+            when (k) {
+                0 -> foto("12-evolucao-carteira")
+                2 -> foto("12b-evolucao-indicadores")
+                4 -> foto("12c-evolucao-risco")
+            }
+        }
+        assertEquals(marcasCarteira.toSet(), vistasCarteira)
     }
 
-    /** Telemóvel estreito (360 dp) com letra grande (1,3): nada pode sair do sítio. */
+    @Test
+    fun atualizaOPatrimonioDoMes() {
+        val fonte = abrir()
+        esperar("Valor da carteira")
+        tocarSeparador("Evolução")
+        deslizarPara(2)
+        esperar("por gravar")
+        tocar("Atualizar património")
+        esperar("Gravar na folha")
+        foto("13-atualizar-patrimonio")
+        // Novembro ainda não está na folha: o campo vem com o valor de agora.
+        assertTrue(compose.onAllNodes(hasText("31 894,41")).fetchSemanticsNodes().isNotEmpty())
+        tocar("Gravar na folha")
+        val pedido = fonte.ultimoPedido!!
+        assertEquals("patrimonio", pedido.getString("acao"))
+        assertEquals("2026-11", pedido.getString("mes"))
+        assertEquals(31_894.41, pedido.getDouble("valor"), 1e-6)
+        // Outubro já tem valor na folha: o campo mostra-o para o corrigir.
+        tocar("Atualizar património")
+        tocar("out/26")
+        esperar("31 123,37")
+        foto("13b-atualizar-outubro")
+    }
+
+    @Test
+    fun modoPrivadoEscondeOsValores() {
+        abrir()
+        esperar("Valor da carteira")
+        val total = compose.onAllNodes(hasText("€", substring = true)).fetchSemanticsNodes().size
+        tocarDescricao("Esconder valores")
+        assertTrue(Formatos.privado)
+        esperar("••• €")
+        // Nenhum valor em euros fica à vista no Início (só os escondidos).
+        val emEuros = compose.onAllNodes(hasText("€", substring = true)).fetchSemanticsNodes()
+            .flatMap { n -> n.config.getOrElse(androidx.compose.ui.semantics.SemanticsProperties.Text) { emptyList() }.map { it.text } }
+            .filter { it.contains("€") && !it.contains("•••") }
+        assertEquals("valores em euros à vista: $emEuros", emptyList<String>(), emEuros)
+        assertTrue(total > 0)
+        foto("14-privado-inicio")
+        tocarSeparador("Evolução")
+        esperar("Património total")
+        foto("14b-privado-evolucao")
+        tocar("Posições")
+        esperar("ALFA")
+        foto("14c-privado-posicoes")
+        // Volta a mostrar e fica guardado.
+        tocarDescricao("Mostrar valores")
+        assertTrue(!Formatos.privado)
+        esperar("ALFA")
+    }
+
+    /** Telemóvel estreito (360 dp) com letra grande (1,3): todos os ecrãs, item a item, para rever o layout. */
     @Test
     @Config(qualifiers = "pt-rPT-w360dp-h780dp-xhdpi")
     fun ecraEstreitoELetraGrande() {
         abrir(escalaLetra = 1.3f)
         esperar("Valor da carteira")
-        foto("20-estreito-inicio")
-        deslizarPara(2)
-        foto("20b-estreito-inicio-patrimonio")
-        deslizarPara(4)
-        foto("20c-estreito-inicio-indicadores")
-        tocarSeparador("Património")
+        percorrer("20-inicio")
+        tocarSeparador("Evolução")
         esperar("Património total")
-        foto("21-estreito-patrimonio")
-        for (k in 2..5) {
-            deslizarPara(k)
-            foto("21${"bcde"[k - 2]}-estreito-patrimonio-$k")
-        }
+        percorrer("21-evolucao")
+        deslizarPara(0)
+        tocar("Carteira")
+        esperar("Carteira vs S&P 500")
+        percorrer("22-carteira")
+        tocar("Posições")
+        esperar("ALFA")
+        foto("23-posicoes")
+        tocar("ALFA")
+        esperar("A tua posição")
+        percorrer("24-posicao", maximo = 8)
+        tocarDescricao("Voltar")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")
-        foto("22-estreito-dividendos")
-        for (k in 2..4) {
-            deslizarPara(k)
-            foto("22${"bcd"[k - 2]}-estreito-dividendos-$k")
-        }
+        percorrer("25-dividendos")
+        tocar("Watchlist")
+        esperar("Core A")
+        foto("26-watchlist")
+        tocarSeparador("Evolução")
+        deslizarPara(0)
+        tocar("Património")
+        deslizarPara(2)
+        tocar("Atualizar património")
+        esperar("Gravar na folha")
+        foto("27-atualizar-patrimonio")
+        tocarDescricao("Voltar")
+        tocarSeparador("Início")
+        tocar("Registar")
+        esperar("Registar compra")
+        foto("28-registar")
+        tocarDescricao("Voltar")
+        tocarDescricao("Definições")
+        esperar("Ligação à folha")
+        foto("29-definicoes")
     }
 
     @Test

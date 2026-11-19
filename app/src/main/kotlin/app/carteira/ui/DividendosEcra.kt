@@ -165,7 +165,7 @@ private fun CartaoMesAMes(d: Dados) {
             aoTocar = { escolhido = it },
             descricao = { k -> "${cal[k].mes}: ${Formatos.usd(cal[k].previstoBrutoUsd, 0)} previstos" },
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        LinhaLegendas {
             Legenda(MaterialTheme.colorScheme.primary, if (ano != null) "Previsão $ano" else "Previsão")
             if (anterior != null) Legenda(Paleta.dourado, "Recebido em $anterior")
         }
@@ -221,7 +221,7 @@ private fun CartaoPorAno(d: Dados) {
         )
     } + listOfNotNull(
         if (previsao != null && brutoPrevisto != null && anos.none { it.ano == previsao }) {
-            BarraAno(previsao.toString(), brutoPrevisto, previsao = true, nota = "previsão")
+            BarraAno(previsao.toString(), brutoPrevisto, previsao = true, nota = "prev.")
         } else {
             null
         },

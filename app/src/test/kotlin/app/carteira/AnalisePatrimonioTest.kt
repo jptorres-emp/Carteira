@@ -32,8 +32,7 @@ class AnalisePatrimonioTest {
 
     @Test
     fun resumoRitmoEReforcos() {
-        val a = AnalisePatrimonio.de(serieLinear(), plano = null, agoraEur = 99_999.0, hoje = "2026-11-16")!!
-        // A tabela já tem a linha de novembro: o valor de agora não a substitui.
+        val a = AnalisePatrimonio.de(serieLinear(), plano = null, agoraEur = null, hoje = "2026-11-16")!!
         assertEquals("2026-11", a.mesAtual)
         assertEquals(26_000.0, a.atualEur, 1e-9)
         assertEquals(500.0, a.vsMesAnteriorEur!!, 1e-9)
@@ -133,6 +132,21 @@ class AnalisePatrimonioTest {
         assertEquals(1, so.serie.size)
         assertNull(so.ritmoMensal12mEur)
         assertNull(so.marcoAoRitmo)
+    }
+
+    @Test
+    fun oMesCorrenteUsaSempreOValorDeAgora() {
+        // Novembro foi gravado na folha a meio do mês (26 000 €); agora vale 26 400 €.
+        val a = AnalisePatrimonio.de(serieLinear(), plano = null, agoraEur = 26_400.0, hoje = "2026-11-25")!!
+        assertEquals(26_400.0, a.atualEur, 1e-9)
+        assertEquals(900.0, a.vsMesAnteriorEur!!, 1e-9)
+        assertEquals(35, a.serie.size)
+        // O reforço do mês continua o da tabela.
+        assertEquals(300.0, a.serie.last().reforcoEur!!, 1e-9)
+        // Os meses que já fecharam ficam como estão na folha.
+        val dezembro = AnalisePatrimonio.de(serieLinear(), plano = null, agoraEur = 26_400.0, hoje = "2026-12-02")!!
+        assertEquals("2026-12", dezembro.mesAtual)
+        assertEquals(26_000.0, dezembro.serie[dezembro.serie.size - 2].valorEur, 1e-9)
     }
 
     @Test

@@ -3,20 +3,21 @@ package app.carteira.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +42,12 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
@@ -66,6 +69,16 @@ fun mesCurto(mes: String): String {
 fun mesLongo(mes: String): String {
     val m = mes.substring(5, 7).toIntOrNull()?.takeIf { it in 1..12 } ?: return mes
     return MESES_LONGOS[m - 1] + " de " + mes.substring(0, 4)
+}
+
+/** Legendas (ou selos) lado a lado; as que não cabem passam para a linha de baixo. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun LinhaLegendas(espaco: Dp = 14.dp, conteudo: @Composable () -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(espaco),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) { conteudo() }
 }
 
 /** Ponto colorido + rótulo + valor, para legendas. */
@@ -125,7 +138,7 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
             )
             Filtros(listOf("1A", "3A", "Tudo"), periodo, compacto = true) { periodo = it }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        LinhaLegendas {
             Legenda(corCarteira, "Carteira", Formatos.usd(p.carteiraUsd, 0))
             Legenda(Paleta.dourado, "S&P 500", Formatos.usd(p.sp500Usd, 0))
             Legenda(Paleta.cinzento, "Investido", Formatos.usd(p.investidoUsd, 0), tracejado = true)
@@ -227,7 +240,7 @@ private fun escalaRedonda(maximo: Double): Double {
     if (maximo <= 0) return 1.0
     val bruto = maximo / 3
     val potencia = Math.pow(10.0, Math.floor(Math.log10(bruto)))
-    val passo = listOf(1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0).first { it * potencia >= bruto } * potencia
+    val passo = listOf(1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0).first { it * potencia >= bruto } * potencia
     return passo * 3
 }
 
@@ -310,8 +323,8 @@ fun BarraEmpilhada(partes: List<Pair<Double, Color>>, modifier: Modifier = Modif
 }
 
 /**
- * Doze barras (previsão) com um traço por cima (o que já foi recebido no mesmo mês). Cada mês é
- * tocável (aoTocar) e tem uma descrição para os leitores de ecrã.
+ * Doze barras (previsão) com um traço por cima (o que já foi recebido no mesmo mês). Com aoTocar, cada
+ * mês (a barra e a letra) é um botão: fica marcado e diz aos leitores de ecrã o que tem (descricao).
  */
 @Composable
 fun BarrasMensais(
@@ -324,23 +337,34 @@ fun BarrasMensais(
 ) {
     val cor = MaterialTheme.colorScheme.primary
     val maximo = (previsto + recebido.filterNotNull()).maxOrNull()?.takeIf { it > 0 } ?: return
-    Column(modifier) {
-        Row(Modifier.fillMaxWidth().height(96.dp)) {
-            for (k in 0 until 12) {
-                val v = previsto.getOrNull(k) ?: 0.0
-                val r = recebido.getOrNull(k)
+    Row(modifier.fillMaxWidth()) {
+        for (k in 0 until 12) {
+            val v = previsto.getOrNull(k) ?: 0.0
+            val r = recebido.getOrNull(k)
+            val selecionado = k == destacado
+            Column(
+                Modifier
+                    .weight(1f)
+                    .then(
+                        if (aoTocar != null) {
+                            Modifier.selectable(selected = selecionado, role = Role.Tab, onClick = { aoTocar(k) })
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .semantics { if (descricao != null) contentDescription = descricao(k) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Box(
                     Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .then(if (aoTocar != null) Modifier.clickable { aoTocar(k) } else Modifier)
-                        .semantics { if (descricao != null) contentDescription = descricao(k) }
+                        .fillMaxWidth()
+                        .height(96.dp)
                         .drawBehind {
                             val largura = size.width * 0.56f
                             val x0 = (size.width - largura) / 2
                             val alt = (v / maximo * size.height).toFloat()
                             drawRoundRect(
-                                cor.copy(alpha = if (k == destacado) 1f else 0.45f),
+                                cor.copy(alpha = if (selecionado) 1f else 0.45f),
                                 topLeft = Offset(x0, size.height - alt),
                                 size = Size(largura, alt),
                                 cornerRadius = CornerRadius(3.dp.toPx()),
@@ -354,17 +378,12 @@ fun BarrasMensais(
                             }
                         },
                 )
-            }
-        }
-        Row(Modifier.fillMaxWidth()) {
-            "JFMAMJJASOND".forEachIndexed { k, letra ->
                 Text(
-                    letra.toString(),
-                    modifier = Modifier.weight(1f),
+                    "JFMAMJJASOND"[k].toString(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = if (k == destacado) FontWeight.Bold else FontWeight.Normal,
-                    color = if (k == destacado) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (selecionado) FontWeight.Bold else FontWeight.Normal,
+                    color = if (selecionado) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                 )
             }
@@ -389,7 +408,7 @@ fun BarrasAnuais(itens: List<BarraAno>, modifier: Modifier = Modifier, altura: D
                         style = MaterialTheme.typography.labelSmall.numeros(),
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
-                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(Modifier.height(3.dp))
                     val fracao = (b.valor / maximo).coerceIn(0.0, 1.0).toFloat()
@@ -418,7 +437,7 @@ fun BarrasAnuais(itens: List<BarraAno>, modifier: Modifier = Modifier, altura: D
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (b.previsao) FontWeight.Normal else FontWeight.Medium,
                         maxLines = 1,
-                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     if (b.nota != null) {
                         Text(
@@ -426,40 +445,12 @@ fun BarrasAnuais(itens: List<BarraAno>, modifier: Modifier = Modifier, altura: D
                             style = MaterialTheme.typography.labelSmall.numeros(),
                             color = if (b.corNota == Color.Unspecified) MaterialTheme.colorScheme.onSurfaceVariant else b.corNota,
                             maxLines = 1,
-                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
             }
         }
-    }
-}
-
-/** Linha pequena (sem eixos) para o cartão do Início: o real e, tracejada, a meta base. */
-@Composable
-fun MiniGrafico(real: List<Double?>, meta: List<Double?>, modifier: Modifier = Modifier) {
-    val n = real.size
-    val valores = (real + meta).filterNotNull()
-    if (n < 2 || valores.isEmpty()) return
-    val cor = MaterialTheme.colorScheme.primary
-    val minimo = valores.min()
-    val maximo = valores.max()
-    val folga = ((maximo - minimo) * 0.12).coerceAtLeast(1.0)
-    val baixo = minimo - folga
-    val alto = maximo + folga
-    Canvas(modifier.fillMaxWidth().height(56.dp)) {
-        val x = { k: Int -> size.width * k / (n - 1) }
-        val y = { v: Double -> (size.height - (v - baixo) / (alto - baixo) * size.height).toFloat() }
-        drawPath(
-            caminho(meta, x, y), Paleta.dourado,
-            style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f))),
-        )
-        areaSob(real, x, y, size.height)?.let {
-            drawPath(it, Brush.verticalGradient(listOf(cor.copy(alpha = 0.22f), cor.copy(alpha = 0.02f))))
-        }
-        drawPath(caminho(real, x, y), cor, style = Stroke(width = 2.2.dp.toPx(), cap = StrokeCap.Round))
-        val ultimo = real.indexOfLast { it != null }
-        real.getOrNull(ultimo)?.let { drawCircle(cor, 3.5.dp.toPx(), Offset(x(ultimo), y(it))) }
     }
 }
 
@@ -508,13 +499,13 @@ fun GraficoPatrimonio(a: AnalisePatrimonio) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Filtros(opcoes, periodo, compacto = true) { escolha = it }
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        LinhaLegendas {
             if (real[i] != null) Legenda(corReal, "Real", Formatos.eur(real[i], 0))
             if (base[i] != null) Legenda(Paleta.dourado, "Meta base", Formatos.eur(base[i], 0), tracejado = true)
             val r = referencia[i]
             val al = alargada[i]
             if (r != null && al != null) {
-                Legenda(Paleta.dourado.copy(alpha = 0.45f), "Intervalo", Formatos.compacto(r) + "–" + Formatos.compacto(al) + " €")
+                Legenda(Paleta.dourado.copy(alpha = 0.45f), "Intervalo", Formatos.intervaloEur(r, al))
             }
         }
         Row {

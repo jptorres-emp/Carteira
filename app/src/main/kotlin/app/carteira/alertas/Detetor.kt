@@ -192,8 +192,8 @@ object Detetor {
     }
 
     private fun precoTexto(c: Cotacao): String = when (c.moeda) {
-        "USD" -> Formatos.usd(c.preco)
-        "EUR" -> Formatos.eur(c.preco)
+        "USD" -> Formatos.preco(c.preco, "USD")
+        "EUR" -> Formatos.preco(c.preco, "EUR")
         else -> Formatos.numero(c.preco)
     }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.carteira.dados.ItemWatchlist
+import app.carteira.dados.Sinais
 
 @Composable
 fun WatchlistEcra(estado: Estado, vm: CarteiraViewModel) {
@@ -43,6 +45,9 @@ fun WatchlistEcra(estado: Estado, vm: CarteiraViewModel) {
             else -> nomes[w.tabela] == filtro
         }
     }.sortedByDescending { it.margem ?: Double.NEGATIVE_INFINITY }
+    // Primeiro as que passam o teste de troca da folha (pelo ganho por ano); depois pela margem.
+    val oportunidades = d.watchlist.filter { Sinais.compra(it.sinal) }
+        .sortedWith(compareByDescending<ItemWatchlist> { ganhoDaTroca(it) ?: -1.0 }.thenByDescending { it.margem ?: 0.0 })
 
     // Vindo de um alerta: mostra a empresa aberta e desliza até ela.
     val lista = rememberLazyListState()
@@ -54,13 +59,14 @@ fun WatchlistEcra(estado: Estado, vm: CarteiraViewModel) {
         val k = todas.indexOfFirst { it.ticker == destaque }
         if (k >= 0) {
             aberto = todas[k].tabela + todas[k].ticker
-            val cabecalho = (if (estado.erro != null) 1 else 0) + 2
+            val cabecalho = (if (estado.erro != null) 1 else 0) + (if (oportunidades.isNotEmpty()) 1 else 0) + 2
             runCatching { lista.animateScrollToItem(k + cabecalho) }
         }
         vm.destaqueMostrado()
     }
 
     ListaAtualizavel(estado, vm, lista) {
+        if (oportunidades.isNotEmpty()) item { CartaoOportunidades(oportunidades, vm) }
         item { Filtros(opcoes, filtro) { filtro = it } }
         item {
             TextoPequeno(
@@ -141,6 +147,52 @@ private fun CartaoWatchlist(w: ItemWatchlist, aberto: Boolean, aoTocar: () -> Un
                 w.crescimento?.let { LinhaValor("Crescimento esperado", Formatos.pct(it)) }
                 w.fcfYield?.let { LinhaValor("FCF yield", Formatos.pct(it, 2)) }
                 w.intervalo52s?.let { LinhaValor("Intervalo de 52 semanas", it) }
+            }
+        }
+    }
+}
+
+/** "✓ Avaliar troca com DUNA: +15,3%/ano" → 15,3. Só conta se o teste passou (✓). */
+private fun ganhoDaTroca(w: ItemWatchlist): Double? {
+    val t = w.testeTroca ?: return null
+    if (!t.startsWith("✓")) return null
+    return Regex("""\+(\d+(?:,\d+)?)%/ano""").find(t)?.groupValues?.get(1)?.replace(',', '.')?.toDoubleOrNull()
+}
+
+// ───────────────────────────── Oportunidades ─────────────────────────────
+
+@Composable
+private fun CartaoOportunidades(lista: List<ItemWatchlist>, vm: CarteiraViewModel) {
+    Cartao("Oportunidades agora") {
+        TextoPequeno(
+            "${lista.size} abaixo do valor justo (🟢 Subvalorizada). Primeiro as que passam o teste de troca da folha, " +
+                "pelo ganho por ano. Toca para abrir.",
+        )
+        lista.take(3).forEachIndexed { k, w ->
+            if (k > 0) HorizontalDivider(color = corBordaCartao())
+            Row(
+                Modifier.fillMaxWidth().clickable { vm.abrir("W:${w.ticker}") }.padding(vertical = 2.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(w.ticker, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(6.dp))
+                        TextoPequeno(w.empresa ?: "", modifier = Modifier.weight(1f, fill = false))
+                    }
+                    w.testeTroca?.takeIf { it.startsWith("✓") }?.let { TextoPequeno(it, cor = Paleta.verde) }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "${Formatos.numero(w.preco)} → ${Formatos.numero(w.valorJusto)}",
+                        style = MaterialTheme.typography.bodySmall.numeros(),
+                    )
+                    Text(
+                        "margem ${Formatos.pctSinal(w.margem)}",
+                        style = MaterialTheme.typography.labelMedium.numeros(),
+                        color = corDoSinal(w.margem),
+                    )
+                }
             }
         }
     }
