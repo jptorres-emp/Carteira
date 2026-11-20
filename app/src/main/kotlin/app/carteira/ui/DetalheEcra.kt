@@ -3,6 +3,7 @@ package app.carteira.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -44,6 +46,7 @@ import app.carteira.dados.Gatilhos
 import app.carteira.dados.Historico
 import app.carteira.dados.Posicao
 import app.carteira.dados.Rentabilidade
+import app.carteira.dados.Venda
 
 @Composable
 fun PosicaoDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
@@ -266,17 +269,26 @@ fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? 
             )
         }
         r.maisValiasEur?.let { LinhaValor("Mais-valias das vendas", Formatos.eurSinal(it), cor = corDoSinal(it)) }
-        // Informativo (não entra nas regras): o lucro já tirado paga as ações que tens?
+        // Informativo (não entra nas regras): o lucro já tirado paga as ações que tens? Ao tocar, de onde vem.
         if (r.aberta && (r.pctDeBorla ?: 0.0) >= 0.005) {
-            LinhaValor(
-                "Pago pelo lucro",
-                if (r.deBorla) {
-                    "🎁 de borla (+${Formatos.eur(r.excedenteBorlaEur, 0)})"
-                } else {
-                    "${Formatos.pct(r.pctDeBorla, 0)} · faltam ${Formatos.eur(r.faltaParaBorlaEur, 0)}"
-                },
-                cor = if (r.deBorla) Paleta.verde else Color.Unspecified,
-            )
+            var aberto by rememberSaveable(r.ticker) { mutableStateOf(false) }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClickLabel = if (aberto) "Esconder de onde vem o lucro" else "Ver de onde vem o lucro") { aberto = !aberto },
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                LinhaValor(
+                    "Pago pelo lucro ${if (aberto) "▴" else "▾"}",
+                    if (r.deBorla) {
+                        "🎁 de borla (+${Formatos.eur(r.excedenteBorlaEur, 0)})"
+                    } else {
+                        "${Formatos.pct(r.pctDeBorla, 0)} · faltam ${Formatos.eur(r.faltaParaBorlaEur, 0)}"
+                    },
+                    cor = if (r.deBorla) Paleta.verde else Color.Unspecified,
+                )
+                if (aberto) DiscriminacaoBorla(r, h.vendasDe(r.ticker))
+            }
         }
         if (h.v5) {
             LinhaValor(
@@ -361,6 +373,76 @@ private fun ContraIndice(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)?
         TextButton(onClick = verTodas, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)) {
             Text("Ver todas as ações contra o S&P 500")
         }
+    }
+}
+
+/**
+ * De onde vem o dinheiro do "de borla": cada venda (o que recebeste, o que essas ações custaram pelo FIFO e o
+ * lucro que ficou) e os dividendos de cada ano; e o que esse lucro tem de pagar, compra a compra das que tens.
+ */
+@Composable
+internal fun DiscriminacaoBorla(r: Rentabilidade, vendas: List<Venda>) {
+    val lucro = r.lucroTiradoEur ?: 0.0
+    val cor = corBordaCartao()
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text("De onde vem o lucro · ${Formatos.eur(lucro, 0)}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        vendas.forEach { v ->
+            val m = v.movimento
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                LinhaValor(
+                    "Venda de ${Formatos.data(v.data)}",
+                    v.maisValiaEur?.let { Formatos.eurSinal(it) } ?: "—",
+                    cor = v.maisValiaEur?.let { corDoSinal(it) } ?: Color.Unspecified,
+                )
+                TextoPequeno(
+                    "${Formatos.quantidade(m.unidades)} un. a ${Formatos.preco(m.preco, m.moeda)}: recebeste ${Formatos.eur(v.recebidoEur, 0)}" +
+                        (
+                            v.custoEur?.let { " − custaram ${Formatos.eur(it, 0)} (o teu dinheiro a voltar)" }
+                                ?: "; faltam compras na folha para saber o custo"
+                            ),
+                )
+            }
+        }
+        if (r.dividendosEur >= 0.5) {
+            LinhaValor("Dividendos (brutos)", Formatos.eurSinal(r.dividendosEur), cor = corDoSinal(r.dividendosEur))
+            if (r.dividendosPorAno.size > 1) {
+                TextoPequeno(r.dividendosPorAno.joinToString(" · ") { (ano, eur) -> "$ano: ${Formatos.eur(eur, 0)}" })
+            }
+        }
+        HorizontalDivider(color = cor)
+        Text(
+            "O que tem de pagar · ${Formatos.eur(r.custoAtualEur, 0)}",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        TextoPequeno("O que custaram as que ainda tens, compra a compra (as mais antigas já vendidas saem primeiro).")
+        val lotes = r.lotes
+        lotes.take(6).forEach { l ->
+            LinhaValor("Compra de ${Formatos.data(l.data)} · ${Formatos.quantidade(l.unidades)} un.", Formatos.eur(l.unidades * l.custoEurPorUnidade, 0))
+        }
+        if (lotes.size > 6) {
+            val resto = lotes.drop(6)
+            LinhaValor("Mais ${plural(resto.size, "compra", "compras")}", Formatos.eur(resto.sumOf { it.unidades * it.custoEurPorUnidade }, 0))
+        }
+        HorizontalDivider(color = cor)
+        val saldo = lucro - r.custoAtualEur
+        LinhaValor(
+            if (saldo >= -0.005) "🎁 O lucro já paga tudo e sobram" else "Falta de lucro",
+            Formatos.eur(kotlin.math.abs(saldo), 0),
+            cor = if (saldo >= -0.005) Paleta.verde else Color.Unspecified,
+            destaque = true,
+        )
+        TextoPequeno(
+            "Pelo FIFO e com as comissões; cada compra e venda ao câmbio do seu dia" +
+                (if (r.dividendosPorAno.isNotEmpty()) " e os dividendos ao câmbio de cada mês." else "."),
+        )
     }
 }
 

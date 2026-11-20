@@ -153,6 +153,30 @@ class HistoricoTest {
     }
 
     @Test
+    fun deOndeVemOLucro() {
+        val h = Historico.calcular(
+            alfa, hoje, emptyMap(), usdEur = 0.91,
+            dividendosPorMes = mapOf("ALFA" to listOf("2024-03" to 10.0, "2024-09" to 5.0, "2025-06" to 10.0)),
+            cambioMensal = mapOf("2024-03" to 0.92, "2025-06" to 0.88),
+        )
+        val r = h.de("ALFA")!!
+        // Dividendos de cada ano, ao câmbio de cada mês (set/2024 sem câmbio do mês: o de hoje).
+        assertEquals(listOf(2024, 2025), r.dividendosPorAno.map { it.first })
+        assertEquals(10 * 0.92 + 5 * 0.91, r.dividendosPorAno[0].second, 1e-9)
+        assertEquals(10 * 0.88, r.dividendosPorAno[1].second, 1e-9)
+        assertEquals(r.dividendosEur, r.dividendosPorAno.sumOf { it.second }, 1e-9)
+        // A venda: recebeste 1139 €, as 8 custaram 720,80 € (FIFO), ficou 418,20 € de lucro.
+        val v = h.vendasDe("ALFA").single()
+        assertEquals(1139.0, v.recebidoEur, 1e-9)
+        assertEquals(720.8, v.custoEur!!, 1e-9)
+        assertEquals(418.2 + r.dividendosEur, r.lucroTiradoEur!!, 1e-9)
+        // O que esse lucro tem de pagar: as compras que ainda tens (2 da 1.ª e as 5 da 2.ª).
+        assertEquals(listOf("2023-01-10" to 2.0, "2024-01-10" to 5.0), r.lotes.map { it.data to it.unidades })
+        assertEquals(733.2, r.custoAtualEur, 1e-9)
+        assertTrue(h.vendasDe("NADA").isEmpty())
+    }
+
+    @Test
     fun soOLucroContaParaFicarDeBorla() {
         // Vender sem lucro só devolve o teu dinheiro: não paga nada das ações que ficam.
         val semLucro = listOf(

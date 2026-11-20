@@ -503,6 +503,21 @@ class EcrasTest {
         esperar("Só conta o lucro")
         esperar("faltam ")
         foto("07f-de-borla")
+        // Ao tocar numa posição: de onde vem o lucro (vendas e dividendos) e o que ele tem de pagar.
+        tocar("ALFA ▾")
+        esperar("De onde vem o lucro")
+        esperar("Venda de ")
+        esperar("o teu dinheiro a voltar")
+        esperar("O que tem de pagar")
+        esperar("Compra de ")
+        esperar("Falta de lucro")
+        foto("07g-de-borla-alfa")
+        tocar("Abrir a ALFA")
+        esperar("Quando comprar e vender")
+        deslizarPara(4)
+        tocar("Pago pelo lucro ▾")
+        esperar("De onde vem o lucro")
+        foto("07h-posicao-de-onde-vem")
     }
 
     @Test

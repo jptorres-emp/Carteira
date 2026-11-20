@@ -110,6 +110,8 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
 @Composable
 private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
     var todas by rememberSaveable { mutableStateOf(false) }
+    // A posição aberta (uma de cada vez): de onde vem o lucro e o que ele tem de pagar.
+    var aberta by rememberSaveable { mutableStateOf<String?>(null) }
     val lista = h.recuperacao
     val livres = h.deBorla
     Cartao("De borla?") {
@@ -128,9 +130,16 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
             "Uma posição fica de borla quando o lucro que já tiraste dela (as mais-valias das vendas e os dividendos) " +
                 "paga o que custaram as ações que ainda tens: essas passam a ser lucro. Só conta o lucro: numa venda, " +
                 "o custo das ações vendidas é o teu dinheiro a voltar. É só informativo: o que conta para comprar ou " +
-                "vender continua a ser a zona e o peso de cada posição.",
+                "vender continua a ser a zona e o peso de cada posição. Toca numa posição para veres de onde vem o lucro.",
         )
-        (if (todas) lista else lista.take(8)).forEach { r -> LinhaRecuperado(r) { abrir(r) } }
+        (if (todas) lista else lista.take(8)).forEach { r ->
+            val estaAberta = aberta == r.ticker
+            LinhaRecuperado(r, estaAberta) { aberta = if (estaAberta) null else r.ticker }
+            if (estaAberta) {
+                DiscriminacaoBorla(r, h.vendasDe(r.ticker))
+                TextButton(onClick = { abrir(r) }) { Text("Abrir a ${r.ticker}") }
+            }
+        }
         if (lista.size > 8) {
             TextButton(onClick = { todas = !todas }) {
                 Text(if (todas) "Mostrar menos" else "Mostrar todas (${lista.size})")
@@ -140,13 +149,21 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
 }
 
 @Composable
-private fun LinhaRecuperado(r: Rentabilidade, aoTocar: () -> Unit) {
+private fun LinhaRecuperado(r: Rentabilidade, aberta: Boolean, aoTocar: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().clickable(onClick = aoTocar).padding(vertical = 6.dp),
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClickLabel = if (aberta) "Esconder de onde vem o lucro" else "Ver de onde vem o lucro", onClick = aoTocar)
+            .padding(vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(r.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(
+                r.ticker + if (aberta) " ▴" else " ▾",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
             Text(
                 (if (r.deBorla) "🎁 " else "") + Formatos.pct(r.pctDeBorla, 0),
                 style = MaterialTheme.typography.titleSmall.numeros(),

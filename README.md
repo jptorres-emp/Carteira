@@ -34,8 +34,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   vendas com a mais-valia de cada uma pelo FIFO (como no IRS), as mais-valias por ano e as posições fechadas.
   Só a título informativo, a opção «De borla» desse ecrã (e uma linha no detalhe) mostra que posições já se
   pagaram com o lucro — as mais-valias das vendas e os dividendos pagam o que custaram as ações que ainda tens
-  (o custo das ações vendidas é só o teu dinheiro a voltar e não conta) — e quanto falta às outras; não entra
-  nas regras de comprar e vender.
+  (o custo das ações vendidas é só o teu dinheiro a voltar e não conta) — e quanto falta às outras; ao tocar
+  numa posição, mostra de onde vem esse lucro (cada venda e os dividendos de cada ano) e o que ele tem de pagar
+  (cada compra que ainda tens). Não entra nas regras de comprar e vender.
   O gráfico «Carteira vs S&P 500» da Evolução tem a opção YTD, como no Google Finance: este ano a partir de 0%
   no fim de dezembro, mês a mês, sem contar o dinheiro que entrou ou saiu (a rentabilidade de cada mês da
   folha, encadeada, como a tabela por ano dela; em dólares e sem dividendos).

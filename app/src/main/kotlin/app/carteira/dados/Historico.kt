@@ -58,6 +58,8 @@ data class Rentabilidade(
     val idadeMediaDias: Int? = null,
     /** O que ainda tens, pelo FIFO: as compras mais antigas primeiro. */
     val lotes: List<Lote> = emptyList(),
+    /** Os dividendos (brutos, em euros) de cada ano, ao câmbio de cada mês (ponte v5); vazio sem o detalhe por mês. */
+    val dividendosPorAno: List<Pair<Int, Double>> = emptyList(),
 ) {
     val aberta: Boolean get() = unidadesHoje > EPS
     val lucroEur: Double get() = valorEur + vendidoEur + dividendosEur - compradoEur
@@ -264,6 +266,9 @@ class Historico(
     }
 
     fun de(ticker: String): Rentabilidade? = porTicker[ticker]
+
+    /** As vendas de um ticker, da mais antiga para a mais recente. */
+    fun vendasDe(ticker: String): List<Venda> = vendas.filter { it.ticker == ticker }.sortedWith(compareBy<Venda> { it.data }.thenBy { it.movimento.linha })
 
     /** Posições que tens em que o lucro já tirado paga as ações que ainda tens. */
     val deBorla: List<Rentabilidade> get() = porTicker.values.filter { it.deBorla }.sortedByDescending { it.pctDeBorla }
@@ -491,6 +496,10 @@ class Historico(
                     dias = dias,
                     idadeMediaDias = idadeMedia,
                     lotes = lotes.mapIndexed { i, l -> Lote(datasLotes.elementAt(i), l[0], l[1]) }.filter { it.unidades > EPS },
+                    dividendosPorAno = porMes.groupBy { it.first.take(4).toIntOrNull() ?: 0 }
+                        .map { (ano, meses) -> ano to meses.sumOf { (mes, usd) -> usd * (cambioMensal[mes] ?: usdEur) } }
+                        .filter { it.first > 0 && it.second > 0.005 }
+                        .sortedBy { it.first },
                 )
             }
             vendas.sortWith(compareByDescending<Venda> { it.data }.thenByDescending { it.movimento.linha })
