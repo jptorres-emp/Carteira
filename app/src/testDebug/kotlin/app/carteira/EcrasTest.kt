@@ -24,7 +24,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.isToggleable
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.printToString
@@ -513,15 +512,15 @@ class EcrasTest {
         esperar("Compra de ")
         esperar("Ainda falta")
         foto("07g-de-borla-alfa")
-        // O botão fica abaixo do detalhe aberto: desliza até ele antes de tocar.
-        compose.onAllNodes(hasText("Abrir a ALFA") and hasClickAction()).onFirst().performScrollTo().performClick()
+        // O botão fica abaixo do detalhe aberto, fora do ecrã: toca-se pela ação (deslizar até ele anima e, com o
+        // relógio parado, não acaba).
+        compose.onAllNodes(hasText("Abrir a ALFA") and hasClickAction()).onFirst().performSemanticsAction(SemanticsActions.OnClick)
         assentar()
         esperar("Quando comprar e vender")
         deslizarPara(4)
         tocar("Pago pelo lucro ▾")
         esperar("De onde vem o lucro")
-        compose.onAllNodes(hasText("Ainda falta", substring = true)).onFirst().performScrollTo()
-        assentar()
+        esperar("Ainda falta")
         foto("07h-posicao-de-onde-vem")
     }
 
