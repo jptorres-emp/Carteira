@@ -391,14 +391,15 @@ private fun LinhaVenda(v: Venda) {
 }
 
 /**
- * "Vendeste bem · hoje valeriam −8%" ou "Devias ter mantido · hoje valeriam +10%": o que recebeste contra o que
- * valeriam hoje, em euros ao câmbio de hoje.
+ * "Vendeste bem · hoje valeriam −8% do que recebeste" ou "Devias ter mantido · hoje valeriam +10% do que
+ * recebeste": o que recebeste contra o que valeriam hoje, em euros ao câmbio de hoje (a coluna "Hoje valeriam"
+ * compara com o custo).
  */
 @Composable
 private fun SeloVendeste(g: VendasDoTicker) {
     val pct = g.hojeVsVendaPct ?: return
     val veredito = if (g.vendesteBem == true) "🟢 Vendeste bem" else "🔴 Devias ter mantido"
-    SeloZona("$veredito · hoje valeriam ${Formatos.pctSinal(pct, 0)}")
+    SeloZona("$veredito · hoje valeriam ${Formatos.pctSinal(pct, 0)} do que recebeste")
 }
 
 @Composable
