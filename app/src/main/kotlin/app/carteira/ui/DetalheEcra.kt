@@ -434,7 +434,7 @@ internal fun DiscriminacaoBorla(r: Rentabilidade, vendas: List<Venda>) {
         HorizontalDivider(color = cor)
         val saldo = lucro - r.custoAtualEur
         LinhaValor(
-            if (saldo >= -0.005) "🎁 O lucro já paga tudo e sobram" else "Falta de lucro",
+            if (saldo >= -0.005) "🎁 Já paga tudo e sobra" else "Ainda falta",
             Formatos.eur(kotlin.math.abs(saldo), 0),
             cor = if (saldo >= -0.005) Paleta.verde else Color.Unspecified,
             destaque = true,
