@@ -177,6 +177,46 @@ class HistoricoTest {
     }
 
     @Test
+    fun vendasJuntasPorTickerSemRepetidos() {
+        // NORA vendida duas vezes (2025 e 2026) e ALFA uma: uma linha por ticker, com o preço médio.
+        val mov = alfa + listOf(
+            acao(10, "2024-02-01", "Compra", "NORA", 10.0, 50.0, 1.0, 0.0), // 500 €
+            acao(11, "2025-06-30", "Venda", "NORA", 3.0, 81.0, 1.0, 0.0), // 243 €, custou 150 €
+            acao(12, "2026-08-12", "Venda", "NORA", 3.0, 79.2, 1.0, 0.0), // 237,60 €, custou 150 €
+        )
+        val analise = listOf(
+            AnaliseVenda("2025-06-30", "NORA", null, 3.0, 81.0, 243.0, 90.0, 270.0, 0.0, -27.0, -0.111, "🔴 Devias ter mantido"),
+            AnaliseVenda("2026-08-12", "NORA", null, 3.0, 79.2, 237.6, 90.0, 270.0, 0.0, -32.4, -0.136, "🔴 Devias ter mantido"),
+        )
+        val h = Historico.calcular(mov, hoje, emptyMap(), usdEur = 0.91, analise = analise)
+        val todas = h.vendasPorTicker()
+        assertEquals(listOf("NORA", "ALFA"), todas.map { it.ticker }) // a venda mais recente primeiro
+        val nora = todas.first()
+        assertEquals(2, nora.vendas.size)
+        assertEquals("2026-08-12", nora.vendas.first().data)
+        assertEquals(6.0, nora.unidades, 1e-9)
+        assertEquals(80.1, nora.precoMedio!!, 1e-9)
+        assertEquals("USD", nora.moeda)
+        assertEquals(480.6, nora.recebidoEur, 1e-9)
+        assertEquals(300.0, nora.custoEur!!, 1e-9)
+        assertEquals(180.6, nora.maisValiaEur!!, 1e-9)
+        assertEquals(180.6 / 300.0, nora.maisValiaPct!!, 1e-12)
+        // O veredito das duas juntas: −27 − 32,40 → devias ter mantido; hoje valeriam 540 $ de 480,60 $.
+        val a = nora.analise!!
+        assertEquals("🔴 Devias ter mantido", a.veredito)
+        assertEquals(480.6, a.valorRecebido!!, 1e-9)
+        assertEquals(540.0, a.valorSeMantivesse!!, 1e-9)
+        assertEquals(-59.4, a.diferenca!!, 1e-9)
+        // Por ano: em 2025 só a primeira venda da NORA; a ALFA (2025) não entra em 2026.
+        val de2025 = h.vendasPorTicker(2025)
+        assertEquals(listOf("ALFA", "NORA"), de2025.map { it.ticker }.sorted())
+        assertEquals(81.0, de2025.first { it.ticker == "NORA" }.precoMedio!!, 1e-9)
+        assertEquals(listOf("NORA"), h.vendasPorTicker(2026).map { it.ticker })
+        // Uma venda só: a análise é a da folha, tal como está.
+        assertEquals(analise[1], h.vendasPorTicker(2026).single().analise)
+    }
+
+    @Test
     fun soOLucroContaParaFicarDeBorla() {
         // Vender sem lucro só devolve o teu dinheiro: não paga nada das ações que ficam.
         val semLucro = listOf(

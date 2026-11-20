@@ -31,7 +31,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   («compra ≤ … · vende ≥ …») e no detalhe, com uma régua do preço de hoje face a esses preços. Cada posição
   mostra também a rentabilidade total desde a primeira compra (valor de hoje + vendas + dividendos − compras,
   com comissões; em euros com o câmbio de cada transação e em dólares sem o câmbio), e o ecrã Vendas lista as
-  vendas com a mais-valia de cada uma pelo FIFO (como no IRS), as mais-valias por ano e as posições fechadas.
+  vendas com uma linha por ticker (sem repetidos: as vendas do mesmo ticker juntam-se, com as unidades, o preço
+  médio, o que recebeste e a mais-valia pelo FIFO, como no IRS; «Ver as N vendas» mostra cada uma), as
+  mais-valias por ano e as posições fechadas.
   Só a título informativo, a opção «De borla» desse ecrã (e uma linha no detalhe) mostra que posições já se
   pagaram com o lucro — as mais-valias das vendas e os dividendos pagam o que custaram as ações que ainda tens
   (o custo das ações vendidas é só o teu dinheiro a voltar e não conta) — e quanto falta às outras; ao tocar

@@ -137,6 +137,56 @@ data class Venda(
     val maisValiaPct: Double? get() = custoEur?.takeIf { it > 0 }?.let { (recebidoEur - it) / it }
 }
 
+/**
+ * As vendas de um ticker num período, juntas numa só linha: as unidades, o preço médio, o que recebeste e a
+ * mais-valia (FIFO) de todas. [vendas] vai da mais recente para a mais antiga.
+ */
+data class VendasDoTicker(val ticker: String, val nome: String?, val vendas: List<Venda>) {
+    val unidades: Double get() = vendas.sumOf { it.movimento.unidades }
+    val primeira: String get() = vendas.minOf { it.data }
+    val ultima: String get() = vendas.maxOf { it.data }
+
+    /** A moeda das vendas, se for só uma. */
+    val moeda: String? get() = vendas.map { it.movimento.moeda }.distinct().singleOrNull()
+
+    /** Preço médio de venda, pesado pelas unidades (na moeda das vendas); null se as moedas forem diferentes. */
+    val precoMedio: Double?
+        get() {
+            if (moeda == null || unidades <= 0 || vendas.any { it.movimento.preco == null }) return null
+            return vendas.sumOf { it.movimento.unidades * it.movimento.preco!! } / unidades
+        }
+
+    val recebidoEur: Double get() = vendas.sumOf { it.recebidoEur }
+
+    /** Vendas sem compras que as cubram: ficam fora da mais-valia. */
+    val semCusto: Int get() = vendas.count { it.custoEur == null }
+    private val comCusto: List<Venda> get() = vendas.filter { it.custoEur != null }
+    val custoEur: Double? get() = comCusto.takeIf { it.isNotEmpty() }?.sumOf { it.custoEur ?: 0.0 }
+    val maisValiaEur: Double? get() = comCusto.takeIf { it.isNotEmpty() }?.sumOf { it.maisValiaEur ?: 0.0 }
+    val maisValiaPct: Double? get() = custoEur?.takeIf { it > 0 }?.let { c -> (maisValiaEur ?: 0.0) / c }
+
+    /**
+     * O veredito das vendas juntas (tab Vendas): soma a diferença de cada uma entre o que recebeste e o que
+     * valeriam hoje. null se nenhuma tiver análise.
+     */
+    val analise: AnaliseVenda?
+        get() {
+            val com = vendas.mapNotNull { it.analise }.filter { it.valorRecebido != null && it.valorSeMantivesse != null }
+            if (com.isEmpty()) return null
+            if (com.size == 1 && vendas.size == 1) return com.single()
+            val recebido = com.sumOf { it.valorRecebido ?: 0.0 }
+            val hoje = com.sumOf { it.valorSeMantivesse ?: 0.0 }
+            val diferenca = com.sumOf { it.diferenca ?: ((it.valorRecebido ?: 0.0) - (it.valorSeMantivesse ?: 0.0) - (it.dividendosPerdidos ?: 0.0)) }
+            return AnaliseVenda(
+                data = ultima, ticker = ticker, empresa = nome, unidades = com.sumOf { it.unidades ?: 0.0 },
+                precoVenda = null, valorRecebido = recebido, precoAtual = com.first().precoAtual, valorSeMantivesse = hoje,
+                dividendosPerdidos = com.sumOf { it.dividendosPerdidos ?: 0.0 }, diferenca = diferenca,
+                diferencaPct = if (recebido > 0) diferenca / recebido else null,
+                veredito = if (diferenca >= 0) "🟢 Vendeste bem" else "🔴 Devias ter mantido",
+            )
+        }
+}
+
 /** As vendas de um ano. semCusto: vendas sem compras que as cubram (ficam fora da soma). */
 data class AnoVendas(val ano: Int, val vendas: Int, val recebidoEur: Double, val maisValiasEur: Double, val semCusto: Int)
 
@@ -266,6 +316,16 @@ class Historico(
     }
 
     fun de(ticker: String): Rentabilidade? = porTicker[ticker]
+
+    /**
+     * As vendas de [ano] (todas, se null) juntas por ticker, sem repetidos: da venda mais recente para a mais
+     * antiga.
+     */
+    fun vendasPorTicker(ano: Int? = null): List<VendasDoTicker> =
+        vendas.filter { ano == null || it.ano == ano }
+            .groupBy { it.ticker }
+            .map { (ticker, lista) -> VendasDoTicker(ticker, lista.firstNotNullOfOrNull { it.nome }, lista) }
+            .sortedWith(compareByDescending<VendasDoTicker> { it.ultima }.thenBy { it.ticker })
 
     /** As vendas de um ticker, da mais antiga para a mais recente. */
     fun vendasDe(ticker: String): List<Venda> = vendas.filter { it.ticker == ticker }.sortedWith(compareBy<Venda> { it.data }.thenBy { it.movimento.linha })

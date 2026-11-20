@@ -495,6 +495,23 @@ class EcrasTest {
             foto("07e-vendas-${k.toString().padStart(2, '0')}")
         }
         assertEquals(marcas.toSet(), vistas)
+        // Sem tickers repetidos: a NORA, vendida duas vezes, é uma linha só, com o preço médio e as duas juntas.
+        // Itens: 4 texto de ajuda, 5 BORE (a venda mais recente), 6 NORA.
+        deslizarPara(6)
+        esperar("2 vendas · última 12/08/2026")
+        esperar("(preço médio)")
+        assertEquals(1, compose.onAllNodes(hasText("▾ Ver as 2 vendas")).fetchSemanticsNodes().size)
+        tocar("▾ Ver as 2 vendas")
+        esperar("12/08/2026 · 3 × ")
+        esperar("30/06/2025 · 3 × ")
+        foto("07e2-vendas-nora-juntas")
+        tocar("▴ Esconder as vendas")
+        // Num ano só, a NORA tem uma venda: sem "Ver as vendas".
+        deslizarPara(3)
+        tocar("2025")
+        esperar("NORA")
+        assertEquals(0, compose.onAllNodes(hasText("▾ Ver as", substring = true)).fetchSemanticsNodes().size)
+        tocar("Todas")
         // A opção "De borla": que posições já se pagaram e quanto falta às outras.
         deslizarPara(0)
         tocar("🎁 De borla")
