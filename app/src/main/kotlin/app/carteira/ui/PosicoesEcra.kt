@@ -136,7 +136,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
             val soma = visiveis.sumOf { it.valorEur ?: 0.0 }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TextoPequeno(
-                    "${visiveis.size} posições · ${Formatos.eur(soma, 0)}" +
+                    "${visiveis.size} ${if (visiveis.size == 1) "posição" else "posições"} · ${Formatos.eur(soma, 0)}" +
                         if (totalCarteira > 0) " · ${Formatos.pct(soma / totalCarteira)} da carteira" else "",
                     modifier = Modifier.weight(1f),
                 )

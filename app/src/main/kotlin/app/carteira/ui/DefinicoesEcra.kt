@@ -162,7 +162,7 @@ private fun CartaoPreferencias(estado: Estado, vm: CarteiraViewModel) {
     Cartao("Preferências") {
         Text("Ao abrir a app", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
         val inicial = ECRAS_INICIAIS.firstOrNull { it.second == prefs.ecraInicial }?.first ?: "Início"
-        Filtros(ECRAS_INICIAIS.map { it.first }, inicial) { nome ->
+        Filtros(ECRAS_INICIAIS.map { it.first }, inicial, quebrar = true) { nome ->
             ECRAS_INICIAIS.firstOrNull { it.first == nome }?.let { vm.definirPreferencias(prefs.copy(ecraInicial = it.second)) }
         }
         HorizontalDivider(color = corBordaCartao())
@@ -193,7 +193,7 @@ private fun CartaoPreferencias(estado: Estado, vm: CarteiraViewModel) {
         if (etfs.isNotEmpty()) {
             Text("ETF do dinheiro novo", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             val escolhido = prefs.etfReforco.takeIf { it in etfs } ?: AUTOMATICO
-            Filtros(listOf(AUTOMATICO) + etfs, escolhido) { e ->
+            Filtros(listOf(AUTOMATICO) + etfs, escolhido, quebrar = true) { e ->
                 vm.definirPreferencias(prefs.copy(etfReforco = if (e == AUTOMATICO) "" else e))
             }
             TextoPequeno(

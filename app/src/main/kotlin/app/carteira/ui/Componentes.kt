@@ -214,11 +214,16 @@ fun SeloEstado(texto: String, cor: Color, modifier: Modifier = Modifier) {
 
 /** Fila de filtros que desliza na horizontal. */
 @Composable
-fun Filtros(opcoes: List<String>, escolhido: String, compacto: Boolean = false, aoEscolher: (String) -> Unit) {
-    Row(
-        (if (compacto) Modifier else Modifier.fillMaxWidth()).horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(if (compacto) 6.dp else 8.dp),
-    ) {
+fun Filtros(
+    opcoes: List<String>,
+    escolhido: String,
+    compacto: Boolean = false,
+    /** As opções que não cabem passam para a linha de baixo (em vez de deslizarem para o lado). */
+    quebrar: Boolean = false,
+    aoEscolher: (String) -> Unit,
+) {
+    val espaco = if (compacto) 6.dp else 8.dp
+    val chips: @Composable () -> Unit = {
         opcoes.forEach { o ->
             FilterChip(
                 selected = o == escolhido,
@@ -227,6 +232,14 @@ fun Filtros(opcoes: List<String>, escolhido: String, compacto: Boolean = false, 
                 modifier = if (compacto) Modifier.height(30.dp) else Modifier,
             )
         }
+    }
+    if (quebrar) {
+        LinhaLegendas(espaco = espaco) { chips() }
+    } else {
+        Row(
+            (if (compacto) Modifier else Modifier.fillMaxWidth()).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(espaco),
+        ) { chips() }
     }
 }
 

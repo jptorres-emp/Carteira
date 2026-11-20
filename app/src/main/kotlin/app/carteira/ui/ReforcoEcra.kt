@@ -181,28 +181,26 @@ private fun CartaoResumoReforco(plano: PlanoReforco, montante: Double, falta: Do
     }
 }
 
+/** Uma compra do plano: o botão fica ao lado do ticker, e as contas por baixo com a largura toda. */
 @Composable
 private fun CartaoCompra(c: CompraSugerida, aoRegistar: () -> Unit) {
     Cartao {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(c.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(8.dp))
-                    TextoPequeno(c.motivo, Modifier.weight(1f, fill = false))
-                }
-                c.nome?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                val sinal = if (c.etf) "=" else "≈"
-                Text(
-                    "${Formatos.quantidade(c.unidades)} × ${Formatos.preco(c.preco, c.moeda)} $sinal ${Formatos.eur(c.custoEur)}",
-                    style = MaterialTheme.typography.bodyMedium.numeros(),
-                    fontWeight = FontWeight.Medium,
-                )
-                c.limiteEur?.let { TextoPequeno("A folha deixa até ${Formatos.eur(it, 0)} (Ajuste sugerido).") }
+                Text(c.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                TextoPequeno(c.motivo)
             }
             Spacer(Modifier.width(8.dp))
             FilledTonalButton(onClick = aoRegistar) { Text("Registar") }
         }
+        c.nome?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        val sinal = if (c.etf) "=" else "≈"
+        Text(
+            "${Formatos.quantidade(c.unidades)} × ${Formatos.preco(c.preco, c.moeda)} $sinal ${Formatos.eur(c.custoEur)}",
+            style = MaterialTheme.typography.bodyMedium.numeros(),
+            fontWeight = FontWeight.Medium,
+        )
+        c.limiteEur?.let { TextoPequeno("A folha deixa até ${Formatos.eur(it, 0)} (Ajuste sugerido).") }
     }
 }
 
@@ -223,7 +221,7 @@ private fun CartaoRegrasReforco(plano: PlanoReforco, vm: CarteiraViewModel) {
     Cartao("Como a app escolhe") {
         TextoPequeno(
             "Pela regra 10 da folha (Dinheiro novo): 1.º os core (Core A e Core B) em 🟢 e abaixo do peso alvo, cada um " +
-                "até ao Ajuste sugerido, que já traz os limites da regra 13 — primeiro os 🟢🟢, depois o Core A e depois " +
+                "até ao Ajuste sugerido, que já traz os limites da regra 13 — primeiro os 🟢\u2060🟢, depois o Core A e depois " +
                 "quem mais falta para o alvo; 2.º o resto vai para o ETF global. Satélites e apostas não recebem dinheiro " +
                 "novo (regras 5 e 10).",
         )

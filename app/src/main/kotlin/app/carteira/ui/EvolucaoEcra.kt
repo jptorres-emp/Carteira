@@ -295,7 +295,8 @@ private fun CartaoDesempenho(d: Dados) {
     if (linhas.isEmpty()) return
     Cartao("Desempenho e risco") {
         linhas.chunked(2).forEach { par ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Valores alinhados por baixo: com letra grande, um rótulo pode ocupar duas linhas e o do lado uma.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
                 par.forEach { (nome, valor) ->
                     Column(Modifier.weight(1f)) {
                         TextoPequeno(nome)
