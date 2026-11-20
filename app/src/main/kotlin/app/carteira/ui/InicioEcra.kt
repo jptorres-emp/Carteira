@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.carteira.R
 import app.carteira.alertas.Alerta
 import app.carteira.alertas.TipoAlerta
 import app.carteira.dados.Dados
@@ -55,6 +58,7 @@ fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
 
     ListaAtualizavel(estado, vm) {
         item { CartaoPrincipal(d) }
+        item { LinhaAtalhos(vm) }
         if (estado.conviteAlertas) item { ConviteAlertas(estado, vm) }
         if (recentes.isNotEmpty()) item { CartaoAlertasRecentes(recentes, estado.alertasNaoVistos, vm) }
         if (atencao.isNotEmpty()) item { CartaoAtencao(atencao, vm) }
@@ -153,6 +157,51 @@ private fun CartaoPrincipal(d: Dados) {
                 ColunaHero("Património", Formatos.eur(patrimonio, 0), Modifier.weight(1f))
                 ColunaHero("Ações", Formatos.eur(acoes, 0), Modifier.weight(1f))
                 ColunaHero("ETFs", Formatos.eur(etfs, 0), Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** Um atalho do Início: ícone num círculo e o nome por baixo. */
+private data class Atalho(val icone: Int, val rotulo: String, val descricao: String, val destino: Ecra)
+
+private val ATALHOS = listOf(
+    Atalho(R.drawable.ic_reforco, "Reforço", "Reforço do mês", Ecra.Reforco),
+    Atalho(R.drawable.ic_adicionar, "Registar", "Registar compra ou venda", Ecra.Registar(ModoRegisto.TRANSACAO)),
+    Atalho(R.drawable.ic_dividendos, "Dividendo", "Registar dividendo", Ecra.Registar(ModoRegisto.DIVIDENDO)),
+    Atalho(R.drawable.ic_vendas, "Vendas", "Vendas e mais-valias", Ecra.Vendas),
+    Atalho(R.drawable.ic_indice, "S&P 500", "Cada ação contra o S&P 500", Ecra.Indice),
+)
+
+/**
+ * O que se faz todos os meses, a um toque: o reforço, registar uma compra ou um dividendo, as vendas e a
+ * comparação com o S&P 500. Os mesmos atalhos aparecem ao carregar sem largar no ícone da app.
+ */
+@Composable
+private fun LinhaAtalhos(vm: CarteiraViewModel) {
+    val estilo = estiloQueCabe(ATALHOS.map { it.rotulo })
+    Row(Modifier.fillMaxWidth()) {
+        ATALHOS.forEach { a ->
+            Column(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClickLabel = a.descricao) { vm.irPara(a.destino) }
+                    .padding(vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(44.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painterResource(a.icone),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+                Text(a.rotulo, style = estilo, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
             }
         }
     }

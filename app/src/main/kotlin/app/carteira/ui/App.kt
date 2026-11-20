@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -71,6 +72,18 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
     }
 
     BackHandler(enabled = estado.pilha.size > 1) { vm.voltar() }
+
+    // Cada ecrã guarda o seu estado (filtros, o que estava escrito, onde estava a lista) enquanto está na pilha:
+    // ao voltar de uma empresa, as Posições estão como as deixaste. Os separadores guardam-no sempre; um ecrã
+    // que sai da pilha esquece-o (o Registar volta a abrir vazio).
+    val guardados = rememberSaveableStateHolder()
+    val abertos = remember { mutableSetOf<String>() }
+    LaunchedEffect(estado.pilha) {
+        val agora = estado.pilha.filter { it !in ECRAS_SEPARADORES }.map { chaveDoEcra(it) }.toSet()
+        abertos.filter { it !in agora }.forEach { guardados.removeState(it) }
+        abertos.clear()
+        abertos.addAll(agora)
+    }
 
     val ecra = estado.ecra
     val emSeparador = estado.pilha.size == 1
@@ -141,20 +154,23 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
         snackbarHost = { SnackbarHost(avisos) },
     ) { margens ->
         Box(Modifier.padding(margens).fillMaxSize()) {
-            when (ecra) {
-                Ecra.Resumo -> InicioEcra(estado, vm)
-                Ecra.Evolucao -> EvolucaoEcra(estado, vm)
-                Ecra.Posicoes -> PosicoesEcra(estado, vm)
-                Ecra.Dividendos -> DividendosEcra(estado, vm)
-                Ecra.Watchlist -> WatchlistEcra(estado, vm)
-                is Ecra.Posicao -> PosicaoDetalheEcra(estado, vm, ecra.ticker)
-                is Ecra.Etf -> EtfDetalheEcra(estado, vm, ecra.ticker)
-                Ecra.Vendas -> VendasEcra(estado, vm)
-                Ecra.Indice -> IndiceEcra(estado, vm)
-                is Ecra.Registar -> RegistarEcra(estado, vm, ecra)
-                is Ecra.AtualizarPatrimonio -> AtualizarPatrimonioEcra(estado, vm, ecra)
-                Ecra.Definicoes -> DefinicoesEcra(estado, vm)
-                Ecra.Alertas -> AlertasEcra(estado, vm)
+            guardados.SaveableStateProvider(chaveDoEcra(ecra)) {
+                when (ecra) {
+                    Ecra.Resumo -> InicioEcra(estado, vm)
+                    Ecra.Evolucao -> EvolucaoEcra(estado, vm)
+                    Ecra.Posicoes -> PosicoesEcra(estado, vm)
+                    Ecra.Dividendos -> DividendosEcra(estado, vm)
+                    Ecra.Watchlist -> WatchlistEcra(estado, vm)
+                    is Ecra.Posicao -> PosicaoDetalheEcra(estado, vm, ecra.ticker)
+                    is Ecra.Etf -> EtfDetalheEcra(estado, vm, ecra.ticker)
+                    Ecra.Vendas -> VendasEcra(estado, vm)
+                    Ecra.Indice -> IndiceEcra(estado, vm)
+                    Ecra.Reforco -> ReforcoEcra(estado, vm)
+                    is Ecra.Registar -> RegistarEcra(estado, vm, ecra)
+                    is Ecra.AtualizarPatrimonio -> AtualizarPatrimonioEcra(estado, vm, ecra)
+                    Ecra.Definicoes -> DefinicoesEcra(estado, vm)
+                    Ecra.Alertas -> AlertasEcra(estado, vm)
+                }
             }
             if (estado.aCarregar && !emSeparador) {
                 LinearProgressIndicator(modifier = Modifier.align(Alignment.TopCenter))
@@ -168,7 +184,7 @@ fun AppCarteira(vm: CarteiraViewModel = viewModel(), abrir: String? = null, aoAb
  * largura de um separador (cinco num telemóvel estreito, ou com a letra grande, cortavam "Divide…").
  */
 @Composable
-private fun estiloQueCabe(rotulos: List<String>): TextStyle {
+internal fun estiloQueCabe(rotulos: List<String>): TextStyle {
     val base = MaterialTheme.typography.labelMedium
     val medidor = rememberTextMeasurer()
     val densidade = LocalDensity.current
@@ -185,6 +201,11 @@ private fun estiloQueCabe(rotulos: List<String>): TextStyle {
     }
 }
 
+private val ECRAS_SEPARADORES = setOf(Ecra.Resumo, Ecra.Evolucao, Ecra.Posicoes, Ecra.Dividendos, Ecra.Watchlist)
+
+/** A chave do estado guardado de cada ecrã: "Posicoes", "Posicao(ticker=ALFA)", "Registar(modo=…)". */
+private fun chaveDoEcra(ecra: Ecra): String = ecra.toString()
+
 private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     Ecra.Resumo -> "Início"
     Ecra.Evolucao -> "Evolução"
@@ -195,6 +216,7 @@ private fun tituloDe(ecra: Ecra, estado: Estado): String = when (ecra) {
     is Ecra.Etf -> ecra.ticker
     Ecra.Vendas -> "Vendas"
     Ecra.Indice -> "Contra o S&P 500"
+    Ecra.Reforco -> "Reforço do mês"
     is Ecra.Registar -> if (ecra.modo == ModoRegisto.DIVIDENDO) "Registar dividendo" else "Registar compra ou venda"
     is Ecra.AtualizarPatrimonio -> "Atualizar património"
     Ecra.Definicoes -> "Definições"

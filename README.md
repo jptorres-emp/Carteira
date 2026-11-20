@@ -38,7 +38,17 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   está lá, em média, há mais de um ano); o ecrã «Contra o S&P 500» (atalho na Evolução) põe todas lado a
   lado. O simulador de venda do detalhe diz o que recebes ao preço de agora, o custo pelo FIFO, a mais-valia
   e o IRS estimado (28% do saldo do ano), e começa na sugestão da folha quando ela diz para reduzir.
-  Estas contas fazem-se na app (`dados/Historico.kt` e `dados/Tir.kt`), a partir das transações da folha. O olho no topo
+  Na Evolução (vista Carteira), a TIR da carteira toda — todas as compras e vendas, os dividendos de cada mês e
+  o valor de hoje, em euros — aparece ao lado da TIR do mesmo dinheiro no VUAA.
+  O **Reforço do mês** (`dados/Reforco.kt`) diz onde pôr o dinheiro novo pela regra 10 da folha: primeiro os
+  core (Core A e Core B) em 🟢 e abaixo do alvo, cada um até ao Ajuste sugerido, e o resto no ETF global; com
+  ações inteiras ou com frações. Cada compra abre o Registar já preenchido, e as que registas saem do que falta
+  investir até ao fim do mês.
+  Estas contas fazem-se na app (`dados/Historico.kt` e `dados/Tir.kt`), a partir das transações da folha.
+  Para facilitar: atalhos no Início (reforço, registar, dividendo, vendas e S&P 500) e no ícone da app
+  (carregar sem largar), a ordem das Posições numa lista (guardada), cada ecrã fica como o deixaste ao voltar
+  de outro, e nas Definições escolhe-se o ecrã de entrada, o valor habitual do reforço, as frações e o ETF do
+  dinheiro novo. O olho no topo
   esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
   ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa
   tons com contraste de pelo menos 4,5:1 (WCAG AA) nos dois temas, e os gráficos podem mudar de mês com

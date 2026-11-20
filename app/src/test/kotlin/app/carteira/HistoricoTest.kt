@@ -256,6 +256,40 @@ class HistoricoTest {
     }
 
     @Test
+    fun tirDaCarteiraToda() {
+        // GAMA e um ETF (DELTA) comprado a 100 € e vendido a 50 €; os dividendos vêm dos totais de cada mês
+        // (também os que não estão por empresa), ao câmbio desse mês (0,90 em jun/2024; os outros ao de hoje, 0,95).
+        val delta = listOf(
+            etf(10, "2025-06-01", "Compra", "DELTA", 4.0, 100.0, 0.0).copy(precoIndiceEur = 125.0),
+            etf(11, "2026-01-01", "Venda", "DELTA", 4.0, 50.0, 0.0).copy(precoIndiceEur = 128.0),
+        )
+        val h = Historico.calcular(
+            gama + delta, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divGama,
+            cambioMensal = mapOf("2024-06" to 0.90), dia = dia,
+            dividendosMensaisUsd = mapOf("2023-11" to 5.0, "2024-06" to 10.0, "2025-06" to 10.0),
+        )
+        val c = h.carteira!!
+        assertEquals(LocalDate.parse("2023-01-02"), c.desde)
+        assertEquals(1350.0, c.valorEur, 1e-9)
+        assertEquals(5 * 0.95 + 9.0 + 9.5, c.dividendosEur, 1e-9)
+        // Valores do scipy (brentq) para os mesmos fluxos.
+        assertEquals(0.1530030442460011, c.tir!!, 1e-9)
+        // O mesmo dinheiro no VUAA: 10,1375 unidades × 130 € = 1317,88 €.
+        assertEquals(1317.875, c.indiceEur!!, 1e-9)
+        assertEquals(0.13888799391676532, c.tirIndice!!, 1e-9)
+        // Sem os totais de cada mês (ponte v4) não há TIR da carteira.
+        assertNull(historicoGama().carteira)
+        // Uma transação sem o preço do índice: há TIR da carteira, mas não a do VUAA.
+        val semPreco = Historico.calcular(
+            gama + delta.map { it.copy(precoIndiceEur = null) }, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0,
+            dividendosPorMes = divGama, dia = dia, dividendosMensaisUsd = emptyMap(),
+        ).carteira!!
+        assertNotNull(semPreco.tir)
+        assertNull(semPreco.indiceEur)
+        assertNull(semPreco.tirIndice)
+    }
+
+    @Test
     fun menosValiaDoAnoBaixaOImposto() {
         // DELTA (ETF) vendido com 200 € de prejuízo em 2026: o saldo do ano começa em −200 €.
         val delta = listOf(

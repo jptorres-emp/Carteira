@@ -23,7 +23,9 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.unit.Density
 import androidx.work.ListenableWorker
@@ -34,6 +36,7 @@ import app.carteira.dados.FonteDados
 import app.carteira.dados.Ponte
 import app.carteira.ui.AppCarteira
 import app.carteira.ui.CarteiraViewModel
+import app.carteira.ui.Ecra
 import app.carteira.ui.Formatos
 import app.carteira.ui.TemaCarteira
 import java.io.File
@@ -184,7 +187,7 @@ class EcrasTest {
      * do ecrã pode ficar por baixo da barra dos separadores.
      */
     private fun abrirPosicao(ticker: String) {
-        compose.onAllNodes(hasSetTextAction())[0].performTextInput(ticker)
+        compose.onAllNodes(hasSetTextAction())[0].performTextReplacement(ticker)
         assentar()
         compose.onAllNodes(hasText(ticker) and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
         assentar()
@@ -236,15 +239,15 @@ class EcrasTest {
         // Só o estado atual da carteira; um texto de cada cartão (e nenhum pode rebentar ao desenhar).
         val marcas = listOf("Valor da carteira", "Ativar alertas", "Precisa de atenção", "Sobem mais", "Alocação")
         val vistas = mutableSetOf<String>()
-        // Itens: 0 principal, 1 convite dos alertas, 2 atenção, 3 hoje, 4 alocação, 5 rodapé.
+        // Itens: 0 principal, 1 atalhos, 2 convite dos alertas, 3 atenção, 4 hoje, 5 alocação, 6 rodapé.
         // (Desliza por índice: o deslizar "até um texto" anima e, com o relógio parado, não acaba.)
-        for (k in 0..5) {
+        for (k in 0..6) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
-                2 -> foto("01b-inicio-atencao")
-                3 -> foto("01c-inicio-hoje")
-                4 -> {
+                3 -> foto("01b-inicio-atencao")
+                4 -> foto("01c-inicio-hoje")
+                5 -> {
                     foto("01d-inicio-alocacao")
                     tocar("Setores")
                     foto("01e-inicio-setores")
@@ -266,7 +269,7 @@ class EcrasTest {
         esperar("ALFA")
         // Cada posição mostra os preços de compra e venda que contam para a camada (ALFA é Core A: só compra).
         foto("02-posicoes")
-        compose.onAllNodes(hasSetTextAction())[0].performTextInput("ALFA")
+        compose.onAllNodes(hasSetTextAction())[0].performTextReplacement("ALFA")
         assentar()
         esperar("compra ≤ 212,50")
         compose.onAllNodes(hasText("ALFA") and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
@@ -277,7 +280,8 @@ class EcrasTest {
         tocarDescricao("Voltar")
         // Um satélite: só compra em 🟢🟢; reduz e vende pelos preços da folha (BORE já passou o de reduzir).
         // Procura-se pela caixa de pesquisa (deslizar até ao nó usa animações, que o relógio à mão não avança).
-        compose.onAllNodes(hasSetTextAction())[0].performTextInput("BORE")
+        // A pesquisa ainda tem "ALFA" (cada ecrã guarda o seu estado): substitui-se.
+        compose.onAllNodes(hasSetTextAction())[0].performTextReplacement("BORE")
         assentar()
         esperar("vende ≥ 147,00")
         compose.onAllNodes(hasText("BORE") and hasClickAction() and !hasSetTextAction()).onFirst().performClick()
@@ -369,7 +373,7 @@ class EcrasTest {
         tocar("Carteira")
         esperar("Carteira vs S&P 500")
         val marcasCarteira = listOf("Carteira vs S&P 500", "Cada ação contra o S&P 500", "Últimos 12 meses", "Estou no caminho?",
-            "Desempenho e risco", "Últimos movimentos")
+            "Desempenho e risco", "O teu dinheiro (TIR)", "No VUAA (TIR)", "Últimos movimentos")
         val vistasCarteira = mutableSetOf<String>()
         for (k in 0..7) {
             deslizarPara(k)
@@ -565,7 +569,12 @@ class EcrasTest {
     fun temaEscuro() {
         abrir()
         esperar("Valor da carteira")
-        percorrer("30-escuro-inicio", maximo = 6)
+        percorrer("30-escuro-inicio", maximo = 7)
+        deslizarPara(0)
+        tocar("Reforço")
+        esperar("Quanto investes este mês")
+        percorrer("35-escuro-reforco", maximo = 6)
+        tocarDescricao("Voltar")
         tocarSeparador("Evolução")
         esperar("Património total")
         percorrer("31-escuro-evolucao", maximo = 4)
@@ -656,6 +665,15 @@ class EcrasTest {
         tocarDescricao("Definições")
         esperar("Ligação à folha")
         foto("29-definicoes")
+        tocarDescricao("Voltar")
+        deslizarPara(0)
+        tocar("Reforço")
+        esperar("Quanto investes este mês")
+        percorrer("29b-reforco", maximo = 8)
+        tocarDescricao("Voltar")
+        tocar("Posições")
+        tocar("Ordenar: Valor ▾")
+        foto("29c-posicoes-ordem")
     }
 
     @Test
@@ -727,6 +745,115 @@ class EcrasTest {
         foto("10-alertas")
         tocar("ALFA · Reforçar até ao alvo")
         esperar("Quando comprar e vender")
+    }
+
+    /** Reforço do mês (regra 10): o plano com a amostra, registar uma compra a partir dele e as frações. */
+    @Test
+    fun reforcoDoMes() {
+        val fonte = abrir()
+        esperar("Valor da carteira")
+        tocar("Reforço")
+        esperar("Quanto investes este mês")
+        // 400 € do plano da folha: 2 GIRA (Core B em 🟢, até ao Ajuste sugerido) e 2 MUND (o ETF global).
+        esperar("Investe 391,56")
+        esperar("o reforço mensal do plano da folha")
+        esperar("Sobram 8,44")
+        foto("40-reforco")
+        val marcas = listOf("GIRA", "MUND", "ETF global (regra 10)", "Em 🟢, mas ficaram de fora", "ILHA: 1 ação custa",
+            "Como a app escolhe", "Peso das ações")
+        val vistas = mutableSetOf<String>()
+        for (k in 0..5) {
+            deslizarPara(k)
+            marcas.filterTo(vistas) { compose.onAllNodes(hasText(it, substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            foto("40b-reforco-${k.toString().padStart(2, '0')}")
+        }
+        assertEquals(marcas.toSet(), vistas)
+
+        // Registar a 1.ª compra: o formulário vem preenchido com as unidades e o preço de agora.
+        deslizarPara(2)
+        tocar("Registar")
+        esperar("Do reforço do mês")
+        assertTrue(compose.onAllNodes(hasText("GIRA")).fetchSemanticsNodes().isNotEmpty())
+        assertTrue(compose.onAllNodes(hasText("74,6")).fetchSemanticsNodes().isNotEmpty())
+        foto("40c-reforco-registar")
+        tocar("Registar compra")
+        val pedido = fonte.ultimoPedido!!
+        assertEquals("GIRA", pedido.getString("ticker"))
+        assertEquals("Compra", pedido.getString("tipo"))
+        assertEquals(2.0, pedido.getDouble("unidades"), 1e-9)
+        assertEquals(74.6, pedido.getDouble("preco"), 1e-9)
+        // De volta ao reforço (a lista volta onde estava): a compra sai do que falta e o GIRA não volta a aparecer.
+        esperar("Reforço do mês")
+        deslizarPara(0)
+        esperar("Já registaste em")
+        esperar("✓ GIRA")
+        foto("40d-reforco-registado")
+        deslizarPara(2)
+        esperar("Investe 262,50")
+        foto("40e-reforco-falta")
+        assertTrue(app.getSharedPreferences("carteira", Context.MODE_PRIVATE).getString("reforco_mes", "")!!.contains("|GIRA;2.0;"))
+        deslizarPara(1)
+        tocar("Recomeçar")
+        deslizarPara(0)
+        esperar("Investe 391,56")
+
+        // Com frações, o dinheiro vai quase todo: até a ILHA leva uma parte (o ajuste dela é menor do que uma ação).
+        compose.onAllNodes(isToggleable()).onFirst().performClick()
+        assentar()
+        esperar("Investe 399,99")
+        esperar("0,2348")
+        foto("40f-reforco-fracoes")
+    }
+
+    /** Atalhos do Início e do ícone, a ordem das Posições e as preferências (guardadas no telemóvel). */
+    @Test
+    fun atalhosEPreferencias() {
+        abrir()
+        esperar("Valor da carteira")
+        foto("41-inicio-atalhos")
+        val preferencias = app.getSharedPreferences("carteira", Context.MODE_PRIVATE)
+
+        // O atalho "Dividendo" do ícone da app abre o formulário por cima do Início.
+        compose.runOnIdle { vm.abrir("ECRA:Dividendo") }
+        assentar()
+        esperar("Valor bruto recebido")
+        tocarDescricao("Voltar")
+        esperar("Valor da carteira")
+
+        // Posições: a ordem escolha-se numa lista e fica guardada.
+        tocar("Posições")
+        tocar("Ordenar: Valor ▾")
+        foto("42-posicoes-ordem")
+        tocar("A–Z")
+        esperar("Ordenar: A–Z")
+        assertEquals("A–Z", preferencias.getString("ordem_posicoes", null))
+        val topo = { t: String -> compose.onAllNodes(hasText(t) and hasClickAction()).onFirst().fetchSemanticsNode().boundsInRoot.top }
+        assertTrue("ALFA antes da BORE", topo("ALFA") < topo("BORE"))
+        foto("42b-posicoes-a-z")
+        // A pesquisa (e o filtro) ficam ao voltar de uma empresa.
+        abrirPosicao("GIRA")
+        esperar("Quando comprar e vender")
+        tocarDescricao("Voltar")
+        esperar("Ordenar: A–Z")
+        assertTrue(compose.onAllNodes(hasText("GIRA") and hasSetTextAction()).fetchSemanticsNodes().isNotEmpty())
+
+        // Definições: com a ponte ligada, as preferências vêm primeiro.
+        tocarSeparador("Início")
+        tocarDescricao("Definições")
+        esperar("Preferências")
+        foto("43-definicoes-preferencias")
+        tocar("Posições")
+        assertEquals("Posicoes", preferencias.getString("ecra_inicial", null))
+        assertEquals(Ecra.Posicoes, CarteiraViewModel(app) { _, _ -> FonteFalsa(amostra) }.estado.value.ecra)
+        // O valor habitual do reforço: o primeiro campo do ecrã.
+        compose.onAllNodes(hasSetTextAction())[0].performTextInput("1000")
+        assentar()
+        assertEquals(1000f, preferencias.getFloat("reforco_valor", 0f))
+        tocarDescricao("Voltar")
+        tocar("Reforço")
+        esperar("Investe 916,56")
+        esperar("o teu valor habitual")
+        foto("44-reforco-1000")
     }
 
     private fun comMudancas(json: String): String {

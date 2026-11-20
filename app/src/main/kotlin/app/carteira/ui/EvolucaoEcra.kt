@@ -272,8 +272,14 @@ private fun CartaoObjetivos(objetivos: List<Objetivo>) {
 
 @Composable
 private fun CartaoDesempenho(d: Dados) {
+    // A TIR (ponte v5) vem à frente: é o que o teu dinheiro rendeu de facto, ao lado do mesmo dinheiro no VUAA.
+    val carteira = d.historico.carteira
+    val tir = listOfNotNull(
+        carteira?.tir?.let { "O teu dinheiro (TIR)" to Formatos.pct(it) },
+        carteira?.tirIndice?.let { "No VUAA (TIR)" to Formatos.pct(it) },
+    )
     // (rótulo da folha, nome na app, é percentagem?)
-    val linhas = listOf(
+    val linhas = tir + listOf(
         Triple("TTWROR Anualizado", "Rendibilidade anual (TWR)", true),
         Triple("TTWROR Anualizado c/ Dividendos", "Anual com dividendos", true),
         Triple("TTWROR (acumulado, desde Set/22)", "Acumulada desde o início", true),
@@ -298,6 +304,13 @@ private fun CartaoDesempenho(d: Dados) {
                 }
                 if (par.size == 1) Spacer(Modifier.weight(1f))
             }
+        }
+        if (carteira?.tir != null) {
+            TextoPequeno(
+                "TIR: o que o teu dinheiro rendeu por ano, em euros, com as datas de cada compra, venda e dividendo " +
+                    "desde ${Formatos.data(carteira.desde.toString())}; no VUAA, o mesmo dinheiro nas mesmas datas. A TWR " +
+                    "da folha mede só as escolhas, sem o efeito de quando entrou o dinheiro, em dólares e desde set/22.",
+            )
         }
     }
 }

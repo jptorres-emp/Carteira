@@ -4,6 +4,7 @@ package app.carteira.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,14 +53,26 @@ private data class Linha(
     val gatilhos: Gatilhos? = null,
 )
 
-private val ordens = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo")
+/** As ordens da lista; a escolhida fica guardada para a próxima vez. */
+internal val ORDENS_POSICOES = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo", "Sinal", "A–Z")
+
+/** Na ordem "Sinal": primeiro o que pede para agir (sair, reduzir, comprar forte, comprar), os ETF no fim. */
+private fun prioridadeSinal(l: Linha): Int = when {
+    l.etf -> 9
+    Sinais.sair(l.sinal) -> 0
+    Sinais.reduzir(l.sinal) -> 1
+    Sinais.compraForte(l.sinal) -> 2
+    Sinais.compra(l.sinal) -> 3
+    Sinais.emZona(l.sinal) -> 4
+    else -> 5
+}
 
 @Composable
 fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     val d = estado.dados ?: return SemDados(estado, vm)
     var procura by rememberSaveable { mutableStateOf("") }
     var filtro by rememberSaveable { mutableStateOf("Todas") }
-    var ordem by rememberSaveable { mutableStateOf("Valor") }
+    val ordem = estado.prefs.ordemPosicoes.takeIf { it in ORDENS_POSICOES } ?: "Valor"
 
     val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
     val historico = d.historico
@@ -79,10 +95,11 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     // Os filtros seguem o SINAL da folha (as tuas regras), não só a zona do preço.
     val opcoes = listOf("Todas", FILTRO_COMPRA, FILTRO_REDUZIR, FILTRO_SAIR) + camadas + listOf("ETFs")
 
+    val filtroAtivo = filtro.takeIf { it in opcoes } ?: "Todas"
     val termo = procura.trim().lowercase()
     val visiveis = linhas.filter { l ->
         (termo.isEmpty() || l.ticker.lowercase().contains(termo) || l.nome.lowercase().contains(termo)) &&
-            when (filtro) {
+            when (filtroAtivo) {
                 "Todas" -> true
                 FILTRO_COMPRA -> Sinais.compra(l.sinal)
                 FILTRO_REDUZIR -> Sinais.reduzir(l.sinal)
@@ -97,6 +114,8 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
                 val alvo = alvos[l.ticker]
                 if (alvo != null && alvo > 0 && l.peso != null) l.peso / alvo else Double.NEGATIVE_INFINITY
             }
+            "Sinal" -> lista.sortedWith(compareBy<Linha> { prioridadeSinal(it) }.thenByDescending { it.valorEur ?: 0.0 })
+            "A–Z" -> lista.sortedBy { it.ticker.lowercase() }
             else -> lista.sortedByDescending { it.valorEur ?: 0.0 }
         }
     }
@@ -112,7 +131,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
                 placeholder = { Text("Procurar empresa ou ticker") },
             )
         }
-        item { Filtros(opcoes, filtro) { filtro = it } }
+        item { Filtros(opcoes, filtroAtivo) { filtro = it } }
         item {
             val soma = visiveis.sumOf { it.valorEur ?: 0.0 }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -121,14 +140,33 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
                         if (totalCarteira > 0) " · ${Formatos.pct(soma / totalCarteira)} da carteira" else "",
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = { ordem = ordens[(ordens.indexOf(ordem) + 1) % ordens.size] }) {
-                    Text("Ordenar: $ordem")
-                }
+                MenuOrdem(ordem) { vm.escolherOrdemPosicoes(it) }
             }
         }
         items(visiveis, key = { it.ticker }) { l ->
             CartaoLinha(l, alvos[l.ticker]) {
                 vm.irPara(if (l.etf) Ecra.Etf(l.ticker) else Ecra.Posicao(l.ticker))
+            }
+        }
+    }
+}
+
+/** "Ordenar: Valor ▾": abre a lista das ordens, com a escolhida marcada. */
+@Composable
+private fun MenuOrdem(ordem: String, aoEscolher: (String) -> Unit) {
+    var aberto by remember { mutableStateOf(false) }
+    Box {
+        TextButton(onClick = { aberto = true }) { Text("Ordenar: $ordem ▾") }
+        DropdownMenu(expanded = aberto, onDismissRequest = { aberto = false }) {
+            ORDENS_POSICOES.forEach { o ->
+                DropdownMenuItem(
+                    text = { Text(o, fontWeight = if (o == ordem) FontWeight.SemiBold else FontWeight.Normal) },
+                    trailingIcon = if (o == ordem) { { Text("✓") } } else null,
+                    onClick = {
+                        aberto = false
+                        aoEscolher(o)
+                    },
+                )
             }
         }
     }

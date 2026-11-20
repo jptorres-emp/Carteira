@@ -138,6 +138,25 @@ data class Espelho(
     val tir: Double?,
 )
 
+/**
+ * A carteira toda (ponte v5): a TIR do teu dinheiro em euros — todas as compras e vendas, os dividendos de cada
+ * mês e o que vale hoje — e a do mesmo dinheiro no VUAA, nas mesmas datas.
+ */
+data class TirCarteira(
+    /** TIR da carteira (em euros, por ano); null com menos de um ano. */
+    val tir: Double?,
+    /** TIR do mesmo dinheiro no VUAA; null sem os preços do índice. */
+    val tirIndice: Double?,
+    /** A primeira compra. */
+    val desde: LocalDate,
+    /** O que a carteira vale hoje (ações + ETF). */
+    val valorEur: Double,
+    /** O que o VUAA valeria hoje com o mesmo dinheiro. */
+    val indiceEur: Double?,
+    /** Dividendos recebidos, em euros ao câmbio de cada mês. */
+    val dividendosEur: Double,
+)
+
 /** Ações ainda por vender de uma compra, com o custo em euros por ação (com a comissão). */
 data class Lote(val data: String, val unidades: Double, val custoEurPorUnidade: Double)
 
@@ -180,6 +199,8 @@ class Historico(
     val hoje: LocalDate? = null,
     /** A ponte já manda os preços do índice e os dividendos por mês (v5). */
     val v5: Boolean = false,
+    /** A TIR da carteira toda e a do mesmo dinheiro no VUAA (ponte v5). */
+    val carteira: TirCarteira? = null,
 ) {
     val temDados: Boolean get() = porTicker.isNotEmpty()
 
@@ -275,7 +296,20 @@ class Historico(
                 dividendosPorMes = if (v5) d.dividendosPorMes.groupBy({ it.ticker }, { it.mes to it.usd }) else null,
                 cambioMensal = d.cambioMensal,
                 dia = dia,
+                dividendosMensaisUsd = if (v5) dividendosMensais(d) else null,
             )
+        }
+
+        /**
+         * Os dividendos de cada mês ("2024-03" → dólares) da tabela da folha com os totais por mês: inclui os meses
+         * de antes de haver dividendos por empresa e as empresas sem transações.
+         */
+        internal fun dividendosMensais(d: Dados): Map<String, Double> {
+            val m = LinkedHashMap<String, Double>()
+            d.dividendos.anos.forEach { a ->
+                a.meses.forEachIndexed { k, usd -> if (usd > 0) m["%04d-%02d".format(a.ano, k + 1)] = usd }
+            }
+            return m
         }
 
         /** As contas, separadas de Dados para se poderem testar com poucas linhas. */
@@ -296,8 +330,15 @@ class Historico(
             dividendosPorMes: Map<String, List<Pair<String, Double>>>? = null,
             cambioMensal: Map<String, Double> = emptyMap(),
             dia: LocalDate? = null,
+            /** Os dividendos de cada mês da carteira toda, em dólares (para a TIR da carteira). */
+            dividendosMensaisUsd: Map<String, Double>? = null,
         ): Historico {
             val hojeDia = dia ?: LocalDate.now()
+            // A carteira toda: todas as compras e vendas e o mesmo dinheiro no VUAA.
+            val fluxosCarteira = ArrayList<Fluxo>()
+            var unidadesIndiceCarteira = 0.0
+            var semPrecoCarteira = 0
+            var valorCarteira = 0.0
             val porAnalisar = analise.toMutableList()
             val vendas = ArrayList<Venda>()
             val porTicker = LinkedHashMap<String, Rentabilidade>()
@@ -370,6 +411,10 @@ class Historico(
                     }
                 }
                 val agora = hoje[ticker]
+                fluxosCarteira += fluxos
+                unidadesIndiceCarteira += unidadesIndice
+                semPrecoCarteira += semPreco
+                valorCarteira += agora?.valorEur ?: 0.0
                 val porMes = dividendosPorMes?.get(ticker).orEmpty()
                 val divUsd = if (dividendosPorMes != null) porMes.sumOf { it.second } else dividendosUsd[ticker] ?: 0.0
                 val divEur = if (dividendosPorMes != null) porMes.sumOf { (mes, usd) -> usd * (cambioMensal[mes] ?: usdEur) } else divUsd * usdEur
@@ -432,7 +477,19 @@ class Historico(
                 )
             }
             vendas.sortWith(compareByDescending<Venda> { it.data }.thenByDescending { it.movimento.linha })
-            return Historico(porTicker, vendas, dividendosDesde, indiceHojeEur, hojeDia, dividendosPorMes != null)
+            val carteira = if (dividendosMensaisUsd == null || fluxosCarteira.isEmpty()) null else {
+                val desde = fluxosCarteira.minOf { it.data }
+                val dividendos = dividendosMensaisUsd.mapNotNull { (mes, usd) ->
+                    runCatching { LocalDate.parse("$mes-15") }.getOrNull()
+                        ?.let { Fluxo(minOf(it, hojeDia), usd * (cambioMensal[mes] ?: usdEur)) }
+                }
+                val umAno = ChronoUnit.DAYS.between(desde, hojeDia) >= 365
+                val tir = if (umAno && valorCarteira > 0) Tir.anual(fluxosCarteira + dividendos + Fluxo(hojeDia, valorCarteira)) else null
+                val indice = if (indiceHojeEur != null && indiceHojeEur > 0 && semPrecoCarteira == 0) unidadesIndiceCarteira * indiceHojeEur else null
+                val tirIndice = if (umAno && indice != null && indice > 0) Tir.anual(fluxosCarteira + Fluxo(hojeDia, indice)) else null
+                TirCarteira(tir, tirIndice, desde, valorCarteira, indice, dividendos.sumOf { it.valor })
+            }
+            return Historico(porTicker, vendas, dividendosDesde, indiceHojeEur, hojeDia, dividendosPorMes != null, carteira)
         }
 
         /** Dias entre duas datas "aaaa-mm-dd" (fim null = hoje); 0 se alguma não se ler. */

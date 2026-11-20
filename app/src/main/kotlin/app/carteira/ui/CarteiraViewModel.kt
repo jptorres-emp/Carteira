@@ -11,6 +11,9 @@ import app.carteira.dados.Dados
 import app.carteira.dados.FonteDados
 import app.carteira.dados.Leitor
 import app.carteira.dados.Mercado
+import app.carteira.dados.MesReforco
+import app.carteira.dados.Reforco
+import app.carteira.dados.RegistoReforco
 import app.carteira.dados.Ponte
 import app.carteira.dados.Repositorio
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.time.LocalDate
 
 /** Ecrãs da app. Os de detalhe e de registo empilham-se por cima dos separadores. */
 sealed interface Ecra {
@@ -35,7 +39,22 @@ sealed interface Ecra {
 
     /** Cada ação contra o mesmo dinheiro no S&P 500 (ponte v5). */
     data object Indice : Ecra
-    data class Registar(val modo: ModoRegisto, val ticker: String? = null, val tipo: String? = null) : Ecra
+
+    /** Onde pôr o dinheiro novo do mês, pela regra 10 da folha. */
+    data object Reforco : Ecra
+
+    /**
+     * Registar uma transação ou um dividendo. O reforço do mês preenche as unidades e o preço e marca
+     * [doReforco], para a app descontar a compra do que falta investir.
+     */
+    data class Registar(
+        val modo: ModoRegisto,
+        val ticker: String? = null,
+        val tipo: String? = null,
+        val unidades: Double? = null,
+        val preco: Double? = null,
+        val doReforco: Boolean = false,
+    ) : Ecra
 
     /** Gravar o património de um mês na folha (mes: "aaaa-mm"; null = o que a app sugere). */
     data class AtualizarPatrimonio(val mes: String? = null) : Ecra
@@ -47,6 +66,22 @@ enum class ModoRegisto { TRANSACAO, DIVIDENDO }
 
 /** As duas vistas do separador Evolução. */
 enum class VistaEvolucao(val rotulo: String) { PATRIMONIO("Património"), CARTEIRA("Carteira") }
+
+/** Escolhas que facilitam o uso (guardadas no telemóvel). */
+data class Preferencias(
+    /** O ecrã que abre ao entrar: Início, Evolução ou Posições. */
+    val ecraInicial: Ecra = Ecra.Resumo,
+    /** Valor habitual do reforço, em euros (0 = o do plano da folha). */
+    val reforcoValor: Double = 0.0,
+    val reforcoFracoes: Boolean = false,
+    /** O ETF do dinheiro novo ("" = automático). */
+    val etfReforco: String = "",
+    /** A ordem das Posições (fica para a próxima vez). */
+    val ordemPosicoes: String = "Valor",
+)
+
+/** Ecrãs que podem abrir ao entrar na app. */
+val ECRAS_INICIAIS = listOf("Início" to Ecra.Resumo, "Evolução" to Ecra.Evolucao, "Posições" to Ecra.Posicoes)
 
 /** O que o utilizador escolheu para os alertas (guardado no telemóvel). */
 data class DefinicoesAlertas(
@@ -81,6 +116,9 @@ data class Estado(
     /** Modo privado: os valores em dinheiro aparecem escondidos. */
     val privado: Boolean = false,
     val vistaEvolucao: VistaEvolucao = VistaEvolucao.PATRIMONIO,
+    val prefs: Preferencias = Preferencias(),
+    /** O reforço deste mês: o valor escolhido e as compras que já registaste a partir dele. */
+    val reforco: MesReforco = MesReforco(),
 ) {
     val ecra: Ecra get() = pilha.last()
 }
@@ -104,12 +142,15 @@ class CarteiraViewModel(
         val cache = repositorio.lerCache()
         val configurado = repositorio.configurado
         Formatos.privado = repositorio.privado
+        val prefs = lerPreferencias()
         _estado.update {
             it.copy(
                 dados = cache,
                 configurado = configurado,
                 privado = repositorio.privado,
-                pilha = if (configurado) listOf(Ecra.Resumo) else listOf(Ecra.Resumo, Ecra.Definicoes),
+                prefs = prefs,
+                reforco = MesReforco.deTexto(repositorio.reforcoMes)?.takeIf { r -> r.mes == mesAtual() } ?: MesReforco(mesAtual()),
+                pilha = if (configurado) listOf(prefs.ecraInicial) else listOf(Ecra.Resumo, Ecra.Definicoes),
             )
         }
         carregarAlertas()
@@ -137,6 +178,7 @@ class CarteiraViewModel(
     fun abrir(chave: String) {
         // A verificação em segundo plano pode ter juntado alertas entretanto.
         carregarAlertas()
+        if (chave.startsWith("ECRA:") && abrirAtalho(chave.removePrefix("ECRA:"))) return
         val d = _estado.value.dados
         val ticker = chave.substringAfter(':', "")
         when {
@@ -150,7 +192,92 @@ class CarteiraViewModel(
         }
     }
 
+    /**
+     * Atalhos do ícone da app ("ECRA:Reforco", "ECRA:Registar", "ECRA:Dividendo", "ECRA:Posicoes", "ECRA:Indice"):
+     * abrem por cima do Início, para o Voltar levar lá.
+     */
+    private fun abrirAtalho(nome: String): Boolean {
+        // Sem a ponte ligada fica-se nas Definições.
+        if (!_estado.value.configurado) return true
+        val destino = when (nome) {
+            "Reforco" -> Ecra.Reforco
+            "Registar" -> Ecra.Registar(ModoRegisto.TRANSACAO)
+            "Dividendo" -> Ecra.Registar(ModoRegisto.DIVIDENDO)
+            "Indice" -> Ecra.Indice
+            "Vendas" -> Ecra.Vendas
+            "Posicoes" -> {
+                irPara(Ecra.Posicoes)
+                return true
+            }
+            else -> return false
+        }
+        _estado.update { it.copy(pilha = listOf(Ecra.Resumo, destino)) }
+        return true
+    }
+
     fun destaqueMostrado() = _estado.update { it.copy(destaqueWatchlist = null) }
+
+    // ── Preferências ──
+
+    private fun lerPreferencias() = Preferencias(
+        ecraInicial = ECRAS_INICIAIS.firstOrNull { (_, e) -> nomeDoEcra(e) == repositorio.ecraInicial }?.second ?: Ecra.Resumo,
+        reforcoValor = repositorio.reforcoValor,
+        reforcoFracoes = repositorio.reforcoFracoes,
+        etfReforco = repositorio.etfReforco,
+        ordemPosicoes = repositorio.ordemPosicoes,
+    )
+
+    private fun nomeDoEcra(e: Ecra) = when (e) {
+        Ecra.Evolucao -> "Evolucao"
+        Ecra.Posicoes -> "Posicoes"
+        else -> "Resumo"
+    }
+
+    fun definirPreferencias(nova: Preferencias) {
+        repositorio.ecraInicial = nomeDoEcra(nova.ecraInicial)
+        repositorio.reforcoValor = nova.reforcoValor
+        repositorio.reforcoFracoes = nova.reforcoFracoes
+        repositorio.etfReforco = nova.etfReforco
+        repositorio.ordemPosicoes = nova.ordemPosicoes
+        _estado.update { it.copy(prefs = nova) }
+    }
+
+    fun escolherOrdemPosicoes(ordem: String) = definirPreferencias(_estado.value.prefs.copy(ordemPosicoes = ordem))
+
+    // ── Reforço do mês ──
+
+    private fun mesAtual(): String = LocalDate.now().toString().take(7)
+
+    private fun guardarReforco(novo: MesReforco) {
+        repositorio.reforcoMes = novo.paraTexto()
+        _estado.update { it.copy(reforco = novo) }
+    }
+
+    /** O reforço de outro mês fica para trás: este começa do zero. */
+    private fun reforcoDoMes(): MesReforco =
+        _estado.value.reforco.takeIf { it.mes == mesAtual() } ?: MesReforco(mesAtual()).also { guardarReforco(it) }
+
+    fun verificarMesReforco() {
+        reforcoDoMes()
+    }
+
+    /** O valor deste mês (null = o habitual das Definições ou, sem ele, o reforço mensal do plano da folha). */
+    fun definirMontanteReforco(valor: Double?) = guardarReforco(reforcoDoMes().copy(montanteEur = valor))
+
+    fun definirFracoesReforco(ligado: Boolean) = definirPreferencias(_estado.value.prefs.copy(reforcoFracoes = ligado))
+
+    /**
+     * Uma compra registada a partir do reforço: desconta-se do que falta investir. Guarda as unidades que o ticker
+     * tinha antes, para saber quando é que a folha já a mostra (ver Reforco.porRefletir).
+     */
+    fun reforcoRegistado(ticker: String, unidades: Double, custoEur: Double) {
+        val antes = _estado.value.dados?.let { Reforco.quantidade(it, ticker) } ?: 0.0
+        val r = reforcoDoMes()
+        guardarReforco(r.copy(registados = r.registados + RegistoReforco(ticker, unidades, custoEur, antes)))
+    }
+
+    /** Esquece as compras registadas deste mês (não mexe na folha). */
+    fun recomecarReforco() = guardarReforco(MesReforco(mesAtual(), reforcoDoMes().montanteEur))
 
     fun escolherVistaEvolucao(vista: VistaEvolucao) = _estado.update { it.copy(vistaEvolucao = vista) }
 

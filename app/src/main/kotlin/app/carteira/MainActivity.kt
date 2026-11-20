@@ -14,7 +14,7 @@ import app.carteira.ui.TemaCarteira
 /** Activity única: os ecrãs são trocados dentro do Compose. */
 class MainActivity : ComponentActivity() {
 
-    /** O que abrir quando se toca numa notificação ("P:ALFA", "W:KAPA", ...). */
+    /** O que abrir quando se toca numa notificação ("P:ALFA", "W:KAPA", ...) ou num atalho do ícone ("ECRA:Reforco"). */
     private val abrir = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
         Notificacoes.criarCanal(this)
         // Garante a verificação em segundo plano (por ex. depois de uma atualização da app).
         VerificadorAlertas.agendar(this)
+        Atalhos.publicar(this)
         if (savedInstanceState == null) abrir.value = intent?.getStringExtra(EXTRA_ABRIR)
         setContent {
             TemaCarteira {

@@ -63,7 +63,7 @@ fun RegistarEcra(estado: Estado, vm: CarteiraViewModel, ecra: Ecra.Registar) {
         if (dividendo) {
             FormDividendo(d, estado, vm, ecra.ticker)
         } else {
-            FormTransacao(d, estado, vm, ecra.ticker, ecra.tipo)
+            FormTransacao(d, estado, vm, ecra)
         }
         Spacer(Modifier.size(80.dp))
     }
@@ -153,14 +153,17 @@ internal fun BotaoEnviar(texto: String, ativo: Boolean, aEnviar: Boolean, aoCarr
 }
 
 @Composable
-private fun FormTransacao(d: Dados, estado: Estado, vm: CarteiraViewModel, tickerInicial: String?, tipoInicial: String?) {
-    val classeInicial = d.tickers.firstOrNull { it.ticker == tickerInicial }?.classe ?: "Ação"
-    var tipo by rememberSaveable { mutableStateOf(tipoInicial ?: "Compra") }
+private fun FormTransacao(d: Dados, estado: Estado, vm: CarteiraViewModel, ecra: Ecra.Registar) {
+    val tickerInicial = ecra.ticker
+    val classeInicial = d.tickers.firstOrNull { it.ticker == tickerInicial }?.classe
+        ?: if (d.etfs.any { it.ticker == tickerInicial }) "ETF" else "Ação"
+    var tipo by rememberSaveable { mutableStateOf(ecra.tipo ?: "Compra") }
     var ticker by rememberSaveable { mutableStateOf(tickerInicial ?: "") }
     var classe by rememberSaveable { mutableStateOf(classeInicial) }
     var data by rememberSaveable { mutableStateOf(dataPt()) }
-    var unidades by rememberSaveable { mutableStateOf("") }
-    var preco by rememberSaveable { mutableStateOf("") }
+    // Do reforço do mês vêm as unidades e o preço de agora: confirma-os com o que a corretora te deu.
+    var unidades by rememberSaveable { mutableStateOf(ecra.unidades?.let { Formatos.numeroLivre(it, 4).replace(Formatos.NB.toString(), "") } ?: "") }
+    var preco by rememberSaveable { mutableStateOf(ecra.preco?.let { Formatos.numeroLivre(it, 4).replace(Formatos.NB.toString(), "") } ?: "") }
     var comissao by rememberSaveable { mutableStateOf("0") }
     var cambio by rememberSaveable { mutableStateOf(d.cambio.usdEur?.let { Formatos.numeroLivre(it, 5) } ?: "") }
 
@@ -224,21 +227,36 @@ private fun FormTransacao(d: Dados, estado: Estado, vm: CarteiraViewModel, ticke
             fontWeight = FontWeight.Medium,
         )
     }
+    if (ecra.doReforco) {
+        TextoPequeno("Do reforço do mês: confirma as unidades e o preço com o que a corretora te deu.")
+    }
     BotaoEnviar(
         texto = if (tipo == "Compra") "Registar compra" else "Registar venda",
         ativo = valido,
         aEnviar = estado.aEnviar,
     ) {
+        val t = ticker.trim().uppercase()
+        val qtd = u!!
+        val precoUn = p!!
+        val com = c ?: 0.0
+        // Ações em dólares (ao câmbio escrito), ETF em euros.
+        val custoEur = (qtd * precoUn + com) * (if (acao) fx ?: 1.0 else 1.0)
+        val compra = tipo == "Compra"
         vm.registarTransacao(
             data = dataIso!!,
             tipo = tipo,
             classe = classe,
-            ticker = ticker.trim().uppercase(),
-            unidades = u!!,
-            preco = p!!,
-            comissao = c ?: 0.0,
+            ticker = t,
+            unidades = qtd,
+            preco = precoUn,
+            comissao = com,
             cambio = if (acao) fx else null,
-        ) { ok -> if (ok) vm.voltar() }
+        ) { ok ->
+            if (ok) {
+                if (ecra.doReforco && compra) vm.reforcoRegistado(t, qtd, custoEur)
+                vm.voltar()
+            }
+        }
     }
     TextoPequeno("Fica escrita na tab Transações; a Carteira e o resto da folha atualizam-se sozinhos.")
 }

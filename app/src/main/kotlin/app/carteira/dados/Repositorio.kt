@@ -35,6 +35,38 @@ class Repositorio(contexto: Context) {
         runCatching { ficheiroCache.delete() }
     }
 
+    // ── Preferências ──
+
+    /** O ecrã que abre ao entrar na app: "Resumo", "Evolucao" ou "Posicoes". */
+    var ecraInicial: String
+        get() = preferencias.getString("ecra_inicial", "Resumo") ?: "Resumo"
+        set(v) = preferencias.edit().putString("ecra_inicial", v).apply()
+
+    /** Valor habitual do reforço do mês, em euros (0 = o do plano da folha). */
+    var reforcoValor: Double
+        get() = preferencias.getFloat("reforco_valor", 0f).toDouble()
+        set(v) = preferencias.edit().putFloat("reforco_valor", v.toFloat()).apply()
+
+    /** O reforço pode comprar frações de ações. */
+    var reforcoFracoes: Boolean
+        get() = preferencias.getBoolean("reforco_fracoes", false)
+        set(v) = preferencias.edit().putBoolean("reforco_fracoes", v).apply()
+
+    /** O ETF que recebe o dinheiro novo ("" = automático: o ETF global de ações; ver Reforco.etfGlobal). */
+    var etfReforco: String
+        get() = preferencias.getString("etf_reforco", "") ?: ""
+        set(v) = preferencias.edit().putString("etf_reforco", v).apply()
+
+    /** O reforço do mês em curso (ver MesReforco.paraTexto). */
+    var reforcoMes: String
+        get() = preferencias.getString("reforco_mes", "") ?: ""
+        set(v) = preferencias.edit().putString("reforco_mes", v).apply()
+
+    /** A última ordem escolhida nas Posições. */
+    var ordemPosicoes: String
+        get() = preferencias.getString("ordem_posicoes", "Valor") ?: "Valor"
+        set(v) = preferencias.edit().putString("ordem_posicoes", v).apply()
+
     // ── Alertas ──
 
     var alertasAtivos: Boolean
