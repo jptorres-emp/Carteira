@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -25,13 +27,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import app.carteira.dados.AnaliseVenda
+import app.carteira.dados.GrupoVendas
 import app.carteira.dados.Historico
 import app.carteira.dados.Rentabilidade
+import app.carteira.dados.Venda
 import app.carteira.dados.VendasDoTicker
 
 private const val TODAS = "Todas"
@@ -79,22 +84,28 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
         item { MosaicosMaisValias(h, anoAtual) }
         if (h.anos.size > 1) item { CartaoPorAno(h) }
         item { Filtros(listOf(TODAS) + h.anos.map { it.ano.toString() }, ano) { ano = it } }
-        // Uma linha por ticker: as vendas do mesmo ticker juntas, com o preço médio (sem repetidos).
-        val grupos = h.vendasPorTicker(ano.toIntOrNull())
+        // Uma linha por empresa (as vendas do mesmo ticker juntam-se, com o preço médio), separadas pelo que
+        // dariam hoje se as tivesses mantido: lucro ou prejuízo face ao que custaram.
+        val sep = h.vendasSeparadas(ano.toIntOrNull())
         item {
             TextoPequeno(
-                "Uma linha por ticker: as vendas do mesmo ticker juntam-se, com o preço médio. À direita: o que " +
-                    "recebeste e a mais-valia. O selo compara com o que as ações valeriam hoje (tab Vendas).",
+                "Uma linha por empresa, separadas por: se as tivesses mantido, hoje davam lucro ou continuavam em " +
+                    "prejuízo? Custo: o que pagaste pelas ações vendidas (FIFO). Vendeste por: o que recebeste. Hoje " +
+                    "valeriam: o que valeriam hoje, ao câmbio de hoje (preços da tab Vendas).",
             )
         }
-        items(grupos, key = { "g${it.ticker}" }) { g ->
-            val r = h.de(g.ticker)
-            val abrir: (() -> Unit)? = if (r != null && r.aberta) {
-                { vm.irPara(if (r.etf) Ecra.Etf(g.ticker) else Ecra.Posicao(g.ticker)) }
-            } else {
-                null
-            }
-            CartaoVendasTicker(g, aberto == g.ticker, { aberto = if (aberto == g.ticker) null else g.ticker }, abrir)
+        val alternar: (String) -> Unit = { t -> aberto = if (aberto == t) null else t }
+        if (sep.davamLucro.empresas.isNotEmpty()) {
+            item(key = "s-lucro") { CabecalhoGrupo("🟢 Se as tivesses mantido, hoje davam lucro", sep.davamLucro) }
+            empresas(sep.davamLucro.empresas, h, vm, aberto, alternar)
+        }
+        if (sep.emPrejuizo.empresas.isNotEmpty()) {
+            item(key = "s-prejuizo") { CabecalhoGrupo("🔴 Se as tivesses mantido, continuavam em prejuízo", sep.emPrejuizo) }
+            empresas(sep.emPrejuizo.empresas, h, vm, aberto, alternar)
+        }
+        if (sep.semDados.isNotEmpty()) {
+            item(key = "s-sem") { CabecalhoGrupo("Sem preço de hoje", null, sep.semDados.size) }
+            empresas(sep.semDados, h, vm, aberto, alternar)
         }
         if (ano == TODAS && h.fechadas.isNotEmpty()) {
             item {
@@ -245,42 +256,96 @@ internal fun CartaoLista(aoTocar: (() -> Unit)?, conteudo: @Composable ColumnSco
     }
 }
 
+/** Os cartões das empresas de um grupo; tocar abre a posição, se ainda a tens. */
+private fun LazyListScope.empresas(
+    lista: List<VendasDoTicker>,
+    h: Historico,
+    vm: CarteiraViewModel,
+    aberto: String?,
+    alternar: (String) -> Unit,
+) {
+    items(lista, key = { "g${it.ticker}" }) { g ->
+        val r = h.de(g.ticker)
+        val abrir: (() -> Unit)? = if (r != null && r.aberta) {
+            { vm.irPara(if (r.etf) Ecra.Etf(g.ticker) else Ecra.Posicao(g.ticker)) }
+        } else {
+            null
+        }
+        CartaoVendasTicker(g, aberto == g.ticker, { alternar(g.ticker) }, abrir)
+    }
+}
+
+/** O título de um grupo e as somas das empresas: quanto custaram, por quanto as vendeste e quanto valeriam hoje. */
+@Composable
+private fun CabecalhoGrupo(titulo: String, grupo: GrupoVendas?, n: Int = grupo?.empresas?.size ?: 0) {
+    Column(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 2.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        if (grupo == null) {
+            TextoPequeno("${plural(n, "empresa", "empresas")} sem custo ou sem preço de hoje na tab Vendas: ficam fora da comparação.")
+        } else {
+            TextoPequeno("${plural(n, "empresa", "empresas")}, somadas:")
+            TresValores(grupo.custoEur, grupo.recebidoEur, grupo.maisValiaEur, grupo.valorHojeEur, grupo.lucroSeMantivesseEur)
+        }
+    }
+}
+
+/** Custo, por quanto vendeste e quanto valeriam hoje, lado a lado; por baixo, o ganho face ao custo. */
+@Composable
+private fun TresValores(custo: Double?, recebido: Double, maisValia: Double?, hoje: Double?, lucroHoje: Double?) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ColunaValor("Custo", custo?.let { Formatos.eur(it, 0) } ?: "—", null, null, Modifier.weight(1f))
+        ColunaValor("Vendeste por", Formatos.eur(recebido, 0), maisValia, custo, Modifier.weight(1f))
+        ColunaValor("Hoje valeriam", hoje?.let { Formatos.eur(it, 0) } ?: "—", lucroHoje, custo, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun ColunaValor(titulo: String, valor: String, ganho: Double?, custo: Double?, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        TextoPequeno(titulo)
+        Text(valor, style = MaterialTheme.typography.bodyMedium.numeros(), fontWeight = FontWeight.SemiBold)
+        if (ganho != null) {
+            val pct = custo?.takeIf { it > 0 }?.let { " · " + Formatos.pctSinal(ganho / it, 0) } ?: ""
+            Text(Formatos.eurSinal(ganho) + pct, color = corDoSinal(ganho), style = MaterialTheme.typography.labelSmall.numeros())
+        }
+    }
+}
+
 /**
- * As vendas de um ticker, juntas: unidades × preço médio, o que recebeste e a mais-valia de todas. Com mais do
- * que uma venda, "Ver as N vendas" mostra cada uma (data, unidades × preço, recebido e mais-valia).
+ * As vendas de uma empresa, juntas: unidades × preço médio e, lado a lado, o custo, por quanto vendeste e quanto
+ * valeriam hoje. Com mais do que uma venda, "Ver as N vendas" mostra cada uma (data, unidades × preço, recebido e
+ * mais-valia).
  */
 @Composable
 private fun CartaoVendasTicker(g: VendasDoTicker, aberto: Boolean, aoAlternar: () -> Unit, aoTocar: (() -> Unit)?) {
     val n = g.vendas.size
     CartaoLista(aoTocar) {
-        Row(Modifier.padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = if (n > 1) 2.dp else 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(g.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(8.dp))
-                    TextoPequeno(if (n == 1) Formatos.data(g.ultima) else "${plural(n, "venda", "vendas")} · última ${Formatos.data(g.ultima)}")
-                }
-                g.nome?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                val preco = g.precoMedio
-                TextoPequeno(
-                    if (preco != null) {
-                        "${Formatos.quantidade(g.unidades)} × ${Formatos.preco(preco, g.moeda)}" + if (n > 1) " (preço médio)" else ""
-                    } else {
-                        "${Formatos.quantidade(g.unidades)} un."
-                    },
-                )
-                g.analise?.let { SeloVeredito(it) }
+        Column(
+            Modifier.padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = if (n > 1) 2.dp else 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(g.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(8.dp))
+                TextoPequeno(if (n == 1) Formatos.data(g.ultima) else "${plural(n, "venda", "vendas")} · última ${Formatos.data(g.ultima)}")
             }
-            Spacer(Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(Formatos.eur(g.recebidoEur, 0), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                val mv = g.maisValiaEur
-                if (mv != null) {
-                    Text(Formatos.eurSinal(mv), color = corDoSinal(mv), style = MaterialTheme.typography.bodySmall)
-                    Text(Formatos.pctSinal(g.maisValiaPct), color = corDoSinal(mv), style = MaterialTheme.typography.labelSmall)
-                }
-                if (g.semCusto > 0) TextoPequeno(if (g.semCusto == n) "sem custo" else "${g.semCusto} sem custo")
-            }
+            g.nome?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            val preco = g.precoMedio
+            TextoPequeno(
+                if (preco != null) {
+                    "${Formatos.quantidade(g.unidades)} × ${Formatos.preco(preco, g.moeda)}" + if (n > 1) " (preço médio)" else ""
+                } else {
+                    "${Formatos.quantidade(g.unidades)} un."
+                },
+            )
+            Spacer(Modifier.height(2.dp))
+            TresValores(g.custoEur, g.recebidoEur, g.maisValiaEur, g.valorHojeEur, g.lucroSeMantivesseEur)
+            SeloVendeste(g)
+            val notas = listOfNotNull(
+                g.semCusto.takeIf { it > 0 }?.let { if (it == n) "sem custo (faltam compras)" else "${plural(it, "venda", "vendas")} sem custo" },
+                g.semHoje.takeIf { it > 0 && it < n }?.let { "${plural(it, "venda", "vendas")} sem preço de hoje" },
+            )
+            if (notas.isNotEmpty()) TextoPequeno(notas.joinToString(" · "))
         }
         if (n > 1) {
             Text(
@@ -294,33 +359,46 @@ private fun CartaoVendasTicker(g: VendasDoTicker, aberto: Boolean, aoAlternar: (
             )
             if (aberto) {
                 Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    g.vendas.forEach { v ->
-                        val m = v.movimento
-                        val mv = v.maisValiaEur
-                        LinhaValor(
-                            "${Formatos.data(v.data)} · ${Formatos.quantidade(m.unidades)} × ${Formatos.preco(m.preco, m.moeda)}",
-                            Formatos.eur(v.recebidoEur, 0) + (mv?.let { " · " + Formatos.eurSinal(it) } ?: " · sem custo"),
-                            cor = mv?.let { corDoSinal(it) } ?: Color.Unspecified,
-                        )
-                    }
+                    g.vendas.forEach { v -> LinhaVenda(v) }
                 }
             }
         }
     }
 }
 
-/** "Vendeste bem · hoje valeriam −1%" ou "Devias ter mantido · hoje valeriam +57%" (da tab Vendas). */
+/** Uma venda: data, unidades × preço e, à direita, o que recebeste e a mais-valia (só esta tem cor). */
 @Composable
-private fun SeloVeredito(a: AnaliseVenda) {
-    val veredito = a.veredito?.takeIf { it.contains("🟢") || it.contains("🔴") } ?: return
-    val recebido = a.valorRecebido
-    val hoje = a.valorSeMantivesse
-    val texto = if (recebido != null && hoje != null && recebido > 0) {
-        "$veredito · hoje valeriam ${Formatos.pctSinal(hoje / recebido - 1, 0)}"
-    } else {
-        veredito
+private fun LinhaVenda(v: Venda) {
+    val m = v.movimento
+    val mv = v.maisValiaEur
+    val cor = mv?.let { legivel(corDoSinal(it)) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "${Formatos.data(v.data)} · ${Formatos.quantidade(m.unidades)} × ${Formatos.preco(m.preco, m.moeda)}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            buildAnnotatedString {
+                append(Formatos.eur(v.recebidoEur, 0) + " · ")
+                if (mv != null && cor != null) withStyle(SpanStyle(color = cor)) { append(Formatos.eurSinal(mv)) } else append("sem custo")
+            },
+            style = MaterialTheme.typography.bodyMedium.numeros(),
+        )
     }
-    SeloZona(texto)
+}
+
+/**
+ * "Vendeste bem · hoje valeriam −8%" ou "Devias ter mantido · hoje valeriam +10%": o que recebeste contra o que
+ * valeriam hoje, em euros ao câmbio de hoje.
+ */
+@Composable
+private fun SeloVendeste(g: VendasDoTicker) {
+    val pct = g.hojeVsVendaPct ?: return
+    val veredito = if (g.vendesteBem == true) "🟢 Vendeste bem" else "🔴 Devias ter mantido"
+    SeloZona("$veredito · hoje valeriam ${Formatos.pctSinal(pct, 0)}")
 }
 
 @Composable

@@ -217,6 +217,64 @@ class HistoricoTest {
     }
 
     @Test
+    fun vendasSeparadasPeloQueDavamHojeSeAsTivessesMantido() {
+        // Em euros ao câmbio de hoje (0,90). NORA: 2 vendas que custaram 150 € cada e hoje valeriam 270 $ = 243 €
+        // cada → davam lucro. ALFA: 8 ações que custaram 720,80 € e hoje valeriam (760 $ + 20 $ de dividendos
+        // perdidos) × 0,90 = 702 € → continuavam em prejuízo. BETA (ETF) não tem cotação de hoje → sem dados.
+        val mov = alfa + beta + listOf(
+            acao(10, "2024-02-01", "Compra", "NORA", 10.0, 50.0, 1.0, 0.0),
+            acao(11, "2025-06-30", "Venda", "NORA", 3.0, 81.0, 1.0, 0.0),
+            acao(12, "2026-08-12", "Venda", "NORA", 3.0, 79.2, 1.0, 0.0),
+        )
+        val analise = listOf(
+            AnaliseVenda("2025-06-30", "NORA", null, 3.0, 81.0, 243.0, 90.0, 270.0, 0.0, -27.0, -0.111, "🔴 Devias ter mantido"),
+            AnaliseVenda("2026-08-12", "NORA", null, 3.0, 79.2, 237.6, 90.0, 270.0, 0.0, -32.4, -0.136, "🔴 Devias ter mantido"),
+            AnaliseVenda("2025-01-10", "ALFA", null, 8.0, 150.0, 1200.0, 95.0, 760.0, 20.0, 420.0, 0.35, "🟢 Vendeste bem"),
+        )
+        val h = Historico.calcular(mov, hoje, emptyMap(), usdEur = 0.90, analise = analise)
+        val sep = h.vendasSeparadas()
+        assertEquals(listOf("NORA"), sep.davamLucro.empresas.map { it.ticker })
+        assertEquals(listOf("ALFA"), sep.emPrejuizo.empresas.map { it.ticker })
+        assertEquals(listOf("BETA"), sep.semDados.map { it.ticker })
+
+        val nora = sep.davamLucro.empresas.single()
+        assertEquals(486.0, nora.valorHojeEur!!, 1e-9)
+        assertEquals(186.0, nora.lucroSeMantivesseEur!!, 1e-9)
+        assertEquals(0.62, nora.lucroSeMantivessePct!!, 1e-12)
+        assertEquals(true, nora.davaLucro)
+        // Recebeste 480,60 € e hoje valeriam 486 €: devias ter mantido (+1,1%).
+        assertEquals(false, nora.vendesteBem)
+        assertEquals(486.0 / 480.6 - 1, nora.hojeVsVendaPct!!, 1e-12)
+
+        val alfaV = sep.emPrejuizo.empresas.single()
+        assertEquals(702.0, alfaV.valorHojeEur!!, 1e-9)
+        assertEquals(702.0 - 720.8, alfaV.lucroSeMantivesseEur!!, 1e-9)
+        assertEquals(false, alfaV.davaLucro)
+        assertEquals(true, alfaV.vendesteBem)
+
+        val beta = sep.semDados.single()
+        assertEquals(null, beta.valorHojeEur)
+        assertEquals(null, beta.davaLucro)
+        assertEquals(1, beta.semHoje)
+
+        // As somas de cada grupo: custo, recebido, valor de hoje e o que davam.
+        assertEquals(300.0, sep.davamLucro.custoEur, 1e-9)
+        assertEquals(480.6, sep.davamLucro.recebidoEur, 1e-9)
+        assertEquals(486.0, sep.davamLucro.valorHojeEur, 1e-9)
+        assertEquals(180.6, sep.davamLucro.maisValiaEur, 1e-9)
+        assertEquals(186.0, sep.davamLucro.lucroSeMantivesseEur, 1e-9)
+        assertEquals(720.8, sep.emPrejuizo.custoEur, 1e-9)
+        assertEquals(1139.0, sep.emPrejuizo.recebidoEur, 1e-9)
+        assertEquals(-18.8, sep.emPrejuizo.lucroSeMantivesseEur, 1e-9)
+
+        // Num ano só: em 2026 só a segunda venda da NORA (custou 150 €, hoje 243 €).
+        val de2026 = h.vendasSeparadas(2026)
+        assertEquals(listOf("NORA"), de2026.davamLucro.empresas.map { it.ticker })
+        assertEquals(93.0, de2026.davamLucro.lucroSeMantivesseEur, 1e-9)
+        assertEquals(emptyList<String>(), de2026.emPrejuizo.empresas.map { it.ticker })
+    }
+
+    @Test
     fun soOLucroContaParaFicarDeBorla() {
         // Vender sem lucro só devolve o teu dinheiro: não paga nada das ações que ficam.
         val semLucro = listOf(

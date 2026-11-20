@@ -129,12 +129,20 @@ data class Venda(
     val custoEur: Double?,
     /** A linha da tab Vendas (o que as ações valeriam hoje), se houver. */
     val analise: AnaliseVenda?,
+    /**
+     * O que as ações vendidas valeriam hoje, em euros ao câmbio de hoje: o valor se as tivesses mantido da tab
+     * Vendas (que vem em dólares) mais os dividendos perdidos. null sem cotação de hoje.
+     */
+    val valorHojeEur: Double? = null,
 ) {
     val ticker: String get() = movimento.ticker
     val data: String get() = movimento.data
     val ano: Int? get() = movimento.data.take(4).toIntOrNull()
     val maisValiaEur: Double? get() = custoEur?.let { recebidoEur - it }
     val maisValiaPct: Double? get() = custoEur?.takeIf { it > 0 }?.let { (recebidoEur - it) / it }
+
+    /** Se as tivesses mantido: o que valeriam hoje menos o que custaram (FIFO). null sem custo ou sem cotação. */
+    val lucroSeMantivesseEur: Double? get() = if (valorHojeEur != null && custoEur != null) valorHojeEur - custoEur else null
 }
 
 /**
@@ -165,6 +173,40 @@ data class VendasDoTicker(val ticker: String, val nome: String?, val vendas: Lis
     val maisValiaEur: Double? get() = comCusto.takeIf { it.isNotEmpty() }?.sumOf { it.maisValiaEur ?: 0.0 }
     val maisValiaPct: Double? get() = custoEur?.takeIf { it > 0 }?.let { c -> (maisValiaEur ?: 0.0) / c }
 
+    private val comHoje: List<Venda> get() = vendas.filter { it.valorHojeEur != null }
+
+    /** O que as ações vendidas valeriam hoje, em euros (as vendas com cotação de hoje). */
+    val valorHojeEur: Double? get() = comHoje.takeIf { it.isNotEmpty() }?.sumOf { it.valorHojeEur ?: 0.0 }
+
+    /** Vendas sem cotação de hoje: ficam fora da comparação. */
+    val semHoje: Int get() = vendas.size - comHoje.size
+
+    /** Hoje valeriam mais (+) ou menos (−) do que recebeste, em euros, nas vendas com cotação de hoje. */
+    val hojeVsVendaPct: Double?
+        get() {
+            val hoje = valorHojeEur ?: return null
+            val recebido = comHoje.sumOf { it.recebidoEur }
+            return if (recebido > 0) hoje / recebido - 1 else null
+        }
+
+    /** Vendeste bem: hoje valeriam o mesmo ou menos do que recebeste (em euros). null sem cotação de hoje. */
+    val vendesteBem: Boolean? get() = hojeVsVendaPct?.let { it <= 0 }
+
+    private val comparaveis: List<Venda> get() = vendas.filter { it.lucroSeMantivesseEur != null }
+
+    /** Se as tivesses mantido: o que valeriam hoje menos o que custaram (FIFO), nas vendas com os dois. */
+    val lucroSeMantivesseEur: Double? get() = comparaveis.takeIf { it.isNotEmpty() }?.sumOf { it.lucroSeMantivesseEur ?: 0.0 }
+
+    val lucroSeMantivessePct: Double?
+        get() {
+            val lucro = lucroSeMantivesseEur ?: return null
+            val custo = comparaveis.sumOf { it.custoEur ?: 0.0 }
+            return if (custo > 0) lucro / custo else null
+        }
+
+    /** Se as tivesses mantido, hoje davam lucro (true) ou continuavam em prejuízo (false); null sem dados. */
+    val davaLucro: Boolean? get() = lucroSeMantivesseEur?.let { it >= 0 }
+
     /**
      * O veredito das vendas juntas (tab Vendas): soma a diferença de cada uma entre o que recebeste e o que
      * valeriam hoje. null se nenhuma tiver análise.
@@ -186,6 +228,25 @@ data class VendasDoTicker(val ticker: String, val nome: String?, val vendas: Lis
             )
         }
 }
+
+/**
+ * Empresas vendidas com o mesmo desfecho (tab Vendas da app): o custo, o que recebeste e o que valeriam hoje,
+ * somados sobre as vendas que têm custo e cotação de hoje.
+ */
+data class GrupoVendas(val empresas: List<VendasDoTicker>) {
+    private val vendas: List<Venda> get() = empresas.flatMap { e -> e.vendas.filter { it.lucroSeMantivesseEur != null } }
+    val custoEur: Double get() = vendas.sumOf { it.custoEur ?: 0.0 }
+    val recebidoEur: Double get() = vendas.sumOf { it.recebidoEur }
+    val valorHojeEur: Double get() = vendas.sumOf { it.valorHojeEur ?: 0.0 }
+    val maisValiaEur: Double get() = recebidoEur - custoEur
+    val lucroSeMantivesseEur: Double get() = valorHojeEur - custoEur
+}
+
+/**
+ * As vendas por empresa, separadas pelo que dariam hoje se as tivesses mantido: [davamLucro] (da que mais dava
+ * para a que menos), [emPrejuizo] (da que mais perdia para a que menos) e [semDados] (sem custo ou sem cotação).
+ */
+data class VendasSeparadas(val davamLucro: GrupoVendas, val emPrejuizo: GrupoVendas, val semDados: List<VendasDoTicker>)
 
 /** As vendas de um ano. semCusto: vendas sem compras que as cubram (ficam fora da soma). */
 data class AnoVendas(val ano: Int, val vendas: Int, val recebidoEur: Double, val maisValiasEur: Double, val semCusto: Int)
@@ -326,6 +387,19 @@ class Historico(
             .groupBy { it.ticker }
             .map { (ticker, lista) -> VendasDoTicker(ticker, lista.firstNotNullOfOrNull { it.nome }, lista) }
             .sortedWith(compareByDescending<VendasDoTicker> { it.ultima }.thenBy { it.ticker })
+
+    /**
+     * As vendas de [ano] (todas, se null) por empresa, separadas pelo que dariam hoje se as tivesses mantido:
+     * lucro ou prejuízo face ao que custaram, em euros ao câmbio de hoje.
+     */
+    fun vendasSeparadas(ano: Int? = null): VendasSeparadas {
+        val grupos = vendasPorTicker(ano)
+        return VendasSeparadas(
+            GrupoVendas(grupos.filter { it.davaLucro == true }.sortedByDescending { it.lucroSeMantivesseEur }),
+            GrupoVendas(grupos.filter { it.davaLucro == false }.sortedBy { it.lucroSeMantivesseEur }),
+            grupos.filter { it.davaLucro == null },
+        )
+    }
 
     /** As vendas de um ticker, da mais antiga para a mais recente. */
     fun vendasDe(ticker: String): List<Venda> = vendas.filter { it.ticker == ticker }.sortedWith(compareBy<Venda> { it.data }.thenBy { it.movimento.linha })
@@ -490,7 +564,9 @@ class Historico(
                         val a = porAnalisar.firstOrNull { it.corresponde(m, exato = true) }
                             ?: porAnalisar.firstOrNull { it.corresponde(m, exato = false) }
                         if (a != null) porAnalisar.remove(a)
-                        vendas += Venda(m, nomes[ticker], recebido, custoConhecido, a)
+                        // A tab Vendas dá o valor de hoje em dólares (as ações em euros vêm convertidas ao câmbio de hoje).
+                        val hojeEur = a?.valorSeMantivesse?.let { (it + (a.dividendosPerdidos ?: 0.0)) * usdEur }
+                        vendas += Venda(m, nomes[ticker], recebido, custoConhecido, a, hojeEur)
                     }
                 }
                 val agora = hoje[ticker]

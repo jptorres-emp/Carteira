@@ -482,7 +482,10 @@ class EcrasTest {
         esperar("MARE")
         foto("07d-vendas-2025")
         tocar("Todas")
-        val marcas = listOf("Mais-valias por ano", "Posições fechadas", "ZETA", "MARE", "NORA", "Vendeste bem", "Devias ter mantido")
+        val marcas = listOf(
+            "Mais-valias por ano", "Posições fechadas", "ZETA", "MARE", "NORA", "Vendeste bem", "Devias ter mantido",
+            "hoje davam lucro", "continuavam em prejuízo", "Vendeste por", "Hoje valeriam",
+        )
         val vistas = mutableSetOf<String>()
         for (k in 0 until 30) {
             try {
@@ -495,9 +498,21 @@ class EcrasTest {
             foto("07e-vendas-${k.toString().padStart(2, '0')}")
         }
         assertEquals(marcas.toSet(), vistas)
+        // Separadas pelo que dariam hoje se as tivesses mantido (em euros, face ao custo). Itens: 4 texto de ajuda,
+        // 5 "davam lucro" (5 empresas: JADE, ALFA, ZETA, BORE e NORA, da que mais dava para a que menos),
+        // 11 "continuavam em prejuízo" (2: MARE e OBRG).
+        deslizarPara(5)
+        esperar("Se as tivesses mantido, hoje davam lucro")
+        esperar("5 empresas, somadas:")
+        esperar("JADE")
+        foto("07e3-vendas-davam-lucro")
+        deslizarPara(11)
+        esperar("Se as tivesses mantido, continuavam em prejuízo")
+        esperar("2 empresas, somadas:")
+        esperar("MARE")
+        foto("07e4-vendas-em-prejuizo")
         // Sem tickers repetidos: a NORA, vendida duas vezes, é uma linha só, com o preço médio e as duas juntas.
-        // Itens: 4 texto de ajuda, 5 BORE (a venda mais recente), 6 NORA.
-        deslizarPara(6)
+        deslizarPara(10)
         esperar("2 vendas · última 12/08/2026")
         esperar("(preço médio)")
         assertEquals(1, compose.onAllNodes(hasText("▾ Ver as 2 vendas")).fetchSemanticsNodes().size)
