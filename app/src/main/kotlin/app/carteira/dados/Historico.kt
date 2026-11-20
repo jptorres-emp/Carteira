@@ -433,8 +433,7 @@ class Historico(
                 val tir = if (dividendosPorMes == null || !umAno) null else {
                     val f = ArrayList(fluxos)
                     porMes.forEach { (mes, usd) ->
-                        val d15 = runCatching { LocalDate.parse("$mes-15") }.getOrNull()
-                        if (d15 != null) f += Fluxo(minOf(d15, hojeDia), usd * (cambioMensal[mes] ?: usdEur))
+                        fluxoDividendo(mes, usd * (cambioMensal[mes] ?: usdEur), primeira, hojeDia)?.let { f += it }
                     }
                     if (valorHoje > 0) f += Fluxo(hojeDia, valorHoje)
                     Tir.anual(f)
@@ -480,8 +479,7 @@ class Historico(
             val carteira = if (dividendosMensaisUsd == null || fluxosCarteira.isEmpty()) null else {
                 val desde = fluxosCarteira.minOf { it.data }
                 val dividendos = dividendosMensaisUsd.mapNotNull { (mes, usd) ->
-                    runCatching { LocalDate.parse("$mes-15") }.getOrNull()
-                        ?.let { Fluxo(minOf(it, hojeDia), usd * (cambioMensal[mes] ?: usdEur)) }
+                    fluxoDividendo(mes, usd * (cambioMensal[mes] ?: usdEur), desde, hojeDia)
                 }
                 val umAno = ChronoUnit.DAYS.between(desde, hojeDia) >= 365
                 val tir = if (umAno && valorCarteira > 0) Tir.anual(fluxosCarteira + dividendos + Fluxo(hojeDia, valorCarteira)) else null
@@ -490,6 +488,18 @@ class Historico(
                 TirCarteira(tir, tirIndice, desde, valorCarteira, indice, dividendos.sumOf { it.valor })
             }
             return Historico(porTicker, vendas, dividendosDesde, indiceHojeEur, hojeDia, dividendosPorMes != null, carteira)
+        }
+
+        /**
+         * Um dividendo para a TIR: no dia 15 do mês ("aaaa-mm"), nunca depois de hoje nem antes da primeira compra.
+         * Os de meses anteriores à primeira compra ficam de fora: são de transações que faltam na folha e, como
+         * dinheiro a entrar antes de algum sair, davam mais do que uma TIR.
+         */
+        private fun fluxoDividendo(mes: String, valorEur: Double, primeira: LocalDate?, hoje: LocalDate): Fluxo? {
+            val d15 = runCatching { LocalDate.parse("$mes-15") }.getOrNull() ?: return null
+            if (primeira != null && d15.withDayOfMonth(1).plusMonths(1) <= primeira.withDayOfMonth(1)) return null
+            val dia = if (primeira != null && d15 < primeira) primeira else d15
+            return Fluxo(minOf(dia, hoje), valorEur)
         }
 
         /** Dias entre duas datas "aaaa-mm-dd" (fim null = hoje); 0 se alguma não se ler. */

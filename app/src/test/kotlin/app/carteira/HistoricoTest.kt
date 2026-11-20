@@ -290,6 +290,37 @@ class HistoricoTest {
     }
 
     @Test
+    fun dividendosDeAntesDaPrimeiraCompraFicamDeForaDaTir() {
+        // Um dividendo de nov/2022, antes da 1.ª compra (jan/2023), é de uma transação que falta na folha: entrava
+        // dinheiro antes de algum sair e havia duas TIR. Fica de fora (na carteira e na posição); o resto não muda.
+        val c = Historico.calcular(
+            gama, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divGama,
+            cambioMensal = mapOf("2024-06" to 0.90), dia = dia,
+            dividendosMensaisUsd = mapOf("2022-11" to 50.0, "2023-11" to 5.0),
+        )
+        val sem = Historico.calcular(
+            gama, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divGama,
+            cambioMensal = mapOf("2024-06" to 0.90), dia = dia,
+            dividendosMensaisUsd = mapOf("2023-11" to 5.0),
+        )
+        assertEquals(5 * 0.95, c.carteira!!.dividendosEur, 1e-9)
+        assertEquals(sem.carteira!!.tir!!, c.carteira!!.tir!!, 1e-12)
+        val divCedo = mapOf("GAMA" to listOf("2022-12" to 30.0) + divGama.getValue("GAMA"))
+        val p = Historico.calcular(
+            gama, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divCedo,
+            cambioMensal = mapOf("2024-06" to 0.90), dia = dia,
+        ).de("GAMA")!!
+        assertEquals(historicoGama().de("GAMA")!!.tir!!, p.tir!!, 1e-12)
+        // Um dividendo do mesmo mês da 1.ª compra conta, no dia da compra se o dia 15 vier antes.
+        assertNotNull(
+            Historico.calcular(
+                gama, hojeGama, emptyMap(), usdEur = 0.95, indiceHojeEur = 130.0, dividendosPorMes = divGama, dia = dia,
+                dividendosMensaisUsd = mapOf("2023-01" to 5.0),
+            ).carteira!!.tir,
+        )
+    }
+
+    @Test
     fun menosValiaDoAnoBaixaOImposto() {
         // DELTA (ETF) vendido com 200 € de prejuízo em 2026: o saldo do ano começa em −200 €.
         val delta = listOf(
