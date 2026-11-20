@@ -59,7 +59,7 @@ import org.robolectric.annotation.GraphicsMode
 private class FonteFalsa(var dados: String) : FonteDados {
     var ultimoPedido: JSONObject? = null
     override suspend fun dados(): String = dados
-    override suspend fun ping(): String = """{"ok":true,"versaoPonte":5,"folha":"Carteira de teste"}"""
+    override suspend fun ping(): String = """{"ok":true,"versaoPonte":6,"folha":"Carteira de teste"}"""
     override suspend fun enviar(pedido: JSONObject): String {
         ultimoPedido = pedido
         return """{"ok":true,"mensagem":"Compra registada na linha 141 de Transações: 2 ALFA a 300,50 $.","aviso":null}"""
@@ -385,6 +385,16 @@ class EcrasTest {
             }
         }
         assertEquals(marcasCarteira.toSet(), vistasCarteira)
+
+        // YTD, como no Google Finance: este ano a partir de 0%, sem contar o dinheiro que entrou ou saiu.
+        deslizarPara(1)
+        tocar("YTD")
+        esperar("novembro de 2026 (até agora)")
+        esperar("Desde o fim de 2025: a carteira está")
+        esperar("atrás do S&P 500")
+        foto("12d-evolucao-ytd")
+        tocar("Tudo")
+        esperar("Sobre o que investiste")
     }
 
     @Test
@@ -458,7 +468,7 @@ class EcrasTest {
         abrirPosicao("ALFA")
         esperar("Quando comprar e vender")
         deslizarPara(4)
-        esperar("Já voltou do que pagaste")
+        esperar("Pago pelo lucro")
         esperar("Recebeste nas vendas")
         esperar("Mais-valias das vendas")
         foto("07b2-posicao-rentabilidade")
@@ -489,6 +499,8 @@ class EcrasTest {
         deslizarPara(0)
         tocar("🎁 De borla")
         esperar("1 posição já está de borla")
+        // Só conta o lucro: a ALFA vendeu 997 €, mas o lucro (mais-valias e dividendos) paga só uma parte das que tem.
+        esperar("Só conta o lucro")
         esperar("faltam ")
         foto("07f-de-borla")
     }
@@ -619,6 +631,10 @@ class EcrasTest {
         tocar("Carteira")
         esperar("Carteira vs S&P 500")
         percorrer("22-carteira")
+        deslizarPara(1)
+        tocar("YTD")
+        esperar("(até agora)")
+        foto("22b-carteira-ytd")
         tocar("Posições")
         esperar("Vendas e posições fechadas")
         foto("23-posicoes")

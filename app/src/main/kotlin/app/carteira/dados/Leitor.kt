@@ -103,6 +103,9 @@ object Leitor {
                         metaReferenciaEur = o.num("metaReferenciaEur"),
                         metaAlargadaEur = o.num("metaAlargadaEur"),
                         netWorthFolhaEur = o.num("netWorthFolhaEur"),
+                        rorMensal = o.num("rorMensal"),
+                        rorComDividendos = o.num("rorComDividendos"),
+                        sp500Mensal = o.num("sp500Mensal"),
                     )
                 }
             }.filterNotNull().filter { it.mes.length >= 7 },

@@ -116,17 +116,20 @@ class HistoricoTest {
     }
 
     @Test
-    fun deBorlaQuandoVendasEDividendosCobremOQuePagaste() {
+    fun deBorlaQuandoOLucroPagaAsAcoesQueTens() {
         val mov = listOf(
-            acao(1, "2023-01-10", "Compra", "DELTA", 10.0, 50.0, 0.90, 0.0), // 450 €
+            acao(1, "2023-01-10", "Compra", "DELTA", 10.0, 50.0, 0.90, 0.0), // 450 € (45 € cada)
             acao(2, "2025-01-10", "Venda", "DELTA", 6.0, 100.0, 0.90, 0.0), // 540 €
         )
         val h = Historico.calcular(mov, mapOf("DELTA" to ValorHoje(4.0, 360.0, 400.0)), mapOf("DELTA" to 10.0), usdEur = 0.9)
         val r = h.de("DELTA")!!
+        // Lucro: mais-valia 540 − 6 × 45 = 270 € e 10 $ × 0,9 = 9 € de dividendos. As 4 que ficam custaram 180 €.
+        assertEquals(279.0, r.lucroTiradoEur!!, 1e-9)
+        assertEquals(180.0, r.custoAtualEur, 1e-9)
         assertTrue(r.deBorla)
-        assertEquals(549.0, r.recuperadoEur, 1e-9) // 540 + 10 $ × 0,9
-        assertEquals(549.0 / 450.0, r.pctRecuperado!!, 1e-12)
-        assertEquals(0.0, r.faltaRecuperarEur, 1e-9)
+        assertEquals(279.0 / 180.0, r.pctDeBorla!!, 1e-12)
+        assertEquals(99.0, r.excedenteBorlaEur, 1e-9)
+        assertEquals(0.0, r.faltaParaBorlaEur, 1e-9)
         assertNull(r.acoesParaFicarDeBorla)
         assertEquals(listOf("DELTA"), h.deBorla.map { it.ticker })
     }
@@ -136,13 +139,45 @@ class HistoricoTest {
         val h = Historico.calcular(alfa, hoje, mapOf("ALFA" to 20.0), usdEur = 0.91)
         val r = h.de("ALFA")!!
         assertFalse(r.deBorla)
-        // Voltaram 1139 € das vendas e 18,20 € de dividendos, de 1454 € pagos.
-        assertEquals(1157.2 / 1454.0, r.pctRecuperado!!, 1e-12)
-        assertEquals(296.8, r.faltaRecuperarEur, 1e-9)
+        // A venda deu 1139 €, mas só 418,20 € eram lucro (as 8 custaram 720,80 €); +18,20 € de dividendos. As 7 que
+        // ficam custaram 733,20 € (2 × 90,10 + 5 × 110,60): o lucro paga 59,5%.
+        assertEquals(436.4, r.lucroTiradoEur!!, 1e-9)
+        assertEquals(733.2, r.custoAtualEur, 1e-9)
+        assertEquals(436.4 / 733.2, r.pctDeBorla!!, 1e-12)
+        assertEquals(296.8, r.faltaParaBorlaEur, 1e-9)
+        assertEquals(0.0, r.excedenteBorlaEur, 1e-9)
         // Cada ação vale 1019,20 € / 7 = 145,60 €: faltam 3 (296,80 / 145,60 = 2,04).
         assertEquals(3, r.acoesParaFicarDeBorla)
         assertEquals(listOf("ALFA"), h.recuperacao.map { it.ticker })
         assertTrue(h.deBorla.isEmpty())
+    }
+
+    @Test
+    fun soOLucroContaParaFicarDeBorla() {
+        // Vender sem lucro só devolve o teu dinheiro: não paga nada das ações que ficam.
+        val semLucro = listOf(
+            acao(1, "2024-01-10", "Compra", "EPSI", 10.0, 100.0, 1.0, 0.0),
+            acao(2, "2025-01-10", "Venda", "EPSI", 5.0, 100.0, 1.0, 0.0),
+        )
+        val e = Historico.calcular(semLucro, mapOf("EPSI" to ValorHoje(5.0, 600.0, 600.0)), emptyMap(), usdEur = 1.0)
+        val ep = e.de("EPSI")!!
+        assertEquals(0.0, ep.lucroTiradoEur!!, 1e-9)
+        assertEquals(500.0, ep.custoAtualEur, 1e-9)
+        assertEquals(0.0, ep.pctDeBorla!!, 1e-12)
+        assertEquals(500.0, ep.faltaParaBorlaEur, 1e-9)
+        assertTrue(e.recuperacao.isEmpty())
+        // Vender com lucro e voltar a comprar: só os 500 € de lucro contam contra as ações novas (2000 €).
+        val recompra = listOf(
+            acao(1, "2023-01-10", "Compra", "ZETA", 10.0, 100.0, 1.0, 0.0),
+            acao(2, "2024-01-10", "Venda", "ZETA", 10.0, 150.0, 1.0, 0.0),
+            acao(3, "2025-01-10", "Compra", "ZETA", 10.0, 200.0, 1.0, 0.0),
+        )
+        val z = Historico.calcular(recompra, mapOf("ZETA" to ValorHoje(10.0, 2100.0, 2100.0)), emptyMap(), usdEur = 1.0).de("ZETA")!!
+        assertEquals(500.0, z.lucroTiradoEur!!, 1e-9)
+        assertEquals(2000.0, z.custoAtualEur, 1e-9)
+        assertEquals(0.25, z.pctDeBorla!!, 1e-12)
+        assertEquals(1500.0, z.faltaParaBorlaEur, 1e-9)
+        assertFalse(z.deBorla)
     }
 
     @Test

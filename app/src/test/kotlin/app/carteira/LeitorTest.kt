@@ -84,7 +84,7 @@ class LeitorTest {
     @Test
     fun leAsSeccoesDaPonteV2() {
         val d = Leitor.lerResposta(amostra())
-        assertEquals(5, d.versaoPonte)
+        assertEquals(6, d.versaoPonte)
         assertTrue(d.meta.avisos.isEmpty())
         assertEquals("2022-09", d.evolucao.first().mes)
         assertEquals("2026-11", d.evolucao.last().mes)
@@ -162,6 +162,31 @@ class LeitorTest {
         // A diferença para o índice é o que a ação vale hoje + dividendos − o que o VUAA valeria.
         val alfa = h.de("ALFA")!!
         assertEquals(alfa.valorEur + alfa.dividendosEur - alfa.espelho!!.valorEur, alfa.diferencaIndiceEur!!, 1e-9)
+    }
+
+    @Test
+    fun leARentabilidadeDeCadaMesDaPonteV6() {
+        val d = Leitor.lerResposta(amostra())
+        val ev = d.evolucao
+        assertNull(ev.first().rorMensal)
+        assertTrue(ev.drop(1).all { it.rorMensal != null && it.rorComDividendos != null })
+        assertTrue(ev.drop(1).dropLast(1).all { it.sp500Mensal != null })
+        // O S&P 500 do mês que ainda não fechou: a app faz a conta como a folha a fará.
+        assertNull(ev.last().sp500Mensal)
+        val ytd = app.carteira.dados.Ytd.calcular(ev)!!
+        assertEquals("2025-12", ytd.pontos.first().mes)
+        assertEquals(ev.last().mes, ytd.pontos.last().mes)
+        assertFalse(ytd.semSp500)
+        assertTrue(ytd.pontos.all { it.carteira != null && it.sp500 != null })
+        // Ponte v5: sem a rentabilidade da folha, só há a linha da carteira (feita na app, com a mesma conta).
+        val v5 = org.json.JSONObject(amostra()).apply {
+            put("versaoPonte", 5)
+            val e = getJSONObject("dados").getJSONArray("evolucao")
+            for (k in 0 until e.length()) e.getJSONObject(k).apply { remove("rorMensal"); remove("rorComDividendos"); remove("sp500Mensal") }
+        }
+        val semV6 = app.carteira.dados.Ytd.calcular(Leitor.lerResposta(v5.toString()).evolucao)!!
+        assertTrue(semV6.semSp500)
+        assertEquals(ytd.pontos.last().carteira!!, semV6.pontos.last().carteira!!, 1e-8)
     }
 
     @Test

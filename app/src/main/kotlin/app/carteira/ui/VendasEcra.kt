@@ -39,7 +39,8 @@ private const val VISTA_BORLA = "🎁 De borla"
 
 /**
  * As vendas da tab Transações com a mais-valia de cada uma (FIFO), por ano, e as posições já fechadas. A
- * opção "De borla" mostra, só a título informativo, que posições já se pagaram com vendas e dividendos.
+ * opção "De borla" mostra, só a título informativo, que posições já se pagaram com o lucro (mais-valias das
+ * vendas e dividendos).
  */
 @Composable
 fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
@@ -116,16 +117,18 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
             when {
                 livres.isNotEmpty() -> "🎁 " + plural(livres.size, "posição já está de borla", "posições já estão de borla") +
                     ": " + livres.joinToString(", ") { it.ticker }
-                lista.isNotEmpty() -> "Ainda nenhuma. A mais perto é a ${lista.first().ticker}, com ${Formatos.pct(lista.first().pctRecuperado, 0)} do custo recuperado."
-                else -> "Ainda nenhuma: nenhuma posição teve vendas ou dividendos."
+                lista.isNotEmpty() -> "Ainda nenhuma. A mais perto é a ${lista.first().ticker}: o lucro que já tiraste paga " +
+                    "${Formatos.pct(lista.first().pctDeBorla, 0)} do que custaram as ações que tens."
+                else -> "Ainda nenhuma: nenhuma posição deu lucro em vendas ou dividendos."
             },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
         )
         TextoPequeno(
-            "Uma posição fica de borla quando o que recebeste nas vendas e em dividendos já cobre tudo o que pagaste " +
-                "por ela: as ações que ainda tens são lucro. É só informativo: o que conta para comprar ou vender " +
-                "continua a ser a zona e o peso de cada posição.",
+            "Uma posição fica de borla quando o lucro que já tiraste dela (as mais-valias das vendas e os dividendos) " +
+                "paga o que custaram as ações que ainda tens: essas passam a ser lucro. Só conta o lucro: numa venda, " +
+                "o custo das ações vendidas é o teu dinheiro a voltar. É só informativo: o que conta para comprar ou " +
+                "vender continua a ser a zona e o peso de cada posição.",
         )
         (if (todas) lista else lista.take(8)).forEach { r -> LinhaRecuperado(r) { abrir(r) } }
         if (lista.size > 8) {
@@ -145,18 +148,20 @@ private fun LinhaRecuperado(r: Rentabilidade, aoTocar: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(r.ticker, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Text(
-                (if (r.deBorla) "🎁 " else "") + Formatos.pct(r.pctRecuperado, 0),
+                (if (r.deBorla) "🎁 " else "") + Formatos.pct(r.pctDeBorla, 0),
                 style = MaterialTheme.typography.titleSmall.numeros(),
                 fontWeight = FontWeight.SemiBold,
                 color = if (r.deBorla) legivel(Paleta.verde) else MaterialTheme.colorScheme.onSurface,
             )
         }
-        BarraRecuperado(r.pctRecuperado ?: 0.0, r.deBorla)
+        BarraRecuperado(r.pctDeBorla ?: 0.0, r.deBorla)
+        val lucro = Formatos.eur(r.lucroTiradoEur ?: 0.0, 0)
+        val custo = Formatos.eur(r.custoAtualEur, 0)
         TextoPequeno(
             if (r.deBorla) {
-                "${Formatos.eur(r.recuperadoEur - r.compradoEur, 0)} a mais do que pagaste · as que tens valem ${Formatos.eur(r.valorEur, 0)}"
+                "lucro $lucro · as que tens custaram $custo (+${Formatos.eur(r.excedenteBorlaEur, 0)}) e valem ${Formatos.eur(r.valorEur, 0)}"
             } else {
-                "faltam ${Formatos.eur(r.faltaRecuperarEur, 0)}" +
+                "lucro $lucro de $custo · faltam ${Formatos.eur(r.faltaParaBorlaEur, 0)}" +
                     (r.acoesParaFicarDeBorla?.let { " · cerca de ${plural(it, "ação vendida", "ações vendidas")} ao preço de hoje" } ?: "")
             },
         )

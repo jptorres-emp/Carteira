@@ -74,27 +74,45 @@ data class Rentabilidade(
     /** Tempo suficiente para a TIR fazer sentido: o dinheiro está lá, em média, há um ano ou mais. */
     val maisDeUmAno: Boolean get() = (idadeMediaDias ?: 0) >= 365
 
-    /** O que já voltou do que pagaste: vendas (menos comissões) e dividendos. */
-    val recuperadoEur: Double get() = vendidoEur + dividendosEur
+    // ── De borla (só informativo) ──
+    // Conta só o lucro: o que recebeste numa venda e era o teu dinheiro a voltar (o custo das ações vendidas) não
+    // paga nada. A posição fica de borla quando o lucro já tirado paga o que custaram as ações que ainda tens.
 
-    /** Parte do que pagaste que já voltou (1 = tudo). */
-    val pctRecuperado: Double? get() = if (compradoEur > 0) recuperadoEur / compradoEur else null
+    /** O que custaram, pelo FIFO, as ações que ainda tens (com as comissões das compras). */
+    val custoAtualEur: Double get() = lotes.sumOf { it.unidades * it.custoEurPorUnidade }
 
-    /** O que falta voltar para cobrir o que pagaste (0 quando já está de borla). */
-    val faltaRecuperarEur: Double get() = (compradoEur - recuperadoEur).coerceAtLeast(0.0)
+    /**
+     * O lucro que já tiraste desta posição: as mais-valias das vendas (FIFO) e os dividendos. null se alguma venda
+     * não tiver compras que a cubram (falta o custo).
+     */
+    val lucroTiradoEur: Double? get() = if (vendas > 0 && maisValiasEur == null) null else (maisValiasEur ?: 0.0) + dividendosEur
 
-    /** As vendas e os dividendos já cobrem tudo o que pagaste: as ações que ainda tens são lucro. */
-    val deBorla: Boolean get() = aberta && compradoEur > 0 && recuperadoEur >= compradoEur - 0.005
+    /** Parte do que custaram as ações que tens que o lucro já tirado paga (1 = de borla). */
+    val pctDeBorla: Double? get() = lucroTiradoEur?.let { l -> if (custoAtualEur > 0) l / custoAtualEur else null }
+
+    /** O lucro que falta tirar para pagar as ações que tens (0 quando já está de borla). */
+    val faltaParaBorlaEur: Double get() = (custoAtualEur - (lucroTiradoEur ?: 0.0)).coerceAtLeast(0.0)
+
+    /** O lucro já tirado (mais-valias e dividendos) paga o que custaram as ações que ainda tens: essas são lucro. */
+    val deBorla: Boolean
+        get() {
+            val lucro = lucroTiradoEur ?: return false
+            return aberta && custoAtualEur > 0 && lucro >= custoAtualEur - 0.005
+        }
+
+    /** Quanto o lucro já tirado passa do que custaram as ações que tens (0 se ainda não chega). */
+    val excedenteBorlaEur: Double get() = ((lucroTiradoEur ?: 0.0) - custoAtualEur).coerceAtLeast(0.0)
 
     /**
      * Quantas ações terias de vender ao preço de hoje para ficar de borla, ficando ainda com alguma; null se
-     * já está de borla ou se nem vendendo quase tudo chegava.
+     * já está de borla ou se nem vendendo quase tudo chegava. Cada ação vendida soma o lucro dela ao que já
+     * tiraste e deixa de ter de ser paga: o que falta desce o preço inteiro da ação.
      */
     val acoesParaFicarDeBorla: Int?
         get() {
-            if (!aberta || deBorla || valorEur <= 0) return null
+            if (!aberta || deBorla || valorEur <= 0 || lucroTiradoEur == null) return null
             val porAcao = valorEur / unidadesHoje
-            val n = kotlin.math.ceil(faltaRecuperarEur / porAcao - 1e-9).toInt().coerceAtLeast(1)
+            val n = kotlin.math.ceil(faltaParaBorlaEur / porAcao - 1e-9).toInt().coerceAtLeast(1)
             return if (n < unidadesHoje - EPS) n else null
         }
 }
@@ -247,12 +265,12 @@ class Historico(
 
     fun de(ticker: String): Rentabilidade? = porTicker[ticker]
 
-    /** Posições que tens em que as vendas e os dividendos já cobrem o que pagaste. */
-    val deBorla: List<Rentabilidade> get() = porTicker.values.filter { it.deBorla }.sortedByDescending { it.pctRecuperado }
+    /** Posições que tens em que o lucro já tirado paga as ações que ainda tens. */
+    val deBorla: List<Rentabilidade> get() = porTicker.values.filter { it.deBorla }.sortedByDescending { it.pctDeBorla }
 
-    /** Posições que tens e que já recuperaram alguma coisa, da que está mais perto de ficar de borla à mais longe. */
+    /** Posições que tens com algum lucro já tirado, da que está mais perto de ficar de borla à mais longe. */
     val recuperacao: List<Rentabilidade>
-        get() = porTicker.values.filter { it.aberta && (it.pctRecuperado ?: 0.0) >= 0.005 }.sortedByDescending { it.pctRecuperado }
+        get() = porTicker.values.filter { it.aberta && (it.pctDeBorla ?: 0.0) >= 0.005 }.sortedByDescending { it.pctDeBorla }
 
     /** Tickers já vendidos por inteiro, do que deu mais lucro para o que deu menos. */
     val fechadas: List<Rentabilidade> get() = porTicker.values.filter { !it.aberta }.sortedByDescending { it.lucroEur }

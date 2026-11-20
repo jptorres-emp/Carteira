@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.PontoEvolucao
+import app.carteira.dados.SerieYtd
+import app.carteira.dados.Ytd
 import kotlin.math.roundToInt
 
 private val MESES_CURTOS = listOf("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
@@ -107,13 +109,20 @@ fun Legenda(cor: Color, rotulo: String, valor: String? = null, modifier: Modifie
     }
 }
 
+/** Os períodos do gráfico contra o S&P 500: o YTD (como no Google Finance) e os valores de 1 ano, 3 anos ou tudo. */
+private val PERIODOS_EVOLUCAO = listOf("YTD", "1A", "3A", "Tudo")
+
 /**
  * A carteira contra o que investiste e contra o mesmo dinheiro no S&P 500, mês a mês (tab Evolução
- * Patrimonial). Toca ou arrasta no gráfico para ver um mês.
+ * Patrimonial). Toca ou arrasta no gráfico para ver um mês. Em "YTD", mostra só este ano, a partir de 0%.
  */
 @Composable
 fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
     var periodo by rememberSaveable { mutableStateOf("Tudo") }
+    if (periodo == "YTD") {
+        GraficoYtd(remember(pontos) { Ytd.calcular(pontos) }) { periodo = it }
+        return
+    }
     val visiveis = remember(pontos, periodo) {
         when (periodo) {
             "1A" -> pontos.takeLast(13)
@@ -131,15 +140,8 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
     val maximo = escalaRedonda(visiveis.maxOf { maxOf(it.carteiraUsd, it.sp500Usd ?: 0.0, it.investidoUsd ?: 0.0) } * 1.04)
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                mesLongo(p.mes),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Filtros(listOf("1A", "3A", "Tudo"), periodo, compacto = true) { periodo = it }
-        }
+        Filtros(PERIODOS_EVOLUCAO, periodo, compacto = true) { periodo = it }
+        Text(mesLongo(p.mes), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         LinhaLegendas {
             Legenda(corCarteira, "Carteira", Formatos.usd(p.carteiraUsd, 0))
             Legenda(Paleta.dourado, "S&P 500", Formatos.usd(p.sp500Usd, 0))
@@ -242,6 +244,128 @@ fun GraficoEvolucao(pontos: List<PontoEvolucao>) {
             )
         }
         TextoPequeno("Em dólares, como na tab Evolução Patrimonial. O último mês usa os valores de agora.")
+    }
+}
+
+/**
+ * YTD, como no Google Finance: a carteira e o S&P 500 a partir de 0% no fim de dezembro, mês a mês, sem contar
+ * o dinheiro que entrou ou saiu (a rentabilidade de cada mês da folha, encadeada, como a tabela por ano dela).
+ */
+@Composable
+private fun GraficoYtd(serie: SerieYtd?, aoMudarPeriodo: (String) -> Unit) {
+    val corCarteira = MaterialTheme.colorScheme.primary
+    val corGrelha = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    val corZero = MaterialTheme.colorScheme.outline
+    val corFundo = corCartao()
+    var escolhido by remember(serie) { mutableStateOf<Int?>(null) }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Filtros(PERIODOS_EVOLUCAO, "YTD", compacto = true, aoEscolher = aoMudarPeriodo)
+        if (serie == null) {
+            TextoPequeno("Para o YTD, a tab Evolução Patrimonial precisa do fim de dezembro e de um mês deste ano.")
+            return@Column
+        }
+        val pts = serie.pontos
+        val i = (escolhido ?: pts.lastIndex).coerceIn(0, pts.lastIndex)
+        val p = pts[i]
+        val eixo = remember(serie) { Ytd.eixo(pts.flatMap { listOfNotNull(it.carteira, it.sp500) }) }
+        val inicio = "fim de ${serie.ano - 1}"
+        Text(
+            when (i) {
+                0 -> inicio.replaceFirstChar { it.uppercase() }
+                pts.lastIndex -> "${mesLongo(p.mes)} (até agora)"
+                else -> mesLongo(p.mes)
+            },
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LinhaLegendas {
+            Legenda(corCarteira, "Carteira", Formatos.pctSinal(p.carteira))
+            if (!serie.semSp500) Legenda(Paleta.dourado, "S&P 500", Formatos.pctSinal(p.sp500))
+        }
+        Row {
+            Canvas(
+                Modifier
+                    .weight(1f)
+                    .height(170.dp)
+                    .pointerInput(pts) {
+                        detectTapGestures { pos -> escolhido = indiceEm(pos.x, size.width.toFloat(), pts.size) }
+                    }
+                    .pointerInput(pts) {
+                        detectHorizontalDragGestures { mudanca, _ ->
+                            escolhido = indiceEm(mudanca.position.x, size.width.toFloat(), pts.size)
+                        }
+                    }
+                    .semantics {
+                        contentDescription = "Gráfico do ano, ${if (i == 0) inicio else mesLongo(p.mes)}: carteira " +
+                            Formatos.pctSinal(p.carteira) + (if (serie.semSp500) "" else ", S&P 500 " + Formatos.pctSinal(p.sp500))
+                        customActions = listOf(
+                            CustomAccessibilityAction("Mês anterior") { escolhido = (i - 1).coerceAtLeast(0); true },
+                            CustomAccessibilityAction("Mês seguinte") { escolhido = (i + 1).coerceAtMost(pts.lastIndex); true },
+                        )
+                    },
+            ) {
+                val w = size.width
+                val h = size.height
+                val n = pts.size
+                val x = { k: Int -> if (n > 1) w * k / (n - 1) else w / 2 }
+                val y = { v: Double -> (h - (v - eixo.minimo) / (eixo.maximo - eixo.minimo) * h).toFloat() }
+                eixo.marcas.forEach { m ->
+                    val yy = y(m)
+                    if (kotlin.math.abs(m) < 1e-9) {
+                        drawLine(corZero, Offset(0f, yy), Offset(w, yy), strokeWidth = 1.2.dp.toPx())
+                    } else {
+                        drawLine(corGrelha, Offset(0f, yy), Offset(w, yy), strokeWidth = 1f)
+                    }
+                }
+                if (!serie.semSp500) {
+                    drawPath(caminho(pts.map { it.sp500 }, x, y), Paleta.dourado, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+                }
+                drawPath(caminho(pts.map { it.carteira }, x, y), corCarteira, style = Stroke(width = 2.6.dp.toPx(), cap = StrokeCap.Round))
+                // Mês escolhido.
+                val px = x(i)
+                drawLine(corGrelha.copy(alpha = 1f), Offset(px, 0f), Offset(px, h), strokeWidth = 1.5f)
+                p.sp500?.let { drawCircle(Paleta.dourado, 4.dp.toPx(), Offset(px, y(it))) }
+                p.carteira?.let {
+                    drawCircle(corCarteira, 5.dp.toPx(), Offset(px, y(it)))
+                    drawCircle(corFundo, 2.dp.toPx(), Offset(px, y(it)))
+                }
+            }
+            Column(
+                Modifier.height(170.dp).padding(start = 6.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.End,
+            ) {
+                eixo.marcas.reversed().forEach { m ->
+                    Text(
+                        Formatos.pctSinal(m, if (eixo.passo < 0.01) 1 else 0),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextoPequeno(inicio, modifier = Modifier.weight(1f))
+            TextoPequeno(mesCurto(pts.last().mes))
+        }
+        val c = p.carteira
+        val sp = p.sp500
+        if (c != null && sp != null && i > 0) {
+            val diferenca = c - sp
+            Text(
+                "Desde o $inicio: a carteira está " + Formatos.pp(kotlin.math.abs(diferenca)).removePrefix("+") +
+                    (if (diferenca >= 0) " à frente do S&P 500." else " atrás do S&P 500."),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+        TextoPequeno(
+            "YTD: quanto a carteira e o S&P 500 mudaram desde o $inicio, sem contar o dinheiro que entrou ou saiu: " +
+                "a rentabilidade de cada mês da tab Evolução Patrimonial, encadeada, como a tabela por ano da folha. " +
+                "Em dólares e sem dividendos. O mês atual usa os valores de agora.",
+        )
+        if (serie.semSp500) {
+            TextoPequeno("Para veres também o S&P 500, atualiza a ponte da folha para a versão 6 (Definições).")
+        }
     }
 }
 

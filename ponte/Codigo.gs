@@ -19,7 +19,8 @@ const CHAVE = '__CHAVE__';
 // v4: todas as compras e vendas, os dividendos por empresa e a tab Vendas (vendas e rentabilidade na app).
 // v5: o preço do S&P 500 (VUAA) em cada compra e venda, que a ponte fixa na folha, e os dividendos de cada
 //     empresa mês a mês (cada ação contra o índice e a rentabilidade por ano na app).
-const VERSAO_PONTE = 5;
+// v6: a rentabilidade de cada mês da carteira e do S&P 500 (tab Evolução Patrimonial), para o YTD na app.
+const VERSAO_PONTE = 6;
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto',
   'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -586,7 +587,9 @@ function primeiroNumero_(linha, desde) {
 
 /**
  * Tab Evolução Patrimonial, lida uma só vez:
- *  - evolucao: os meses já vividos (carteira, investido, S&P 500, património, reforço e metas);
+ *  - evolucao: os meses já vividos (carteira, investido, S&P 500, património, reforço e metas) e, desde a
+ *    v6, a rentabilidade de cada mês da carteira (RoR Mensal, sem e com dividendos) e do S&P 500 (preço,
+ *    SPY), como a folha as calcula: a app encadeia-as para o YTD, como a tabela por ano da folha;
  *  - plano: o reforço e as taxas assumidas (linha 3) e as 4 metas de cada mês, também as futuras (até 2030).
  */
 function lerEvolucaoEPlano_() {
@@ -646,6 +649,9 @@ function lerEvolucaoEPlano_() {
       // O que está escrito na célula; o netWorthEur do mês corrente pode vir do valor de agora.
       netWorthFolhaEur: num_(campo_(d[r], m, 'Net Worth (€)')),
       reforcoEur: num_(campo_(d[r], m, 'Reforço (€)')),
+      rorMensal: num_(campo_(d[r], m, 'RoR Mensal')),
+      rorComDividendos: num_(campo_(d[r], m, 'RoR c/ dividendos')),
+      sp500Mensal: num_(campo_(d[r], m, 'S&P 500 mensal (preço, SPY)')),
       metaBaseEur: metas.baseEur,
       metaReferenciaEur: metas.referenciaEur,
       metaAlargadaEur: metas.alargadaEur

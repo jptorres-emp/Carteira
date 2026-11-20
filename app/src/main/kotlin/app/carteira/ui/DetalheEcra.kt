@@ -240,8 +240,8 @@ fun EtfDetalheEcra(estado: Estado, vm: CarteiraViewModel, ticker: String) {
 
 /**
  * Tudo o que a posição deu desde a primeira compra: o que vale hoje, o que recebeste nas vendas e os
- * dividendos, contra o que pagaste. Inclui, só a título informativo, quanto do que pagaste já voltou, a
- * rentabilidade por ano (TIR) e o mesmo dinheiro no S&P 500 (VUAA), nas mesmas datas (ponte v5).
+ * dividendos, contra o que pagaste. Inclui, só a título informativo, quanto das ações que tens o lucro já
+ * pagou (de borla), a rentabilidade por ano (TIR) e o mesmo dinheiro no S&P 500 (VUAA), nas mesmas datas.
  */
 @Composable
 fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? = null) {
@@ -251,18 +251,6 @@ fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? 
             LinhaValor("Recebeste nas vendas", "${Formatos.eur(r.vendidoEur, 0)} · ${plural(r.vendas, "venda", "vendas")}")
         }
         if (r.dividendosEur >= 0.5) LinhaValor("Dividendos (brutos)", Formatos.eur(r.dividendosEur, 0))
-        // Informativo: as vendas e os dividendos já cobrem o que pagaste? (não entra nas regras)
-        if (r.aberta && (r.pctRecuperado ?: 0.0) >= 0.005) {
-            LinhaValor(
-                "Já voltou do que pagaste",
-                if (r.deBorla) {
-                    "🎁 de borla (${Formatos.eurSinal(r.recuperadoEur - r.compradoEur)})"
-                } else {
-                    "${Formatos.pct(r.pctRecuperado, 0)} · faltam ${Formatos.eur(r.faltaRecuperarEur, 0)}"
-                },
-                cor = if (r.deBorla) Paleta.verde else Color.Unspecified,
-            )
-        }
         if (r.aberta) LinhaValor("Vale hoje", Formatos.eur(r.valorEur, 0))
         LinhaValor(
             "Lucro total",
@@ -278,6 +266,18 @@ fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? 
             )
         }
         r.maisValiasEur?.let { LinhaValor("Mais-valias das vendas", Formatos.eurSinal(it), cor = corDoSinal(it)) }
+        // Informativo (não entra nas regras): o lucro já tirado paga as ações que tens?
+        if (r.aberta && (r.pctDeBorla ?: 0.0) >= 0.005) {
+            LinhaValor(
+                "Pago pelo lucro",
+                if (r.deBorla) {
+                    "🎁 de borla (+${Formatos.eur(r.excedenteBorlaEur, 0)})"
+                } else {
+                    "${Formatos.pct(r.pctDeBorla, 0)} · faltam ${Formatos.eur(r.faltaParaBorlaEur, 0)}"
+                },
+                cor = if (r.deBorla) Paleta.verde else Color.Unspecified,
+            )
+        }
         if (h.v5) {
             LinhaValor(
                 "Por ano (TIR)",
@@ -299,6 +299,14 @@ fun CartaoRentabilidade(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)? 
                     }
                     ) +
                 (if (r.maisValiasEur != null) " Mais-valias pelo FIFO, como no IRS." else "") +
+                (
+                    if (r.aberta && (r.pctDeBorla ?: 0.0) >= 0.005) {
+                        " Pago pelo lucro: quanto do que custaram as ações que tens (${Formatos.eur(r.custoAtualEur, 0)}) já está " +
+                            "pago pelas mais-valias e pelos dividendos (${Formatos.eur(r.lucroTiradoEur ?: 0.0, 0)}); a 100% ficam de borla."
+                    } else {
+                        ""
+                    }
+                    ) +
                 (if (h.v5) " TIR: o que a posição rendeu por ano, contando com a data de cada compra, venda e dividendo; só a partir de um ano." else ""),
         )
     }
@@ -356,7 +364,7 @@ private fun ContraIndice(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)?
     }
 }
 
-/** Barra do que já voltou do que pagaste: cheia (e verde) quando a posição está de borla. */
+/** Barra do que o lucro já pagou das ações que tens: cheia (e verde) quando a posição está de borla. */
 @Composable
 internal fun BarraRecuperado(pct: Double, deBorla: Boolean, modifier: Modifier = Modifier) {
     val cor = if (deBorla) Paleta.verde else MaterialTheme.colorScheme.primary
@@ -366,7 +374,7 @@ internal fun BarraRecuperado(pct: Double, deBorla: Boolean, modifier: Modifier =
             .height(8.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .semantics { contentDescription = "Recuperado ${Formatos.pct(pct, 0)}" },
+            .semantics { contentDescription = "Pago pelo lucro ${Formatos.pct(pct, 0)}" },
     ) {
         Box(
             Modifier

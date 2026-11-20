@@ -10,13 +10,14 @@ a folha calcula e escreve lá o que registas.
 App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
 ```
 
-- **Ponte** (`ponte/Codigo.gs`, versão 5): aplicação Web do Google Apps Script, publicada a partir da folha.
+- **Ponte** (`ponte/Codigo.gs`, versão 6): aplicação Web do Google Apps Script, publicada a partir da folha.
   `GET ?acao=dados` devolve a carteira em JSON (com a evolução mensal, o plano do património até 2030 —
   reforço e taxas assumidos e as metas de referência, base e alargada de cada mês —, os objetivos, o
   património, a comparação com o S&P 500 e os setores; e, desde a versão 4, todas as compras e vendas da tab
   Transações, os dividendos por empresa da tab Dividendos Anuais e a tab Vendas; e, desde a versão 5, o preço
   do S&P 500 (VUAA e SPY) em cada compra e venda, os dividendos de cada empresa mês a mês e o câmbio de cada
-  mês); `GET ?acao=alertas` devolve só preços e sinais,
+  mês; e, desde a versão 6, a rentabilidade de cada mês da carteira e do S&P 500 da tab Evolução
+  Patrimonial); `GET ?acao=alertas` devolve só preços e sinais,
   para os alertas; `POST` regista uma transação (tab Transações), um dividendo (tab Dividendos Mensais) ou o
   património de um mês (coluna Net Worth (€) da tab Evolução Patrimonial).
   Todos os pedidos levam uma chave secreta. Se uma tab mudar de forma, a resposta traz o resto e um aviso.
@@ -32,7 +33,12 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   com comissões; em euros com o câmbio de cada transação e em dólares sem o câmbio), e o ecrã Vendas lista as
   vendas com a mais-valia de cada uma pelo FIFO (como no IRS), as mais-valias por ano e as posições fechadas.
   Só a título informativo, a opção «De borla» desse ecrã (e uma linha no detalhe) mostra que posições já se
-  pagaram com vendas e dividendos e quanto falta às outras; não entra nas regras de comprar e vender.
+  pagaram com o lucro — as mais-valias das vendas e os dividendos pagam o que custaram as ações que ainda tens
+  (o custo das ações vendidas é só o teu dinheiro a voltar e não conta) — e quanto falta às outras; não entra
+  nas regras de comprar e vender.
+  O gráfico «Carteira vs S&P 500» da Evolução tem a opção YTD, como no Google Finance: este ano a partir de 0%
+  no fim de dezembro, mês a mês, sem contar o dinheiro que entrou ou saiu (a rentabilidade de cada mês da
+  folha, encadeada, como a tabela por ano dela; em dólares e sem dividendos).
   Com a ponte v5, o detalhe compara cada posição com o mesmo dinheiro no S&P 500 (VUAA) nas mesmas datas —
   como a tab Validação S&P 500, mas ação a ação — e mostra a rentabilidade por ano (TIR, só quando o dinheiro
   está lá, em média, há mais de um ano); o ecrã «Contra o S&P 500» (atalho na Evolução) põe todas lado a

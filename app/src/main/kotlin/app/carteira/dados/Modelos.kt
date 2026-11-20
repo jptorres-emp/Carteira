@@ -70,6 +70,14 @@ data class PontoEvolucao(
      * ser o valor de agora; este diz se o mês já foi gravado na folha.
      */
     val netWorthFolhaEur: Double? = null,
+    /**
+     * Rentabilidade do mês da carteira, como a folha a calcula (RoR Mensal: o valor do fim do mês menos o que
+     * entrou nesse mês, sobre o valor do mês anterior), sem e com os dividendos do mês (ponte v6).
+     */
+    val rorMensal: Double? = null,
+    val rorComDividendos: Double? = null,
+    /** Rentabilidade do mês do S&P 500, só preço (SPY), da folha (ponte v6); null no mês que ainda não fechou. */
+    val sp500Mensal: Double? = null,
 )
 
 /**

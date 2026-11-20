@@ -1,6 +1,6 @@
 {
  "ok": true,
- "versaoPonte": 5,
+ "versaoPonte": 6,
  "dados": {
   "meta": {
    "folha": "Carteira de teste",
@@ -19,7 +19,10 @@
     "reforcoEur": 400.0,
     "metaBaseEur": 7084.42,
     "metaReferenciaEur": 7084.42,
-    "metaAlargadaEur": 7084.42
+    "metaAlargadaEur": 7084.42,
+    "rorMensal": null,
+    "rorComDividendos": null,
+    "sp500Mensal": null
    },
    {
     "mes": "2022-10",
@@ -31,7 +34,10 @@
     "reforcoEur": 515.63,
     "metaBaseEur": 7521.7,
     "metaReferenciaEur": 7513.28,
-    "metaAlargadaEur": 7530.0
+    "metaAlargadaEur": 7530.0,
+    "rorMensal": 0.0237403509,
+    "rorComDividendos": 0.0258035088,
+    "sp500Mensal": 0.010259
    },
    {
     "mes": "2022-11",
@@ -43,7 +49,10 @@
     "reforcoEur": 461.86,
     "metaBaseEur": 7961.27,
     "metaReferenciaEur": 7943.89,
-    "metaAlargadaEur": 7978.45
+    "metaAlargadaEur": 7978.45,
+    "rorMensal": 0.0160708355,
+    "rorComDividendos": 0.0205064987,
+    "sp500Mensal": 0.003204
    },
    {
     "mes": "2022-12",
@@ -55,7 +64,10 @@
     "reforcoEur": 167.47,
     "metaBaseEur": 8403.16,
     "metaReferenciaEur": 8376.26,
-    "metaAlargadaEur": 8429.79
+    "metaAlargadaEur": 8429.79,
+    "rorMensal": -0.0002826522,
+    "rorComDividendos": 0.0003768696,
+    "sp500Mensal": -0.003794
    },
    {
     "mes": "2023-01",
@@ -67,7 +79,10 @@
     "reforcoEur": 293.99,
     "metaBaseEur": 8847.38,
     "metaReferenciaEur": 8810.38,
-    "metaAlargadaEur": 8884.02
+    "metaAlargadaEur": 8884.02,
+    "rorMensal": -0.0162511323,
+    "rorComDividendos": -0.0124393913,
+    "sp500Mensal": -0.008224
    },
    {
     "mes": "2023-02",
@@ -79,7 +94,10 @@
     "reforcoEur": 425.81,
     "metaBaseEur": 9293.93,
     "metaReferenciaEur": 9246.28,
-    "metaAlargadaEur": 9341.18
+    "metaAlargadaEur": 9341.18,
+    "rorMensal": -0.0240888052,
+    "rorComDividendos": -0.0183637126,
+    "sp500Mensal": -0.008534
    },
    {
     "mes": "2023-03",
@@ -91,7 +109,10 @@
     "reforcoEur": 519.83,
     "metaBaseEur": 9742.83,
     "metaReferenciaEur": 9683.95,
-    "metaAlargadaEur": 9801.28
+    "metaAlargadaEur": 9801.28,
+    "rorMensal": -0.0196998061,
+    "rorComDividendos": -0.0182048968,
+    "sp500Mensal": -0.004418
    },
    {
     "mes": "2023-04",
@@ -103,7 +124,10 @@
     "reforcoEur": 438.29,
     "metaBaseEur": 10194.1,
     "metaReferenciaEur": 10123.4,
-    "metaAlargadaEur": 10264.35
+    "metaAlargadaEur": 10264.35,
+    "rorMensal": -0.0048556166,
+    "rorComDividendos": -0.0019756909,
+    "sp500Mensal": 0.003001
    },
    {
     "mes": "2023-05",
@@ -115,7 +139,10 @@
     "reforcoEur": 300.66,
     "metaBaseEur": 10647.74,
     "metaReferenciaEur": 10564.65,
-    "metaAlargadaEur": 10730.39
+    "metaAlargadaEur": 10730.39,
+    "rorMensal": 0.0124006728,
+    "rorComDividendos": 0.020196757,
+    "sp500Mensal": 0.011479
    },
    {
     "mes": "2023-06",
@@ -127,7 +154,10 @@
     "reforcoEur": 308.56,
     "metaBaseEur": 11103.76,
     "metaReferenciaEur": 11007.69,
-    "metaAlargadaEur": 11199.43
+    "metaAlargadaEur": 11199.43,
+    "rorMensal": 0.0217919044,
+    "rorComDividendos": 0.0229324921,
+    "sp500Mensal": 0.018411
    },
    {
     "mes": "2023-07",
@@ -139,7 +169,10 @@
     "reforcoEur": 300.42,
     "metaBaseEur": 11562.19,
     "metaReferenciaEur": 11452.54,
-    "metaAlargadaEur": 11671.48
+    "metaAlargadaEur": 11671.48,
+    "rorMensal": 0.0177103026,
+    "rorComDividendos": 0.0198754901,
+    "sp500Mensal": 0.021786
    },
    {
     "mes": "2023-08",
@@ -151,7 +184,10 @@
     "reforcoEur": 518.41,
     "metaBaseEur": 12023.02,
     "metaReferenciaEur": 11899.2,
-    "metaAlargadaEur": 12146.58
+    "metaAlargadaEur": 12146.58,
+    "rorMensal": 0.0030816805,
+    "rorComDividendos": 0.0064000853,
+    "sp500Mensal": 0.020856
    },
    {
     "mes": "2023-09",
@@ -163,7 +199,10 @@
     "reforcoEur": 412.93,
     "metaBaseEur": 12486.28,
     "metaReferenciaEur": 12347.67,
-    "metaAlargadaEur": 12624.73
+    "metaAlargadaEur": 12624.73,
+    "rorMensal": -0.0129492764,
+    "rorComDividendos": -0.0120650133,
+    "sp500Mensal": 0.016199
    },
    {
     "mes": "2023-10",
@@ -175,7 +214,10 @@
     "reforcoEur": 288.51,
     "metaBaseEur": 12951.98,
     "metaReferenciaEur": 12797.98,
-    "metaAlargadaEur": 13105.96
+    "metaAlargadaEur": 13105.96,
+    "rorMensal": -0.0209337118,
+    "rorComDividendos": -0.0191702741,
+    "sp500Mensal": 0.009393
    },
    {
     "mes": "2023-11",
@@ -187,7 +229,10 @@
     "reforcoEur": 327.42,
     "metaBaseEur": 13420.13,
     "metaReferenciaEur": 13250.12,
-    "metaAlargadaEur": 13590.28
+    "metaAlargadaEur": 13590.28,
+    "rorMensal": -0.0166536522,
+    "rorComDividendos": -0.0121034541,
+    "sp500Mensal": 0.002467
    },
    {
     "mes": "2023-12",
@@ -199,7 +244,10 @@
     "reforcoEur": 1100.0,
     "metaBaseEur": 13890.74,
     "metaReferenciaEur": 13704.1,
-    "metaAlargadaEur": 14077.72
+    "metaAlargadaEur": 14077.72,
+    "rorMensal": -0.0027753054,
+    "rorComDividendos": -0.0019973789,
+    "sp500Mensal": -0.002607
    },
    {
     "mes": "2024-01",
@@ -211,7 +259,10 @@
     "reforcoEur": 511.46,
     "metaBaseEur": 14363.83,
     "metaReferenciaEur": 14159.94,
-    "metaAlargadaEur": 14568.3
+    "metaAlargadaEur": 14568.3,
+    "rorMensal": 0.0142545009,
+    "rorComDividendos": 0.016740635,
+    "sp500Mensal": -0.004347
    },
    {
     "mes": "2024-02",
@@ -223,7 +274,10 @@
     "reforcoEur": 236.96,
     "metaBaseEur": 14839.41,
     "metaReferenciaEur": 14617.62,
-    "metaAlargadaEur": 15062.03
+    "metaAlargadaEur": 15062.03,
+    "rorMensal": 0.028181709,
+    "rorComDividendos": 0.0320755629,
+    "sp500Mensal": -0.002172
    },
    {
     "mes": "2024-03",
@@ -235,7 +289,10 @@
     "reforcoEur": 281.57,
     "metaBaseEur": 15317.49,
     "metaReferenciaEur": 15077.18,
-    "metaAlargadaEur": 15558.94
+    "metaAlargadaEur": 15558.94,
+    "rorMensal": 0.0344881473,
+    "rorComDividendos": 0.0355198254,
+    "sp500Mensal": 0.003353
    },
    {
     "mes": "2024-04",
@@ -247,7 +304,10 @@
     "reforcoEur": 349.68,
     "metaBaseEur": 15798.09,
     "metaReferenciaEur": 15538.6,
-    "metaAlargadaEur": 16059.05
+    "metaAlargadaEur": 16059.05,
+    "rorMensal": 0.0309878922,
+    "rorComDividendos": 0.0329886663,
+    "sp500Mensal": 0.01057
    },
    {
     "mes": "2024-05",
@@ -259,7 +319,10 @@
     "reforcoEur": 491.51,
     "metaBaseEur": 16281.21,
     "metaReferenciaEur": 16001.91,
-    "metaAlargadaEur": 16562.37
+    "metaAlargadaEur": 16562.37,
+    "rorMensal": 0.0189217308,
+    "rorComDividendos": 0.0244343316,
+    "sp500Mensal": 0.017218
    },
    {
     "mes": "2024-06",
@@ -271,7 +334,10 @@
     "reforcoEur": 499.28,
     "metaBaseEur": 16766.88,
     "metaReferenciaEur": 16467.1,
-    "metaAlargadaEur": 17068.94
+    "metaAlargadaEur": 17068.94,
+    "rorMensal": 0.002920262,
+    "rorComDividendos": 0.0037605149,
+    "sp500Mensal": 0.021244
    },
    {
     "mes": "2024-07",
@@ -283,7 +349,10 @@
     "reforcoEur": 361.61,
     "metaBaseEur": 17255.1,
     "metaReferenciaEur": 16934.19,
-    "metaAlargadaEur": 17578.76
+    "metaAlargadaEur": 17578.76,
+    "rorMensal": -0.0107215556,
+    "rorComDividendos": -0.009029215,
+    "sp500Mensal": 0.021528
    },
    {
     "mes": "2024-08",
@@ -295,7 +364,10 @@
     "reforcoEur": 280.18,
     "metaBaseEur": 17745.89,
     "metaReferenciaEur": 17403.19,
-    "metaAlargadaEur": 18091.86
+    "metaAlargadaEur": 18091.86,
+    "rorMensal": -0.0163351394,
+    "rorComDividendos": -0.0135763404,
+    "sp500Mensal": 0.01816
    },
    {
     "mes": "2024-09",
@@ -307,7 +379,10 @@
     "reforcoEur": 224.29,
     "metaBaseEur": 18239.27,
     "metaReferenciaEur": 17874.09,
-    "metaAlargadaEur": 18608.26
+    "metaAlargadaEur": 18608.26,
+    "rorMensal": -0.0111366811,
+    "rorComDividendos": -0.010363436,
+    "sp500Mensal": 0.012274
    },
    {
     "mes": "2024-10",
@@ -319,7 +394,10 @@
     "reforcoEur": 506.06,
     "metaBaseEur": 18735.24,
     "metaReferenciaEur": 18346.91,
-    "metaAlargadaEur": 19127.99
+    "metaAlargadaEur": 19127.99,
+    "rorMensal": 0.0028688399,
+    "rorComDividendos": 0.0044521597,
+    "sp500Mensal": 0.005611
    },
    {
     "mes": "2024-11",
@@ -331,7 +409,10 @@
     "reforcoEur": 482.45,
     "metaBaseEur": 19233.81,
     "metaReferenciaEur": 18821.66,
-    "metaAlargadaEur": 19651.06
+    "metaAlargadaEur": 19651.06,
+    "rorMensal": 0.0189037096,
+    "rorComDividendos": 0.0229975196,
+    "sp500Mensal": 3.5e-05
    },
    {
     "mes": "2024-12",
@@ -343,7 +424,10 @@
     "reforcoEur": 950.0,
     "metaBaseEur": 19735.02,
     "metaReferenciaEur": 19298.34,
-    "metaAlargadaEur": 20177.49
+    "metaAlargadaEur": 20177.49,
+    "rorMensal": 0.0288363544,
+    "rorComDividendos": 0.0295297184,
+    "sp500Mensal": -0.002884
    },
    {
     "mes": "2025-01",
@@ -355,7 +439,10 @@
     "reforcoEur": 284.4,
     "metaBaseEur": 20238.86,
     "metaReferenciaEur": 19776.96,
-    "metaAlargadaEur": 20707.32
+    "metaAlargadaEur": 20707.32,
+    "rorMensal": 0.0280360196,
+    "rorComDividendos": 0.0299006828,
+    "sp500Mensal": -0.002274
    },
    {
     "mes": "2025-02",
@@ -367,7 +454,10 @@
     "reforcoEur": 400.11,
     "metaBaseEur": 20745.35,
     "metaReferenciaEur": 20257.54,
-    "metaAlargadaEur": 21240.55
+    "metaAlargadaEur": 21240.55,
+    "rorMensal": 0.0175641741,
+    "rorComDividendos": 0.0205136707,
+    "sp500Mensal": 0.001755
    },
    {
     "mes": "2025-03",
@@ -379,7 +469,10 @@
     "reforcoEur": 515.66,
     "metaBaseEur": 21254.5,
     "metaReferenciaEur": 20740.07,
-    "metaAlargadaEur": 21777.21
+    "metaAlargadaEur": 21777.21,
+    "rorMensal": 0.0026618164,
+    "rorComDividendos": 0.0034674208,
+    "sp500Mensal": 0.008029
    },
    {
     "mes": "2025-04",
@@ -391,7 +484,10 @@
     "reforcoEur": 311.77,
     "metaBaseEur": 21766.34,
     "metaReferenciaEur": 21224.57,
-    "metaAlargadaEur": 22317.33
+    "metaAlargadaEur": 22317.33,
+    "rorMensal": -0.0100602241,
+    "rorComDividendos": -0.0084202422,
+    "sp500Mensal": 0.014606
    },
    {
     "mes": "2025-05",
@@ -403,7 +499,10 @@
     "reforcoEur": 317.39,
     "metaBaseEur": 22280.87,
     "metaReferenciaEur": 21711.04,
-    "metaAlargadaEur": 22860.92
+    "metaAlargadaEur": 22860.92,
+    "rorMensal": -0.0150165972,
+    "rorComDividendos": -0.010238878,
+    "sp500Mensal": 0.019431
    },
    {
     "mes": "2025-06",
@@ -415,7 +514,10 @@
     "reforcoEur": 294.04,
     "metaBaseEur": 22798.1,
     "metaReferenciaEur": 22199.49,
-    "metaAlargadaEur": 23408.0
+    "metaAlargadaEur": 23408.0,
+    "rorMensal": -0.0096521907,
+    "rorComDividendos": -0.0088891406,
+    "sp500Mensal": 0.021067
    },
    {
     "mes": "2025-07",
@@ -427,7 +529,10 @@
     "reforcoEur": 425.92,
     "metaBaseEur": 23318.06,
     "metaReferenciaEur": 22689.93,
-    "metaAlargadaEur": 23958.61
+    "metaAlargadaEur": 23958.61,
+    "rorMensal": 0.0039156683,
+    "rorComDividendos": 0.0054899931,
+    "sp500Mensal": 0.019143
    },
    {
     "mes": "2025-08",
@@ -439,7 +544,10 @@
     "reforcoEur": 519.83,
     "metaBaseEur": 23840.75,
     "metaReferenciaEur": 23182.38,
-    "metaAlargadaEur": 24512.76
+    "metaAlargadaEur": 24512.76,
+    "rorMensal": 0.0191143736,
+    "rorComDividendos": 0.0216740048,
+    "sp500Mensal": 0.014365
    },
    {
     "mes": "2025-09",
@@ -451,7 +559,10 @@
     "reforcoEur": 438.19,
     "metaBaseEur": 24366.19,
     "metaReferenciaEur": 23676.82,
-    "metaAlargadaEur": 25070.48
+    "metaAlargadaEur": 25070.48,
+    "rorMensal": 0.0282520557,
+    "rorComDividendos": 0.0289525796,
+    "sp500Mensal": 0.008176
    },
    {
     "mes": "2025-10",
@@ -463,7 +574,10 @@
     "reforcoEur": 300.6,
     "metaBaseEur": 24894.4,
     "metaReferenciaEur": 24173.29,
-    "metaAlargadaEur": 25631.78
+    "metaAlargadaEur": 25631.78,
+    "rorMensal": 0.0270836225,
+    "rorComDividendos": 0.028479643,
+    "sp500Mensal": 0.002328
    },
    {
     "mes": "2025-11",
@@ -475,7 +589,10 @@
     "reforcoEur": 158.63,
     "metaBaseEur": 25425.39,
     "metaReferenciaEur": 24671.77,
-    "metaAlargadaEur": 26196.7
+    "metaAlargadaEur": 26196.7,
+    "rorMensal": 0.0167767366,
+    "rorComDividendos": 0.0203450844,
+    "sp500Mensal": -0.001555
    },
    {
     "mes": "2025-12",
@@ -487,7 +604,10 @@
     "reforcoEur": 1300.0,
     "metaBaseEur": 25959.17,
     "metaReferenciaEur": 25172.29,
-    "metaAlargadaEur": 26765.25
+    "metaAlargadaEur": 26765.25,
+    "rorMensal": 0.002427186,
+    "rorComDividendos": 0.003039506,
+    "sp500Mensal": -0.00236
    },
    {
     "mes": "2026-01",
@@ -499,7 +619,10 @@
     "reforcoEur": 518.4,
     "metaBaseEur": 26495.76,
     "metaReferenciaEur": 25674.84,
-    "metaAlargadaEur": 27337.46
+    "metaAlargadaEur": 27337.46,
+    "rorMensal": -0.0096132,
+    "rorComDividendos": -0.0076011636,
+    "sp500Mensal": 0.000198
    },
    {
     "mes": "2026-02",
@@ -511,7 +634,10 @@
     "reforcoEur": 412.82,
     "metaBaseEur": 27035.17,
     "metaReferenciaEur": 26179.44,
-    "metaAlargadaEur": 27913.35
+    "metaAlargadaEur": 27913.35,
+    "rorMensal": -0.0140468841,
+    "rorComDividendos": -0.0112252819,
+    "sp500Mensal": 0.005407
    },
    {
     "mes": "2026-03",
@@ -523,7 +649,10 @@
     "reforcoEur": 288.47,
     "metaBaseEur": 27577.42,
     "metaReferenciaEur": 26686.1,
-    "metaAlargadaEur": 28492.94
+    "metaAlargadaEur": 28492.94,
+    "rorMensal": -0.00857705,
+    "rorComDividendos": -0.0075957387,
+    "sp500Mensal": 0.011684
    },
    {
     "mes": "2026-04",
@@ -535,7 +664,10 @@
     "reforcoEur": 327.5,
     "metaBaseEur": 28122.52,
     "metaReferenciaEur": 27194.83,
-    "metaAlargadaEur": 29076.27
+    "metaAlargadaEur": 29076.27,
+    "rorMensal": 0.0045915544,
+    "rorComDividendos": 0.0064707652,
+    "sp500Mensal": 0.017071
    },
    {
     "mes": "2026-05",
@@ -547,7 +679,10 @@
     "reforcoEur": 472.75,
     "metaBaseEur": 28670.5,
     "metaReferenciaEur": 27705.62,
-    "metaAlargadaEur": 29663.34
+    "metaAlargadaEur": 29663.34,
+    "rorMensal": 0.0190674468,
+    "rorComDividendos": 0.0236431874,
+    "sp500Mensal": 0.019915
    },
    {
     "mes": "2026-06",
@@ -559,7 +694,10 @@
     "reforcoEur": 361.42,
     "metaBaseEur": 29221.35,
     "metaReferenciaEur": 28218.5,
-    "metaAlargadaEur": 30254.2
+    "metaAlargadaEur": 30254.2,
+    "rorMensal": 0.0275433206,
+    "rorComDividendos": 0.0285619965,
+    "sp500Mensal": 0.019433
    },
    {
     "mes": "2026-07",
@@ -571,7 +709,10 @@
     "reforcoEur": 386.86,
     "metaBaseEur": 29775.1,
     "metaReferenciaEur": 28733.46,
-    "metaAlargadaEur": 30848.86
+    "metaAlargadaEur": 30848.86,
+    "rorMensal": 0.02610011,
+    "rorComDividendos": 0.0279138813,
+    "sp500Mensal": 0.015889
    },
    {
     "mes": "2026-08",
@@ -583,7 +724,10 @@
     "reforcoEur": 281.55,
     "metaBaseEur": 30331.77,
     "metaReferenciaEur": 29250.53,
-    "metaAlargadaEur": 31447.34
+    "metaAlargadaEur": 31447.34,
+    "rorMensal": 0.0159780813,
+    "rorComDividendos": 0.0184064589,
+    "sp500Mensal": 0.010399
    },
    {
     "mes": "2026-09",
@@ -595,7 +739,10 @@
     "reforcoEur": 349.77,
     "metaBaseEur": 30891.37,
     "metaReferenciaEur": 29769.7,
-    "metaAlargadaEur": 32049.67
+    "metaAlargadaEur": 32049.67,
+    "rorMensal": 0.002143356,
+    "rorComDividendos": 0.0028115521,
+    "sp500Mensal": 0.004546
    },
    {
     "mes": "2026-10",
@@ -607,7 +754,10 @@
     "reforcoEur": 491.58,
     "metaBaseEur": 31453.91,
     "metaReferenciaEur": 30290.98,
-    "metaAlargadaEur": 32655.88
+    "metaAlargadaEur": 32655.88,
+    "rorMensal": -0.0092850804,
+    "rorComDividendos": -0.0080262957,
+    "sp500Mensal": -4.1e-05
    },
    {
     "mes": "2026-11",
@@ -619,7 +769,10 @@
     "reforcoEur": 250.0,
     "metaBaseEur": 32019.41,
     "metaReferenciaEur": 30814.39,
-    "metaAlargadaEur": 33265.99
+    "metaAlargadaEur": 33265.99,
+    "rorMensal": -0.0004833324,
+    "rorComDividendos": 0.0005584084,
+    "sp500Mensal": null
    }
   ],
   "plano": {
