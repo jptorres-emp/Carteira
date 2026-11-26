@@ -35,6 +35,7 @@ import app.carteira.dados.AnoPatrimonio
 import app.carteira.dados.ClassePatrimonio
 import app.carteira.dados.Patrimonio
 import app.carteira.dados.PosicaoPlano
+import app.carteira.dados.Rendimentos
 import kotlin.math.max
 import kotlin.math.min
 
@@ -52,7 +53,7 @@ internal fun textoPosicao(p: PosicaoPlano): Pair<String, Color> = when (p) {
 // ───────────────────────────── Topo ─────────────────────────────
 
 @Composable
-internal fun TopoPatrimonio(a: AnalisePatrimonio) {
+internal fun TopoPatrimonio(a: AnalisePatrimonio, rendimentos: Rendimentos? = null) {
     val branco = Color.White
     val ano = a.mesAtual.take(4)
     Box(
@@ -101,8 +102,22 @@ internal fun TopoPatrimonio(a: AnalisePatrimonio) {
                     Modifier.weight(1f),
                 )
             }
+            if (rendimentos != null && rendimentos.totalEur > 0) {
+                Text(
+                    "Rende ${Formatos.eur(rendimentos.totalEur, 0)} por ano (${Formatos.eur(rendimentos.porMesEur, 0)}/mês): " +
+                        listaDeTipos(rendimentos),
+                    style = MaterialTheme.typography.bodySmall.numeros(),
+                    color = branco.copy(alpha = 0.8f),
+                )
+            }
         }
     }
+}
+
+/** "dividendos, juros e P2P". */
+private fun listaDeTipos(r: Rendimentos): String {
+    val nomes = r.tipos.map { if (it.tipo == Rendimentos.P2P) it.tipo else it.tipo.lowercase() }
+    return if (nomes.size <= 1) nomes.joinToString() else nomes.dropLast(1).joinToString(", ") + " e " + nomes.last()
 }
 
 @Composable
@@ -402,5 +417,67 @@ internal fun CartaoComposicao(p: Patrimonio) {
             }
         }
         TextoPequeno("Da tab Investimentos: ações e ETFs ao vivo; o resto é o último saldo que lá puseste.")
+    }
+}
+
+// ───────────────────────────── Rendimentos ─────────────────────────────
+
+/** Dividendos, juros, P2P…: quanto o património rende por ano, de onde vem e o que já recebeste. */
+@Composable
+internal fun CartaoRendimentos(r: Rendimentos) {
+    if (r.tipos.isEmpty()) return
+    val total = r.totalEur
+    Cartao("Rendimentos por ano") {
+        Text(
+            Formatos.eur(total, 0),
+            style = MaterialTheme.typography.headlineSmall.numeros(),
+            fontWeight = FontWeight.SemiBold,
+        )
+        TextoPequeno(
+            listOfNotNull(
+                "${Formatos.eur(r.porMesEur, 0)} por mês",
+                r.taxa?.let { "${Formatos.pct(it)} do património" },
+                "≈ ${Formatos.eur(r.liquidoEur, 0)} depois dos 28% de IRS",
+            ).joinToString(" · "),
+        )
+        BarraEmpilhada(r.tipos.mapIndexed { k, t -> t.valorEur to Paleta.categoria(k) })
+        r.tipos.forEachIndexed { k, t ->
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(Paleta.categoria(k)))
+                    Spacer(Modifier.width(8.dp))
+                    Text(t.tipo, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Text(Formatos.eur(t.valorEur, 0), style = MaterialTheme.typography.bodyMedium.numeros())
+                    Text(
+                        Formatos.pct(if (total > 0) t.valorEur / total else null, 0),
+                        modifier = Modifier.width(48.dp),
+                        style = MaterialTheme.typography.bodySmall.numeros(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                    )
+                }
+                // As partes ("Ações 865 € · ETFs 236 €"), se o tipo tiver mais do que a que lhe dá o nome.
+                if (t.partes.size > 1 || t.partes.first().nome != t.tipo) {
+                    TextoPequeno(
+                        t.partes.joinToString(" · ") { p ->
+                            "${p.nome} ${Formatos.eur(p.valorEur, 0)}" + if (p.pagoUltimos12m) " (pagos em 12 meses)" else ""
+                        },
+                        modifier = Modifier.padding(start = 16.dp),
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = corBordaCartao())
+        r.dividendos12mEur?.let { v ->
+            TextoPequeno(
+                "Dividendos recebidos: ${Formatos.eur(v, 0)} nos últimos 12 meses" +
+                    (r.dividendosAnoEur?.let { a -> " · ${Formatos.eur(a, 0)} em ${r.ano}" } ?: "") + ".",
+            )
+        }
+        TextoPequeno(
+            "Valores brutos, por ano, ao ritmo de hoje: o valor de cada classe × a taxa da tab Investimentos" +
+                (if (r.temPagosUltimos12m) "; os ETFs, que lá estão a 0%, pelo que pagaram nos últimos 12 meses" else "") + ".",
+        )
     }
 }

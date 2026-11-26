@@ -67,6 +67,11 @@ class Repositorio(contexto: Context) {
         get() = preferencias.getString("ordem_posicoes", "Valor") ?: "Valor"
         set(v) = preferencias.edit().putString("ordem_posicoes", v).apply()
 
+    /** A última vista das Posições: "Lista" (cartões) ou "Pesos". */
+    var vistaPosicoes: String
+        get() = preferencias.getString("vista_posicoes", "Lista") ?: "Lista"
+        set(v) = preferencias.edit().putString("vista_posicoes", v).apply()
+
     // ── Alertas ──
 
     var alertasAtivos: Boolean

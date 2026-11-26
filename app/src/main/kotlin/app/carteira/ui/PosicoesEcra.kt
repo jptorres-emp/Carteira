@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +36,7 @@ import app.carteira.dados.Dados
 import app.carteira.dados.Gatilhos
 import app.carteira.dados.Historico
 import app.carteira.dados.Sinais
+import kotlin.math.max
 
 /** Linha da lista: uma ação ou um ETF, já com os números em euros. */
 private data class Linha(
@@ -56,6 +58,11 @@ private data class Linha(
 /** As ordens da lista; a escolhida fica guardada para a próxima vez. */
 internal val ORDENS_POSICOES = listOf("Valor", "Ganho", "Hoje", "Peso vs alvo", "Sinal", "A–Z")
 
+/** Cartões com tudo, ou só o peso de cada posição numa barra (também fica guardada). */
+internal const val VISTA_LISTA = "Lista"
+internal const val VISTA_PESOS = "Pesos"
+internal val VISTAS_POSICOES = listOf(VISTA_LISTA, VISTA_PESOS)
+
 /** Na ordem "Sinal": primeiro o que pede para agir (sair, reduzir, comprar forte, comprar), os ETF no fim. */
 private fun prioridadeSinal(l: Linha): Int = when {
     l.etf -> 9
@@ -73,6 +80,7 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     var procura by rememberSaveable { mutableStateOf("") }
     var filtro by rememberSaveable { mutableStateOf("Todas") }
     val ordem = estado.prefs.ordemPosicoes.takeIf { it in ORDENS_POSICOES } ?: "Valor"
+    val vista = estado.prefs.vistaPosicoes.takeIf { it in VISTAS_POSICOES } ?: VISTA_LISTA
 
     val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
     val historico = d.historico
@@ -89,6 +97,13 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         )
     }
     val alvos = d.posicoes.associate { it.ticker to it.pesoAlvo }
+    val maximos = d.posicoes.associate { it.ticker to it.pesoMaximo }
+    // As cores das camadas são as da Alocação do Início (pela mesma ordem); os ETFs ficam a cinzento.
+    val ordemCamadas = d.camadas.filter { (it.pesoHoje ?: 0.0) > 0 || (it.pesoIdeal ?: 0.0) > 0 }.map { it.camada }
+    val corDaCamada = { camada: String ->
+        val k = ordemCamadas.indexOfFirst { it == camada || (camada.startsWith("Sair") && it.startsWith("Sair")) }
+        if (k >= 0) Paleta.categoria(k) else Paleta.cinzento
+    }
 
     val camadas = listOf("Core A", "Core B", "Satélite", "Aposta").filter { c -> linhas.any { it.camada == c } } +
         linhas.map { it.camada }.distinct().filter { it !in listOf("Core A", "Core B", "Satélite", "Aposta", "ETFs", "—") }.sorted()
@@ -134,18 +149,28 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
         item { Filtros(opcoes, filtroAtivo) { filtro = it } }
         item {
             val soma = visiveis.sumOf { it.valorEur ?: 0.0 }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextoPequeno(
-                    "${visiveis.size} ${if (visiveis.size == 1) "posição" else "posições"} · ${Formatos.eur(soma, 0)}" +
-                        if (totalCarteira > 0) " · ${Formatos.pct(soma / totalCarteira)} da carteira" else "",
-                    modifier = Modifier.weight(1f),
-                )
-                MenuOrdem(ordem) { vm.escolherOrdemPosicoes(it) }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextoPequeno("Ver")
+                    Spacer(Modifier.width(8.dp))
+                    Filtros(VISTAS_POSICOES, vista, compacto = true) { vm.escolherVistaPosicoes(it) }
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    TextoPequeno(
+                        "${visiveis.size} ${if (visiveis.size == 1) "posição" else "posições"} · ${Formatos.eur(soma, 0)}" +
+                            if (totalCarteira > 0) " · ${Formatos.pct(soma / totalCarteira)} da carteira" else "",
+                        modifier = Modifier.weight(1f),
+                    )
+                    MenuOrdem(ordem) { vm.escolherOrdemPosicoes(it) }
+                }
             }
         }
-        items(visiveis, key = { it.ticker }) { l ->
-            CartaoLinha(l, alvos[l.ticker]) {
-                vm.irPara(if (l.etf) Ecra.Etf(l.ticker) else Ecra.Posicao(l.ticker))
+        val abrir = { l: Linha -> vm.irPara(if (l.etf) Ecra.Etf(l.ticker) else Ecra.Posicao(l.ticker)) }
+        if (vista == VISTA_PESOS) {
+            item(key = "pesos") { CartaoPesos(visiveis, alvos, maximos, corDaCamada, abrir) }
+        } else {
+            items(visiveis, key = { it.ticker }) { l ->
+                CartaoLinha(l, alvos[l.ticker]) { abrir(l) }
             }
         }
     }
@@ -213,6 +238,82 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
                 Text(peso, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.End)
             }
         }
+    }
+}
+
+/**
+ * A vista Pesos: o peso de cada posição (e ETF) na carteira, numa barra à mesma escala, com o traço no peso
+ * máximo da camada e o alvo ao lado. O peso fica âmbar acima do máximo e vermelho acima de 1,25 × o máximo
+ * (onde as regras mandam aparar). Tocar abre a posição.
+ */
+@Composable
+private fun CartaoPesos(
+    linhas: List<Linha>,
+    alvos: Map<String, Double?>,
+    maximos: Map<String, Double?>,
+    corDaCamada: (String) -> Color,
+    aoTocar: (Linha) -> Unit,
+) {
+    if (linhas.isEmpty()) return
+    val pesos = linhas.mapNotNull { it.peso }.sortedDescending()
+    val escala = linhas.maxOf { l -> max(l.peso ?: 0.0, maximos[l.ticker] ?: 0.0) }.coerceAtLeast(0.01) * 1.05
+    Cartao {
+        if (pesos.size > 5) {
+            TextoPequeno(
+                "As 5 maiores: ${Formatos.pct(pesos.take(5).sum())} · as 10 maiores: ${Formatos.pct(pesos.take(10).sum())} da carteira",
+            )
+        }
+        linhas.forEach { l ->
+            LinhaPeso(l, alvos[l.ticker], maximos[l.ticker], escala, corDaCamada(l.camada)) { aoTocar(l) }
+        }
+        TextoPequeno(
+            "A barra é o peso na carteira e o traço o máximo da camada; ao lado, o alvo. " +
+                "Âmbar: acima do máximo · vermelho: acima de 1,25 × o máximo (aparar).",
+        )
+    }
+}
+
+@Composable
+private fun LinhaPeso(l: Linha, alvo: Double?, maximo: Double?, escala: Double, cor: Color, aoTocar: () -> Unit) {
+    val peso = l.peso
+    val teto = maximo?.takeIf { it > 0 }
+    val corPeso = when {
+        peso == null || teto == null -> MaterialTheme.colorScheme.onSurface
+        peso > teto * 1.25 -> legivel(Paleta.vermelho)
+        peso > teto -> legivel(Paleta.ambar)
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Column(
+        Modifier.fillMaxWidth().clickable(onClick = aoTocar).padding(vertical = 3.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(l.ticker, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                l.camada,
+                Modifier.weight(1f),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                Formatos.pct(peso),
+                style = MaterialTheme.typography.bodyMedium.numeros(),
+                fontWeight = FontWeight.SemiBold,
+                color = corPeso,
+            )
+            if (alvo != null && alvo > 0) {
+                Text(
+                    " · alvo ${Formatos.pct(alvo)}",
+                    style = MaterialTheme.typography.labelSmall.numeros(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
+        BarraComMarca(peso ?: 0.0, teto, escala, cor, altura = 8.dp)
     }
 }
 

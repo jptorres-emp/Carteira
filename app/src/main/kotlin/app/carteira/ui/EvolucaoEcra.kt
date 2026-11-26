@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.Dados
 import app.carteira.dados.Objetivo
+import app.carteira.dados.Rendimentos
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -67,6 +68,7 @@ fun EvolucaoEcra(estado: Estado, vm: CarteiraViewModel) {
 // ───────────────────────────── Património ─────────────────────────────
 
 private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: CarteiraViewModel) {
+    val rendimentos = Rendimentos.de(d)?.takeIf { it.tipos.isNotEmpty() }
     if (a == null) {
         item {
             Cartao("Património") {
@@ -77,7 +79,7 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
             }
         }
     } else {
-        item { TopoPatrimonio(a) }
+        item { TopoPatrimonio(a, rendimentos) }
     }
     if (d.versaoPonte >= 3) item { CartaoRegistoMensal(d, a, vm) }
     if (a != null) {
@@ -88,6 +90,7 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
     }
     val p = d.patrimonio
     if (p != null && p.classes.isNotEmpty()) item { CartaoComposicao(p) }
+    if (rendimentos != null) item { CartaoRendimentos(rendimentos) }
     if (d.versaoPonte < 3) {
         item {
             Cartao("Há mais para ver") {

@@ -78,6 +78,8 @@ data class Preferencias(
     val etfReforco: String = "",
     /** A ordem das Posições (fica para a próxima vez). */
     val ordemPosicoes: String = "Valor",
+    /** As Posições em cartões ("Lista") ou só o peso de cada uma ("Pesos"). */
+    val vistaPosicoes: String = "Lista",
 )
 
 /** Ecrãs que podem abrir ao entrar na app. */
@@ -225,6 +227,7 @@ class CarteiraViewModel(
         reforcoFracoes = repositorio.reforcoFracoes,
         etfReforco = repositorio.etfReforco,
         ordemPosicoes = repositorio.ordemPosicoes,
+        vistaPosicoes = repositorio.vistaPosicoes,
     )
 
     private fun nomeDoEcra(e: Ecra) = when (e) {
@@ -239,10 +242,13 @@ class CarteiraViewModel(
         repositorio.reforcoFracoes = nova.reforcoFracoes
         repositorio.etfReforco = nova.etfReforco
         repositorio.ordemPosicoes = nova.ordemPosicoes
+        repositorio.vistaPosicoes = nova.vistaPosicoes
         _estado.update { it.copy(prefs = nova) }
     }
 
     fun escolherOrdemPosicoes(ordem: String) = definirPreferencias(_estado.value.prefs.copy(ordemPosicoes = ordem))
+
+    fun escolherVistaPosicoes(vista: String) = definirPreferencias(_estado.value.prefs.copy(vistaPosicoes = vista))
 
     // ── Reforço do mês ──
 

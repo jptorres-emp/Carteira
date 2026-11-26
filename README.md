@@ -52,6 +52,14 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   e o IRS estimado (28% do saldo do ano), e começa na sugestão da folha quando ela diz para reduzir.
   Na Evolução (vista Carteira), a TIR da carteira toda — todas as compras e vendas, os dividendos de cada mês e
   o valor de hoje, em euros — aparece ao lado da TIR do mesmo dinheiro no VUAA.
+  Na Evolução (vista Património), o topo diz quanto o património rende por ano e o cartão «Rendimentos por
+  ano» (`dados/Rendimentos.kt`) separa os dividendos (ações e ETFs), os juros (certificados, depósitos e saldos
+  das contas), o P2P e o resto, com o total por mês, em % do património e depois dos 28% de IRS. A base é a
+  coluna Rendimento Anual da tab Investimentos; os ETFs que lá estão a 0% mas pagam distribuições contam pelo
+  que pagaram nos últimos 12 meses. Mostra também os dividendos recebidos nos últimos 12 meses e no ano.
+  As Posições têm duas vistas (a escolhida fica guardada): Lista, com os cartões, e Pesos, com o peso de cada
+  posição e ETF na carteira numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a
+  concentração das 5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo.
   O **Reforço do mês** (`dados/Reforco.kt`) diz onde pôr o dinheiro novo pela regra 10 da folha: primeiro os
   core (Core A e Core B) em 🟢 e abaixo do alvo, cada um até ao Ajuste sugerido, e o resto no ETF global; com
   ações inteiras ou com frações. Cada compra abre o Registar já preenchido, e as que registas saem do que falta

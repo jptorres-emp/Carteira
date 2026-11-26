@@ -345,12 +345,16 @@ class EcrasTest {
         tocarSeparador("Evolução")
         esperar("Património total")
         val marcas = listOf("Património total", "Acima da meta base", "Registo na folha", "Mês a mês", "Face ao plano",
-            "Onde o plano te leva (dez/30)", "Marcos", "Próximo marco", "Ano a ano", "Composição hoje")
+            "Onde o plano te leva (dez/30)", "Marcos", "Próximo marco", "Ano a ano", "Composição hoje", "Rendimentos por ano")
         val vistas = mutableSetOf<String>()
         registar(marcas, vistas)
+        // O topo diz quanto o património rende por ano.
+        esperar("por ano (")
+        esperar("dividendos e juros")
         foto("11-evolucao")
-        // Itens: 0 filtros, 1 topo, 2 registo, 3 gráfico, 4 plano, 5 marcos, 6 ano a ano, 7 composição, 8 rodapé.
-        for (k in 2..8) {
+        // Itens: 0 filtros, 1 topo, 2 registo, 3 gráfico, 4 plano, 5 marcos, 6 ano a ano, 7 composição,
+        // 8 rendimentos, 9 rodapé.
+        for (k in 2..9) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
@@ -364,6 +368,15 @@ class EcrasTest {
                 5 -> foto("11f-evolucao-marcos")
                 6 -> foto("11g-evolucao-anos")
                 7 -> foto("11h-evolucao-composicao")
+                8 -> {
+                    foto("11i-evolucao-rendimentos")
+                    // Os ETFs estão a 0% na folha: contam pelo que o EMRG pagou nos últimos 12 meses.
+                    esperar("ETFs 61")
+                    esperar("pagos em 12 meses")
+                    esperar("Certificados de Aforro 180")
+                    esperar("351")
+                    esperar("depois dos 28% de IRS")
+                }
             }
         }
         assertEquals(marcas.toSet(), vistas)
@@ -395,6 +408,36 @@ class EcrasTest {
         foto("12d-evolucao-ytd")
         tocar("Tudo")
         esperar("Sobre o que investiste")
+    }
+
+    /** Posições, vista Pesos: o peso de cada uma numa barra, o alvo ao lado; a escolha fica guardada. */
+    @Test
+    fun pesosDasPosicoes() {
+        abrir()
+        esperar("Valor da carteira")
+        tocar("Posições")
+        esperar("ALFA")
+        tocar("Pesos")
+        // A concentração: o ETF MUND e as quatro maiores ações; as dez maiores.
+        esperar("As 5 maiores: 55,0%")
+        esperar("as 10 maiores: 89,1%")
+        // A JADE (10,0%, acima do máximo de 10%) e a ALFA com o alvo ao lado.
+        esperar("10,0%")
+        esperar("alvo 9,0%")
+        foto("02c-posicoes-pesos")
+        assertEquals("Pesos", app.getSharedPreferences("carteira", Context.MODE_PRIVATE).getString("vista_posicoes", null))
+        // Fica escolhida ao voltar ao separador.
+        tocarSeparador("Início")
+        tocarSeparador("Posições")
+        esperar("As 5 maiores")
+        // Tocar numa linha abre a posição.
+        tocar("BORE")
+        esperar("Quando comprar e vender")
+        tocarDescricao("Voltar")
+        esperar("As 5 maiores")
+        tocar("Lista")
+        esperar("peso 18,3%")
+        assertEquals("Lista", app.getSharedPreferences("carteira", Context.MODE_PRIVATE).getString("vista_posicoes", null))
     }
 
     @Test
@@ -641,9 +684,16 @@ class EcrasTest {
         tocarSeparador("Evolução")
         esperar("Património total")
         percorrer("31-escuro-evolucao", maximo = 4)
+        deslizarPara(8)
+        esperar("Rendimentos por ano")
+        foto("31b-escuro-rendimentos")
         tocar("Posições")
         esperar("ALFA")
         foto("32-escuro-posicoes")
+        tocar("Pesos")
+        esperar("As 5 maiores")
+        foto("32b-escuro-pesos")
+        tocar("Lista")
         tocar("Dividendos")
         esperar("Mês a mês em 2027")
         deslizarPara(2)
@@ -689,6 +739,12 @@ class EcrasTest {
         tocar("Posições")
         esperar("Vendas e posições fechadas")
         foto("23-posicoes")
+        tocar("Pesos")
+        esperar("As 5 maiores")
+        percorrer("23b-posicoes-pesos", maximo = 6)
+        deslizarPara(3)
+        tocar("Lista")
+        deslizarPara(0)
         // Com letra grande, a ALFA fica abaixo do ecrã: procura-se pela caixa de pesquisa.
         abrirPosicao("ALFA")
         esperar("Quando comprar e vender")
