@@ -4,6 +4,9 @@ import android.Manifest
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.View
+import android.view.WindowManager
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
@@ -200,13 +203,25 @@ class EcrasTest {
         assentar()
     }
 
-    /** Fotografa a caixa aberta de um ⓘ (é uma janela à parte, por cima do ecrã). */
+    /**
+     * Fotografa o ecrã com a caixa de um ⓘ aberta. A caixa é uma janela à parte (um popup) e o captureToImage só
+     * apanha a janela da atividade; por isso desenha-se a janela do popup por cima, no sítio onde o Compose a pôs.
+     */
     private fun fotoDaDica(nome: String) {
         assentar()
         val pasta = File("build/screenshots").apply { mkdirs() }
-        val raizes = compose.onAllNodes(isRoot())
-        val imagem = raizes[raizes.fetchSemanticsNodes().size - 1].captureToImage().asAndroidBitmap()
-        File(pasta, "$nome.png").outputStream().use { imagem.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        val ecra = compose.onAllNodes(isRoot())[0].captureToImage().asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, true)
+        val global = Class.forName("android.view.WindowManagerGlobal")
+        val instancia = global.getMethod("getInstance").invoke(null)
+        @Suppress("UNCHECKED_CAST")
+        val janelas = global.getDeclaredField("mViews").apply { isAccessible = true }.get(instancia) as List<View>
+        val popup = janelas.last { it.javaClass.name.contains("Popup") }
+        val sitio = popup.layoutParams as WindowManager.LayoutParams
+        Canvas(ecra).run {
+            translate(sitio.x.toFloat(), sitio.y.toFloat())
+            popup.draw(this)
+        }
+        File(pasta, "$nome.png").outputStream().use { ecra.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
     private fun tocarDescricao(descricao: String) {
