@@ -83,6 +83,8 @@ data class Preferencias(
     val vistaPosicoes: String = "Lista",
     /** Na vista Pesos, o total sobre que se calcula o peso: "Ações", "Ações + ETFs" ou "Tudo" (ver BasePesos). */
     val basePesos: String = BasePesos.CARTEIRA.rotulo,
+    /** Descontar os 28% de IRS (taxa liberatória) dos dividendos e juros nos rendimentos do separador Evolução. */
+    val irsRendimentos: Boolean = true,
 )
 
 /** Ecrãs que podem abrir ao entrar na app. */
@@ -232,6 +234,7 @@ class CarteiraViewModel(
         ordemPosicoes = repositorio.ordemPosicoes,
         vistaPosicoes = repositorio.vistaPosicoes,
         basePesos = repositorio.basePesos,
+        irsRendimentos = repositorio.irsRendimentos,
     )
 
     private fun nomeDoEcra(e: Ecra) = when (e) {
@@ -248,6 +251,7 @@ class CarteiraViewModel(
         repositorio.ordemPosicoes = nova.ordemPosicoes
         repositorio.vistaPosicoes = nova.vistaPosicoes
         repositorio.basePesos = nova.basePesos
+        repositorio.irsRendimentos = nova.irsRendimentos
         _estado.update { it.copy(prefs = nova) }
     }
 
@@ -256,6 +260,8 @@ class CarteiraViewModel(
     fun escolherVistaPosicoes(vista: String) = definirPreferencias(_estado.value.prefs.copy(vistaPosicoes = vista))
 
     fun escolherBasePesos(base: String) = definirPreferencias(_estado.value.prefs.copy(basePesos = base))
+
+    fun escolherIrsRendimentos(comIrs: Boolean) = definirPreferencias(_estado.value.prefs.copy(irsRendimentos = comIrs))
 
     // ── Reforço do mês ──
 

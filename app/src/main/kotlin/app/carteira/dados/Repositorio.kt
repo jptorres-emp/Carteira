@@ -77,6 +77,11 @@ class Repositorio(contexto: Context) {
         get() = preferencias.getString("base_pesos", BasePesos.CARTEIRA.rotulo) ?: BasePesos.CARTEIRA.rotulo
         set(v) = preferencias.edit().putString("base_pesos", v).apply()
 
+    /** Descontar os 28% de IRS dos dividendos e juros nos rendimentos (separador Evolução); por omissão, sim. */
+    var irsRendimentos: Boolean
+        get() = preferencias.getBoolean("irs_rendimentos", true)
+        set(v) = preferencias.edit().putBoolean("irs_rendimentos", v).apply()
+
     // ── Alertas ──
 
     var alertasAtivos: Boolean

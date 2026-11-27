@@ -421,14 +421,21 @@ internal fun CartaoComposicao(p: Patrimonio) {
 
 // ───────────────────────────── Rendimentos ─────────────────────────────
 
-/** Dividendos, juros, P2P…: quanto o património rende por ano, de onde vem e o que já recebeste. */
+/**
+ * Dividendos, juros, P2P…: quanto o património rende por ano, de onde vem e o que já recebeste. Os valores são brutos,
+ * como na folha; com [comIrs], mostra também o que fica depois dos 28% de IRS.
+ */
 @Composable
-internal fun CartaoRendimentos(r: Rendimentos) {
+internal fun CartaoRendimentos(r: Rendimentos, comIrs: Boolean = true) {
     if (r.tipos.isEmpty()) return
     val total = r.totalEur
     val dicaRendimentos = "Valores brutos, por ano, ao ritmo de hoje: o valor de cada classe × a taxa da tab Investimentos" +
         (if (r.temPagosUltimos12m) "; os ETFs que lá estão a 0%, pelo que pagaram nos últimos 12 meses" else "") +
-        ". Os 28% de IRS são a taxa liberatória sobre dividendos e juros."
+        if (comIrs) {
+            ". Os 28% de IRS são a taxa liberatória sobre dividendos e juros."
+        } else {
+            ". O IRS está desligado (escolhe-se em Rendimentos no futuro)."
+        }
     Cartao("Rendimentos por ano", dica = dicaRendimentos) {
         Text(
             Formatos.eur(total, 0),
@@ -439,7 +446,7 @@ internal fun CartaoRendimentos(r: Rendimentos) {
             listOfNotNull(
                 "${Formatos.eur(r.porMesEur, 0)} por mês",
                 r.taxa?.let { "${Formatos.pct(it)} do património" },
-                "≈ ${Formatos.eur(r.liquidoEur, 0)} depois dos 28% de IRS",
+                if (comIrs) "≈ ${Formatos.eur(r.liquidoEur, 0)} depois dos 28% de IRS" else null,
             ).joinToString(" · "),
         )
         BarraEmpilhada(r.tipos.mapIndexed { k, t -> t.valorEur to Paleta.categoria(k) })
@@ -488,22 +495,28 @@ internal fun CartaoRendimentos(r: Rendimentos) {
  * dos valores e taxas de hoje, usa o teu reforço real, o que as tuas metas pagam e a volatilidade da tua carteira.
  */
 @Composable
-internal fun CartaoProjecao(p: ProjecaoRendimentos) {
+internal fun CartaoProjecao(p: ProjecaoRendimentos, comIrs: Boolean = true, aoMudarIrs: (Boolean) -> Unit = {}) {
     if (p.reforcos.isEmpty()) return
     var reforcoEscolhido by rememberSaveable { mutableIntStateOf(p.indiceReforcoPadrao) }
     var nominais by rememberSaveable { mutableStateOf(false) }
     val reforco = p.reforcos[reforcoEscolhido.coerceIn(0, p.reforcos.lastIndex)]
     val rotulosReforcos = p.reforcos.map { "${it.nome} ${Formatos.eur(it.mensalEur, 0)}" }
     val rotulosValores = listOf(VALORES_DE_HOJE, VALORES_NOMINAIS)
-    val pontos = remember(p, reforco.mensalEur) { p.simular(reforco.mensalEur) }
+    // Com IRS, os dividendos reinvestem-se líquidos e o rendimento mostra-se depois dos 28%; sem IRS, tudo bruto.
+    val projecao = remember(p, comIrs) { p.comIrs(comIrs) }
+    val pontos = remember(projecao, reforco.mensalEur) { projecao.simular(reforco.mensalEur) }
     if (pontos.isEmpty()) return
     val emValores = { f: Faixa, anos: Int -> if (nominais) f else f.map { ProjecaoRendimentos.emEurosDeHoje(it, anos) } }
-    Cartao("Rendimentos no futuro", dica = dicaProjecao(p, reforco, nominais)) {
+    val liquido = { f: Faixa -> f.map { it * projecao.fatorLiquido } }
+    Cartao("Rendimentos no futuro", dica = dicaProjecao(projecao, reforco, nominais)) {
         LinhaEscolha("Reforço", rotulosReforcos, rotulosReforcos[p.reforcos.indexOf(reforco)]) { rotulo ->
             reforcoEscolhido = rotulosReforcos.indexOf(rotulo).coerceAtLeast(0)
         }
         LinhaEscolha("Valores", rotulosValores, if (nominais) VALORES_NOMINAIS else VALORES_DE_HOJE) { rotulo ->
             nominais = rotulo == VALORES_NOMINAIS
+        }
+        LinhaEscolha("IRS", listOf(COM_IRS, SEM_IRS), if (comIrs) COM_IRS else SEM_IRS) { rotulo ->
+            aoMudarIrs(rotulo == COM_IRS)
         }
         Row(Modifier.fillMaxWidth()) {
             val estilo = MaterialTheme.typography.labelSmall
@@ -513,32 +526,32 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
             Text("Por mês", Modifier.weight(0.85f), style = estilo, color = cor, textAlign = TextAlign.End)
             Text("Intervalo/ano", Modifier.weight(1.4f), style = estilo, color = cor, textAlign = TextAlign.End)
         }
-        LinhaProjecao("Hoje", null, p.rendimentoHojeEur, null)
+        LinhaProjecao("Hoje", null, p.rendimentoHojeEur * projecao.fatorLiquido, null)
         pontos.forEach { pt ->
-            val r = emValores(pt.rendimento, pt.anos)
+            val r = liquido(emValores(pt.rendimento, pt.anos))
             LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), r.p50, r)
         }
         HorizontalDivider(color = corBordaCartao())
         val ultimo = pontos.last()
-        val rendimento = emValores(ultimo.rendimento, ultimo.anos)
         val patrimonio = emValores(ultimo.patrimonio, ultimo.anos).p50
         val prudente = patrimonio * ProjecaoRendimentos.LEVANTAMENTO_PRUDENTE
         val classico = patrimonio * ProjecaoRendimentos.LEVANTAMENTO
-        TextoPequeno("Em ${ultimo.ano}: ${Formatos.eur(rendimento.p50 * (1 - ProjecaoRendimentos.IRS) / 12, 0)}/mês depois de IRS")
         TextoComDica(
             "Património em ${ultimo.ano}: ${Formatos.eur(patrimonio, 0)} · levantar 3,5–4%: " +
                 "${Formatos.eur(prudente / 12, 0)}–${Formatos.eur(classico / 12, 0)}/mês",
             dica = "Quanto podias levantar por ano do património mediano sem o gastar: ${Formatos.eur(prudente, 0)} a " +
                 "${Formatos.eur(classico, 0)} por ano. A regra dos 4% vem dos EUA; na Europa, 3,5% é mais prudente.\n\n" +
-                "Numa carteira de acumulação é este o número que conta: os ETFs de acumulação não pagam dividendos, mas crescem.",
+                "Numa carteira de acumulação é este o número que conta: os ETFs de acumulação não pagam dividendos, mas crescem." +
+                if (comIrs) " Antes do IRS das mais-valias (28% do lucro de cada venda)." else "",
             tituloDica = "Levantar do património",
         )
         resumoEvolucao(p)?.let { (resumo, dica) -> TextoComDica(resumo, dica, tituloDica = "A tua evolução") }
     }
 }
 
-/** Como se calcula: o método, o intervalo e os pressupostos (o que antes enchia o cartão). */
+/** Como se calcula: o método, o intervalo, os pressupostos e o IRS (o que antes enchia o cartão). */
 private fun dicaProjecao(p: ProjecaoRendimentos, reforco: OpcaoReforco, nominais: Boolean): String {
+    val comIrs = p.irs > 0
     val deOnde = if (reforco.nome == ProjecaoRendimentos.TEU_REFORCO) "a tua média dos últimos 12 meses" else "o reforço do plano"
     val volatilidade = Formatos.pct(p.volatilidade) + if (p.volatilidadeReal) ", a da tua carteira" else ", de referência"
     val metas = p.parteAcoesNovo?.let { " (as tuas metas: ${Formatos.pct(it, 0)} em ações e o resto no ETF de acumulação, que não paga)" } ?: ""
@@ -547,11 +560,21 @@ private fun dicaProjecao(p: ProjecaoRendimentos, reforco: OpcaoReforco, nominais
         "10 simulações ficam lá dentro.\n\n" +
         "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde); a carteira a crescer " +
         "${Formatos.pct(p.taxaMediana)} ao ano na mediana (o cenário base do teu plano), com volatilidade de $volatilidade, " +
-        "e os dividendos reinvestidos depois dos 28% de IRS. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
+        (if (comIrs) "e os dividendos reinvestidos depois dos 28% de IRS. " else "e os dividendos reinvestidos por inteiro. ") +
+        "O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
         "(a previsão de dividendos, já sem as vendas do plano); o dinheiro novo rende ${Formatos.pct(p.taxaNovo)}$metas. " +
         "Certificados, P2P e saldos às taxas da tab Investimentos, sem reforços.\n\n" +
+        (
+            if (comIrs) {
+                "IRS: com 28%, a taxa liberatória sobre dividendos e juros, os valores são o que te fica depois do imposto. " +
+                    "Sem IRS, tudo bruto. Vale também para os Rendimentos por ano.\n\n"
+            } else {
+                "IRS: desligado, os valores são brutos e os dividendos reinvestem-se por inteiro. Com 28%, ficam depois da " +
+                    "taxa liberatória. Vale também para os Rendimentos por ano.\n\n"
+            }
+        ) +
         "Tudo se recalcula com os dados da folha. " +
-        if (nominais) "Valores brutos e nominais." else "Valores brutos, em euros de hoje (${Formatos.pct(ProjecaoRendimentos.INFLACAO, 0)} de inflação ao ano)."
+        if (nominais) "Valores nominais." else "Valores em euros de hoje (${Formatos.pct(ProjecaoRendimentos.INFLACAO, 0)} de inflação ao ano)."
 }
 
 /**
@@ -578,6 +601,8 @@ private fun resumoEvolucao(p: ProjecaoRendimentos): Pair<String, String>? {
 
 private const val VALORES_DE_HOJE = "Euros de hoje"
 private const val VALORES_NOMINAIS = "Nominais"
+private const val COM_IRS = "Com 28%"
+private const val SEM_IRS = "Sem"
 
 /** "Reforço  [O teu 772 €] [Plano 800 €]": uma linha de escolhas com o nome à esquerda. */
 @Composable

@@ -75,6 +75,37 @@ class ProjecoesTest {
         assertEquals(existente + novo + certificados + 1_500.0, pt.patrimonio.p50, 1e-6)
     }
 
+    /**
+     * A opção do IRS: com os 28%, os dividendos reinvestem-se líquidos e o rendimento mostra-se × 0,72; sem IRS,
+     * reinvestem-se por inteiro e tudo fica bruto.
+     */
+    @Test
+    fun comOuSemOs28PorCentoDeIrs() {
+        val p = projecao(taxa = 0.0, horizontes = listOf(1)).copy(taxaExistente = 0.02, taxaNovo = 0.01)
+        assertEquals(0.28, p.irs, 0.0)
+        assertEquals(0.72, p.fatorLiquido, 1e-12)
+        val semIrs = p.comIrs(false)
+        assertEquals(0.0, semIrs.irs, 0.0)
+        assertEquals(1.0, semIrs.fatorLiquido, 0.0)
+        assertEquals(0.28, semIrs.comIrs(true).irs, 0.0)
+        // Sem IRS: a carteira de hoje não perde nada (taxa 0), o dinheiro novo entra inteiro e os certificados
+        // capitalizam à taxa bruta (4 000 × 1,025).
+        val pt = semIrs.linear(100.0)[0]
+        val certificados = 4_000.0 * 1.025
+        assertEquals(8_000.0 + 1_200.0 + certificados + 1_500.0, pt.patrimonio.p50, 1e-6)
+        assertEquals(8_000.0 * 0.02 + 1_200.0 * 0.01 + certificados * 0.025, pt.rendimento.p50, 1e-6)
+        // Com IRS, menos património e menos rendimento bruto; o líquido é o bruto × 0,72.
+        val comIrs = p.linear(100.0)[0]
+        assertTrue(comIrs.patrimonio.p50 < pt.patrimonio.p50)
+        assertTrue(comIrs.rendimento.p50 < pt.rendimento.p50)
+        // Em 30 anos com volatilidade, sem IRS a mediana fica sempre acima (mesma semente, mesmos percursos).
+        val longo = projecao().copy(volatilidade = 0.16)
+        val com = longo.simular(450.0, simulacoes = 300).last()
+        val sem = longo.comIrs(false).simular(450.0, simulacoes = 300).last()
+        assertTrue(sem.rendimento.p10 > com.rendimento.p10 && sem.rendimento.p50 > com.rendimento.p50)
+        assertTrue(sem.patrimonio.p50 > com.patrimonio.p50)
+    }
+
     @Test
     fun monteCarloComPercentisOrdenadosEReprodutivel() {
         val p = projecao().copy(volatilidade = 0.16)

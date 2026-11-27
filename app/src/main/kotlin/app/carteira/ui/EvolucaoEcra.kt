@@ -99,10 +99,11 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
     }
     val p = d.patrimonio
     if (p != null && p.classes.isNotEmpty()) item { CartaoComposicao(p) }
-    if (rendimentos != null) item { CartaoRendimentos(rendimentos) }
+    val comIrs = estado.prefs.irsRendimentos
+    if (rendimentos != null) item { CartaoRendimentos(rendimentos, comIrs) }
     // O reforço real é a média dos últimos 12 meses fechados, a mesma que a folha compara com o plano.
     val projecao = rendimentos?.let { ProjecaoRendimentos.de(d, it, a?.reforcoMedio12mEur) }
-    if (projecao != null) item { CartaoProjecao(projecao) }
+    if (projecao != null) item { CartaoProjecao(projecao, comIrs, aoMudarIrs = vm::escolherIrsRendimentos) }
     if (d.versaoPonte < 3) {
         item {
             Cartao("Há mais para ver") {

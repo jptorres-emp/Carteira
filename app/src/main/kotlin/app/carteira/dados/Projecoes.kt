@@ -33,10 +33,12 @@ data class PontoProjecao(val anos: Int, val ano: Int, val rendimento: Faixa, val
  *   as vendas do plano) ÷ o valor; sem previsão, a de hoje.
  * - O dinheiro novo entra no fim de cada mês e rende [taxaNovo]: o que pagam as tuas metas (peso alvo × yield de cada
  *   ação), com o resto no ETF global, que é de acumulação e não paga.
- * - Os dividendos são reinvestidos depois dos 28% de IRS: a carteira cresce à taxa do plano menos o imposto sobre o
- *   que paga. Os dividendos crescem ao ritmo do preço (a yield fica constante).
- * - O resto (certificados, P2P, saldos…) não recebe reforços: cada classe capitaliza à sua taxa líquida de IRS e
- *   rende a taxa bruta. As que não rendem (PPR, cripto, dinheiro parado) ficam com o valor de hoje.
+ * - Com IRS ([irs] = 28%, a taxa liberatória), os dividendos são reinvestidos já líquidos: a carteira cresce à taxa do
+ *   plano menos o imposto sobre o que paga, e o rendimento mostra-se depois do imposto ([fatorLiquido]). Sem IRS
+ *   ([irs] = 0), reinvestem-se por inteiro e tudo fica bruto. Os dividendos crescem ao ritmo do preço (a yield fica
+ *   constante).
+ * - O resto (certificados, P2P, saldos…) não recebe reforços: cada classe capitaliza à sua taxa (líquida de IRS, se o
+ *   houver) e rende a taxa bruta. As que não rendem (PPR, cripto, dinheiro parado) ficam com o valor de hoje.
  */
 data class ProjecaoRendimentos(
     /** O teu reforço (se houver) e o do plano, por esta ordem. */
@@ -63,23 +65,31 @@ data class ProjecaoRendimentos(
     val ritmoUltimos12m: Double? = null,
     /** True se a volatilidade veio da tua carteira (Dashboard); false se é a de referência. */
     val volatilidadeReal: Boolean = false,
+    /** O imposto sobre dividendos e juros: os 28% de IRS (taxa liberatória) ou 0 (sem IRS). */
+    val irs: Double = IRS,
 ) {
     val rendimentoHojeEur: Double get() = carteiraEur * taxaCarteira + outras.sumOf { (v, t) -> v * t }
     val patrimonioHojeEur: Double get() = carteiraEur + outras.sumOf { it.first }
+
+    /** Quanto fica do rendimento bruto depois do imposto: 0,72 com os 28% de IRS, 1 sem IRS. */
+    val fatorLiquido: Double get() = 1 - irs
+
+    /** A mesma projeção com os 28% de IRS ou sem imposto nenhum. */
+    fun comIrs(sim: Boolean): ProjecaoRendimentos = copy(irs = if (sim) IRS else 0.0)
 
     val indiceReforcoPadrao: Int get() = 0
     val teuReforco: OpcaoReforco? get() = reforcos.firstOrNull { it.nome == TEU_REFORCO }
     val reforcoDoPlano: OpcaoReforco? get() = reforcos.firstOrNull { it.nome == PLANO }
 
     /** Crescimento anual depois do imposto sobre o que a carteira paga (os dividendos reinvestidos já líquidos). */
-    private fun crescimentoLiquido(taxaDividendos: Double) = taxaMediana - IRS * taxaDividendos
+    private fun crescimentoLiquido(taxaDividendos: Double) = taxaMediana - irs * taxaDividendos
 
     /** O valor e o rendimento bruto do resto do património ao fim de [anos] anos. */
     private fun outrasNoAno(anos: Int): Pair<Double, Double> {
         var valor = 0.0
         var rendimento = 0.0
         outras.forEach { (v, t) ->
-            val x = v * (1 + t * (1 - IRS)).pow(anos)
+            val x = v * (1 + t * (1 - irs)).pow(anos)
             valor += x
             rendimento += x * t
         }
@@ -89,6 +99,7 @@ data class ProjecaoRendimentos(
     /**
      * Simulação de Monte Carlo: [simulacoes] percursos, mês a mês, com retornos lognormais (mediana anual
      * [taxaMediana] menos o imposto, volatilidade [volatilidade]). Com a mesma semente dá sempre o mesmo resultado.
+     * O rendimento sai bruto: para o líquido, multiplica-se por [fatorLiquido].
      */
     fun simular(reforcoMensalEur: Double, simulacoes: Int = SIMULACOES, semente: Long = SEMENTE): List<PontoProjecao> {
         val meses = (horizontes.maxOrNull() ?: return emptyList()) * 12
