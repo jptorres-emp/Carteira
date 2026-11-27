@@ -824,6 +824,11 @@ class EcrasTest {
         deslizarPara(8)
         esperar("Rendimentos por ano")
         foto("31b-escuro-rendimentos")
+        // A caixa de um ⓘ no tema escuro tem de se distinguir dos cartões.
+        tocarDescricao("Explicação: Rendimentos por ano")
+        esperar("taxa liberatória")
+        fotoDaDica("31c-escuro-dica")
+        fecharDica("taxa liberatória")
         tocar("Posições")
         esperar("ALFA")
         foto("32-escuro-posicoes")

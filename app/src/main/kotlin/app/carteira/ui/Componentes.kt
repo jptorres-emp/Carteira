@@ -152,8 +152,10 @@ fun Dica(texto: String, titulo: String? = null, modifier: Modifier = Modifier) {
                     onClick = { aberta = false },
                     modifier = Modifier.widthIn(max = 360.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    // Highest e com contorno: no tema escuro os cartões já são surfaceContainerHigh.
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     shadowElevation = 6.dp,
                 ) {
                     Column(
