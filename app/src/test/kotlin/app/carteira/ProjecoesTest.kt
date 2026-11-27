@@ -2,6 +2,7 @@ package app.carteira
 
 import app.carteira.dados.CenarioProjecao
 import app.carteira.dados.ClassePatrimonio
+import app.carteira.dados.OpcaoReforco
 import app.carteira.dados.ProjecaoRendimentos
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -25,6 +26,19 @@ class ProjecoesTest {
         classe("Criptomoedas", 0.0, 0.0),
     )
 
+    private val cenarios = listOf(
+        CenarioProjecao(ProjecaoRendimentos.TEU_RITMO, 0.09),
+        CenarioProjecao(ProjecaoRendimentos.REFERENCIA, 0.05),
+        CenarioProjecao(ProjecaoRendimentos.BASE, 0.065),
+        CenarioProjecao(ProjecaoRendimentos.ALARGADA, 0.08),
+    )
+    private val reforcos = listOf(
+        OpcaoReforco(ProjecaoRendimentos.TEU_REFORCO, 450.0),
+        OpcaoReforco(ProjecaoRendimentos.PLANO, 400.0),
+    )
+
+    private fun projecao() = ProjecaoRendimentos.calcular(classes, 150.0, cenarios, reforcos, anoHoje = 2026)!!
+
     @Test
     fun carteiraSemJurosSoSomaOsReforcos() {
         val v = ProjecaoRendimentos.carteiraNoFim(1_000.0, 100.0, 0.0, listOf(1, 2, 10))
@@ -42,15 +56,15 @@ class ProjecoesTest {
     @Test
     fun umAnoSemCrescimento() {
         val p = ProjecaoRendimentos.calcular(
-            classes, rendimentoCarteiraEur = 150.0, reforcoMensalEur = 100.0,
-            cenarios = listOf(CenarioProjecao("Base", 0.0)), anoHoje = 2026, horizontes = listOf(1),
+            classes, 150.0, listOf(CenarioProjecao("Base", 0.0)), listOf(OpcaoReforco("Plano", 100.0)),
+            anoHoje = 2026, horizontes = listOf(1),
         )!!
         assertEquals(8_000.0, p.carteiraEur, 1e-9)
         assertEquals(150.0 / 8_000.0, p.taxaCarteira, 1e-12)
         // Hoje: 150 € da carteira e 100 € dos certificados.
         assertEquals(250.0, p.rendimentoHojeEur, 1e-9)
         assertEquals(13_500.0, p.patrimonioHojeEur, 1e-9)
-        val pt = p.pontos[0][0]
+        val pt = p.pontos(p.cenarios[0], 100.0)[0]
         assertEquals(2027, pt.ano)
         // A carteira passa a 9 200 € (rende 1,875%: 172,50 €); os certificados capitalizam a 2,5% (4 100 €: 102,50 €).
         assertEquals(172.5 + 102.5, pt.rendimentoAnualEur, 1e-9)
@@ -58,31 +72,66 @@ class ProjecoesTest {
         assertEquals(pt.rendimentoAnualEur / 12, pt.porMesEur, 1e-12)
     }
 
+    /** O que já tens e o dinheiro novo podem render taxas diferentes (as vendas do plano e as tuas metas). */
     @Test
-    fun cenariosPelaOrdemDoPlanoEComBaseAoMeio() {
+    fun dinheiroNovoRendeOQueAsMetasPagam() {
         val p = ProjecaoRendimentos.calcular(
-            classes, 150.0, 400.0,
-            listOf(CenarioProjecao("Referência", 0.05), CenarioProjecao("Base", 0.065), CenarioProjecao("Alargada", 0.08)),
-            anoHoje = 2026,
-        )!!
-        assertEquals(1, p.indiceBase)
-        assertEquals(ProjecaoRendimentos.HORIZONTES, p.pontos[0].map { it.anos })
-        assertEquals(2056, p.pontos[1].last().ano)
-        // Mais taxa, mais rendimento; e cada cenário sobe com os anos.
-        for (h in ProjecaoRendimentos.HORIZONTES.indices) {
-            assertTrue(p.pontos[0][h].rendimentoAnualEur < p.pontos[1][h].rendimentoAnualEur)
-            assertTrue(p.pontos[1][h].rendimentoAnualEur < p.pontos[2][h].rendimentoAnualEur)
-        }
-        p.pontos.forEach { pts -> assertTrue(pts.zipWithNext().all { (a, b) -> a.rendimentoAnualEur < b.rendimentoAnualEur }) }
+            classes, 150.0, listOf(CenarioProjecao("Base", 0.0)), listOf(OpcaoReforco("O teu", 100.0)),
+            anoHoje = 2026, horizontes = listOf(1),
+        )!!.copy(taxaExistente = 0.02, taxaNovo = 0.01)
+        val pt = p.pontos(p.cenarios[0], 100.0)[0]
+        // 8 000 € a 2% (160 €) + 1 200 € de reforços a 1% (12 €) + os certificados (102,50 €).
+        assertEquals(160.0 + 12.0 + 102.5, pt.rendimentoAnualEur, 1e-9)
+        // Hoje continua a ser o que a carteira rende hoje (150 €) mais os certificados.
+        assertEquals(250.0, p.rendimentoHojeEur, 1e-9)
     }
 
     @Test
-    fun semCarteiraOuSemCenariosNaoHaProjecao() {
-        assertNull(ProjecaoRendimentos.calcular(classes, 150.0, 400.0, emptyList(), 2026))
-        assertNull(
-            ProjecaoRendimentos.calcular(
-                listOf(classe("Cash", 500.0, 0.0)), 0.0, 400.0, listOf(CenarioProjecao("Base", 0.065)), 2026,
-            ),
-        )
+    fun eurosDeHoje() {
+        assertEquals(1_000.0, ProjecaoRendimentos.emEurosDeHoje(1_020.0, 1), 1e-9)
+        assertEquals(1_000.0 / 1.02.pow(30), ProjecaoRendimentos.emEurosDeHoje(1_000.0, 30), 1e-9)
+        assertEquals(500.0, ProjecaoRendimentos.emEurosDeHoje(500.0, 0), 0.0)
+    }
+
+    /** Por omissão: o cenário base do plano com o teu reforço real; o teu ritmo e o reforço do plano à escolha. */
+    @Test
+    fun omissaoEOpcoes() {
+        val p = projecao()
+        assertEquals(ProjecaoRendimentos.BASE, p.cenarios[p.indiceCenarioPadrao].nome)
+        assertEquals(ProjecaoRendimentos.TEU_REFORCO, p.reforcos[p.indiceReforcoPadrao].nome)
+        assertEquals(0.09, p.teuRitmo!!.taxa, 0.0)
+        assertEquals(450.0, p.teuReforco!!.mensalEur, 0.0)
+        assertEquals(400.0, p.reforcoDoPlano!!.mensalEur, 0.0)
+        assertEquals(0.065, p.taxaBase!!, 0.0)
+        assertEquals(ProjecaoRendimentos.HORIZONTES, p.pontos(p.cenarios[2], 450.0).map { it.anos })
+        assertEquals(2056, p.pontos(p.cenarios[2], 450.0).last().ano)
+    }
+
+    /** A projeção segue a tua evolução: mais reforço ou mais rendibilidade dão mais rendimento, em todos os anos. */
+    @Test
+    fun maisReforcoOuMaisRitmoDaoMais() {
+        val p = projecao()
+        val base = p.cenarios[2]
+        val comPlano = p.pontos(base, 400.0)
+        val comOTeu = p.pontos(base, 450.0)
+        val aoTeuRitmo = p.pontos(p.cenarios[0], 450.0)
+        for (h in ProjecaoRendimentos.HORIZONTES.indices) {
+            assertTrue(comPlano[h].rendimentoAnualEur < comOTeu[h].rendimentoAnualEur)
+            assertTrue(comOTeu[h].rendimentoAnualEur < aoTeuRitmo[h].rendimentoAnualEur)
+        }
+        // Pela ordem dos cenários do plano, e a subir com os anos.
+        val porCenario = p.cenarios.drop(1).map { p.pontos(it, 450.0) }
+        for (h in ProjecaoRendimentos.HORIZONTES.indices) {
+            assertTrue(porCenario[0][h].rendimentoAnualEur < porCenario[1][h].rendimentoAnualEur)
+            assertTrue(porCenario[1][h].rendimentoAnualEur < porCenario[2][h].rendimentoAnualEur)
+        }
+        porCenario.forEach { pts -> assertTrue(pts.zipWithNext().all { (a, b) -> a.rendimentoAnualEur < b.rendimentoAnualEur }) }
+    }
+
+    @Test
+    fun semCarteiraSemRitmosOuSemReforcosNaoHaProjecao() {
+        assertNull(ProjecaoRendimentos.calcular(classes, 150.0, emptyList(), reforcos, 2026))
+        assertNull(ProjecaoRendimentos.calcular(classes, 150.0, cenarios, emptyList(), 2026))
+        assertNull(ProjecaoRendimentos.calcular(listOf(classe("Cash", 500.0, 0.0)), 0.0, cenarios, reforcos, 2026))
     }
 }

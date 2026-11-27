@@ -380,22 +380,37 @@ class EcrasTest {
                 }
                 9 -> {
                     foto("11j-evolucao-futuro")
-                    // Cenário base do plano de exemplo (400 €/mês, 6,5%): de 577 € por ano hoje a 10 405 € em 2056.
+                    // Por omissão: o cenário base do plano (6,5%), o teu reforço real (446 €, a média dos últimos
+                    // 12 meses fechados) e euros de hoje (2% de inflação). Daqui a 30 anos: 5 002 € por ano.
                     esperar("Base 6,5%")
-                    esperar("Daqui a")
+                    esperar("O teu ritmo 8,3%")
+                    esperar("O teu ${Formatos.eur(446.0, 0)}")
+                    esperar("Euros de hoje")
                     esperar(Formatos.eur(577.0, 0))
-                    esperar(Formatos.eur(2_138.0, 0))
-                    esperar(Formatos.eur(10_405.0, 0))
-                    esperar(Formatos.eur(867.0, 0))
+                    esperar(Formatos.eur(1_584.0, 0))
+                    esperar(Formatos.eur(5_002.0, 0))
+                    esperar(Formatos.eur(417.0, 0))
                     esperar("2056")
-                    esperar("levantar 4% ao ano daria ${Formatos.eur(22_797.0, 0)}")
-                    esperar("${Formatos.eur(400.0, 0)} por mês para ações e ETFs")
-                    // O cenário alargado (8%) dá mais.
+                    esperar("${Formatos.eur(341_629.0, 0)} em euros de hoje")
+                    esperar("levantar 4% ao ano daria ${Formatos.eur(13_665.0, 0)}")
+                    // A tua evolução face ao plano e o que pagam as tuas metas.
+                    esperar("investes ${Formatos.eur(446.0, 0)} por mês em média nos últimos 12 meses (o plano assume ${Formatos.eur(400.0, 0)})")
+                    esperar("a carteira rendeu 8,3% ao ano desde o início (o plano assume 6,5%) e 11,2% nos últimos 12 meses")
+                    esperar("o dinheiro novo rende 1,3% (as tuas metas: 65% em ações")
+                    esperar("O que já tens rende 1,8%")
+                    // Nominais: 9 060 € em 2056; com o reforço do plano (400 €), 8 404 €.
+                    tocar("Nominais")
+                    esperar(Formatos.eur(9_060.0, 0))
+                    tocar("Plano ${Formatos.eur(400.0, 0)}")
+                    esperar(Formatos.eur(8_404.0, 0))
+                    foto("11k-evolucao-futuro-plano-nominal")
+                    // De volta ao teu reforço e aos euros de hoje, no cenário alargado: 6 755 €.
+                    tocar("O teu ${Formatos.eur(446.0, 0)}")
+                    tocar("Euros de hoje")
                     tocar("Alargada 8,0%")
-                    esperar(Formatos.eur(14_007.0, 0))
-                    foto("11k-evolucao-futuro-alargado")
+                    esperar(Formatos.eur(6_755.0, 0))
                     tocar("Base 6,5%")
-                    esperar(Formatos.eur(10_405.0, 0))
+                    esperar(Formatos.eur(5_002.0, 0))
                 }
             }
         }

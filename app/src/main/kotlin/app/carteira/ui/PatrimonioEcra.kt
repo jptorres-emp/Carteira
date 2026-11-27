@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -481,17 +482,34 @@ internal fun CartaoRendimentos(r: Rendimentos) {
 
 // ───────────────────────────── Rendimentos no futuro ─────────────────────────────
 
-/** O que o património vai render por ano e por mês daqui a 1 a 30 anos, nos cenários do plano. */
+/**
+ * O que o património vai render em dinheiro por ano e por mês daqui a 1 a 30 anos. Ajusta-se sozinho à tua
+ * evolução: parte dos valores e taxas de hoje, usa o teu reforço real e o que as tuas metas pagam; o ritmo pode
+ * ser o teu ou um cenário do plano; em euros de hoje (por omissão) ou nominais.
+ */
 @Composable
 internal fun CartaoProjecao(p: ProjecaoRendimentos) {
-    if (p.cenarios.isEmpty() || p.pontos.isEmpty()) return
-    var escolhido by rememberSaveable { mutableIntStateOf(p.indiceBase) }
-    val k = escolhido.coerceIn(0, p.cenarios.lastIndex)
-    val cenario = p.cenarios[k]
-    val rotulos = p.cenarios.map { "${it.nome} ${Formatos.pct(it.taxa)}" }
-    val pontos = p.pontos[k]
+    if (p.cenarios.isEmpty() || p.reforcos.isEmpty()) return
+    var cenarioEscolhido by rememberSaveable { mutableIntStateOf(p.indiceCenarioPadrao) }
+    var reforcoEscolhido by rememberSaveable { mutableIntStateOf(p.indiceReforcoPadrao) }
+    var nominais by rememberSaveable { mutableStateOf(false) }
+    val cenario = p.cenarios[cenarioEscolhido.coerceIn(0, p.cenarios.lastIndex)]
+    val reforco = p.reforcos[reforcoEscolhido.coerceIn(0, p.reforcos.lastIndex)]
+    val rotulosCenarios = p.cenarios.map { "${it.nome} ${Formatos.pct(it.taxa)}" }
+    val rotulosReforcos = p.reforcos.map { "${it.nome} ${Formatos.eur(it.mensalEur, 0)}" }
+    val rotulosValores = listOf(VALORES_DE_HOJE, VALORES_NOMINAIS)
+    val pontos = p.pontos(cenario, reforco.mensalEur)
+    val valor = { v: Double, anos: Int -> if (nominais) v else ProjecaoRendimentos.emEurosDeHoje(v, anos) }
     Cartao("Rendimentos no futuro") {
-        Filtros(rotulos, rotulos[k], compacto = true) { rotulo -> escolhido = rotulos.indexOf(rotulo).coerceAtLeast(0) }
+        LinhaEscolha("Ritmo", rotulosCenarios, rotulosCenarios[p.cenarios.indexOf(cenario)]) { rotulo ->
+            cenarioEscolhido = rotulosCenarios.indexOf(rotulo).coerceAtLeast(0)
+        }
+        LinhaEscolha("Reforço", rotulosReforcos, rotulosReforcos[p.reforcos.indexOf(reforco)]) { rotulo ->
+            reforcoEscolhido = rotulosReforcos.indexOf(rotulo).coerceAtLeast(0)
+        }
+        LinhaEscolha("Valores", rotulosValores, if (nominais) VALORES_NOMINAIS else VALORES_DE_HOJE) { rotulo ->
+            nominais = rotulo == VALORES_NOMINAIS
+        }
         Row(Modifier.fillMaxWidth()) {
             val estilo = MaterialTheme.typography.labelSmall
             val cor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -500,25 +518,77 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
             Text("Por mês", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
         }
         LinhaProjecao("Hoje", null, p.rendimentoHojeEur)
-        pontos.forEach { pt -> LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), pt.rendimentoAnualEur) }
+        pontos.forEach { pt ->
+            LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), valor(pt.rendimentoAnualEur, pt.anos))
+        }
         HorizontalDivider(color = corBordaCartao())
+        textoEvolucao(p)?.let { TextoPequeno(it) }
         val ultimo = pontos.last()
-        val levantar = ultimo.patrimonioEur * ProjecaoRendimentos.LEVANTAMENTO
+        val patrimonio = valor(ultimo.patrimonioEur, ultimo.anos)
+        val levantar = patrimonio * ProjecaoRendimentos.LEVANTAMENTO
         TextoPequeno(
-            "Em ${ultimo.ano} o património seria de ${Formatos.eur(ultimo.patrimonioEur, 0)}: levantar " +
+            "Em ${ultimo.ano} o património seria de ${Formatos.eur(patrimonio, 0)}" +
+                (if (nominais) "" else " em euros de hoje") + ": levantar " +
                 "${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO, 0)} ao ano daria ${Formatos.eur(levantar, 0)} " +
                 "(${Formatos.eur(levantar / 12, 0)}/mês)" +
-                if (levantar > ultimo.rendimentoAnualEur) ", mais do que os dividendos e juros: os ETFs de acumulação não pagam nada." else ".",
+                if (levantar > valor(ultimo.rendimentoAnualEur, ultimo.anos)) {
+                    ", mais do que os dividendos e juros: numa carteira de acumulação, é isto que mede o que podes vir a ter."
+                } else {
+                    "."
+                },
         )
-        val centimos = (100 / 1.02.pow(ultimo.anos)).roundToInt()
+        val deOnde = if (reforco.nome == ProjecaoRendimentos.TEU_REFORCO) "a tua média dos últimos 12 meses" else "o reforço do plano"
+        val ritmo = if (cenario.nome == ProjecaoRendimentos.TEU_RITMO) {
+            "ao teu ritmo (${Formatos.pct(cenario.taxa)} ao ano desde o início: poucos anos, de mercado em alta e medido em dólares)"
+        } else {
+            "a ${Formatos.pct(cenario.taxa)} ao ano (cenário ${cenario.nome.lowercase()} do plano)"
+        }
+        val metas = p.parteAcoesNovo?.let { " (as tuas metas: ${Formatos.pct(it, 0)} em ações e o resto no ETF de acumulação, que não paga)" } ?: ""
         TextoPequeno(
-            "Pressupostos: ${Formatos.eur(p.reforcoMensalEur, 0)} por mês para ações e ETFs (o reforço do plano), a carteira " +
-                "a crescer ${Formatos.pct(cenario.taxa)} ao ano com os dividendos reinvestidos e a render " +
-                "${Formatos.pct(p.taxaCarteira)} do valor, como hoje; certificados, P2P e saldos às taxas da tab Investimentos, " +
-                "sem reforços. Valores brutos e nominais: com 2% de inflação, um euro daqui a ${ultimo.anos} anos vale " +
-                "cerca de $centimos cêntimos de hoje.",
+            "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde) e a carteira a crescer " +
+                "$ritmo, com os dividendos reinvestidos. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
+                "(a previsão de dividendos, já sem as vendas do plano); o dinheiro novo rende ${Formatos.pct(p.taxaNovo)}$metas. " +
+                "Certificados, P2P e saldos às taxas da tab Investimentos, sem reforços. Tudo se recalcula com os dados da folha. " +
+                (
+                    if (nominais) {
+                        "Valores brutos e nominais."
+                    } else {
+                        "Valores brutos, em euros de hoje (${Formatos.pct(ProjecaoRendimentos.INFLACAO, 0)} de inflação ao ano)."
+                    }
+                    ),
         )
     }
+}
+
+private const val VALORES_DE_HOJE = "Euros de hoje"
+private const val VALORES_NOMINAIS = "Nominais"
+
+/** "Ritmo  [O teu ritmo 12,7%] [Base 6,5%] …": uma linha de escolhas com o nome à esquerda. */
+@Composable
+private fun LinhaEscolha(nome: String, opcoes: List<String>, escolhida: String, aoEscolher: (String) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        TextoPequeno(nome, modifier = Modifier.width(52.dp))
+        Filtros(opcoes, escolhida, compacto = true, aoEscolher = aoEscolher)
+    }
+}
+
+/**
+ * "A tua evolução: investes 772 € por mês em média nos últimos 12 meses (o plano assume 800 €); a carteira rendeu
+ * 12,7% ao ano desde o início (o plano assume 6,5%) e 5,7% nos últimos 12 meses."
+ */
+private fun textoEvolucao(p: ProjecaoRendimentos): String? {
+    val frases = mutableListOf<String>()
+    p.teuReforco?.let { teu ->
+        frases += "investes ${Formatos.eur(teu.mensalEur, 0)} por mês em média nos últimos 12 meses" +
+            (p.reforcoDoPlano?.let { " (o plano assume ${Formatos.eur(it.mensalEur, 0)})" } ?: "")
+    }
+    p.teuRitmo?.let { ritmo ->
+        frases += "a carteira rendeu ${Formatos.pct(ritmo.taxa)} ao ano desde o início" +
+            (p.taxaBase?.let { " (o plano assume ${Formatos.pct(it)})" } ?: "") +
+            (p.ritmoUltimos12m?.let { " e ${Formatos.pct(it)} nos últimos 12 meses" } ?: "")
+    }
+    if (frases.isEmpty()) return null
+    return "A tua evolução: " + frases.joinToString("; ") + "."
 }
 
 @Composable
