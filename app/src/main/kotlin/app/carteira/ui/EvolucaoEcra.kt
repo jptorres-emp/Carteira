@@ -60,7 +60,7 @@ fun EvolucaoEcra(estado: Estado, vm: CarteiraViewModel) {
             }
         }
         when (vista) {
-            VistaEvolucao.PATRIMONIO -> itensPatrimonio(d, a, vm)
+            VistaEvolucao.PATRIMONIO -> itensPatrimonio(d, a, vm, comIrs = estado.prefs.irsRendimentos)
             VistaEvolucao.CARTEIRA -> itensCarteira(d, vm)
         }
     }
@@ -68,7 +68,8 @@ fun EvolucaoEcra(estado: Estado, vm: CarteiraViewModel) {
 
 // ───────────────────────────── Património ─────────────────────────────
 
-private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: CarteiraViewModel) {
+/** comIrs: descontar os 28% de IRS nos rendimentos (a escolha guardada, que se muda em Rendimentos no futuro). */
+private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: CarteiraViewModel, comIrs: Boolean) {
     val rendimentos = Rendimentos.de(d)?.takeIf { it.tipos.isNotEmpty() }
     if (a == null) {
         item {
@@ -99,7 +100,6 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
     }
     val p = d.patrimonio
     if (p != null && p.classes.isNotEmpty()) item { CartaoComposicao(p) }
-    val comIrs = estado.prefs.irsRendimentos
     if (rendimentos != null) item { CartaoRendimentos(rendimentos, comIrs) }
     // O reforço real é a média dos últimos 12 meses fechados, a mesma que a folha compara com o plano.
     val projecao = rendimentos?.let { ProjecaoRendimentos.de(d, it, a?.reforcoMedio12mEur) }
