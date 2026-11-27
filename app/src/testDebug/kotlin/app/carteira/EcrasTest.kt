@@ -898,6 +898,14 @@ class EcrasTest {
         tocarSeparador("Evolução")
         esperar("Património total")
         percorrer("21-evolucao")
+        // Ecrã estreito com letra grande: a projeção deixa de ser uma tabela de 4 colunas (cortava o ano e os
+        // intervalos) e passa a duas linhas por horizonte.
+        esperar("Por ano · por mês · intervalo/ano")
+        esperar("/mês · 0,8–1,7 mil")
+        assertTrue(
+            "sem a tabela de 4 colunas",
+            compose.onAllNodes(hasText("Intervalo/ano")).fetchSemanticsNodes().isEmpty(),
+        )
         deslizarPara(0)
         tocar("Carteira")
         esperar("Carteira vs S&P 500")

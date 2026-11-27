@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -518,18 +520,18 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos, comIrs: Boolean = true, aoMu
         LinhaEscolha("IRS", listOf(COM_IRS, SEM_IRS), if (comIrs) COM_IRS else SEM_IRS) { rotulo ->
             aoMudarIrs(rotulo == COM_IRS)
         }
-        Row(Modifier.fillMaxWidth()) {
-            val estilo = MaterialTheme.typography.labelSmall
-            val cor = MaterialTheme.colorScheme.onSurfaceVariant
-            Text("Daqui a", Modifier.weight(1.25f), style = estilo, color = cor)
-            Text("Por ano", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
-            Text("Por mês", Modifier.weight(0.85f), style = estilo, color = cor, textAlign = TextAlign.End)
-            Text("Intervalo/ano", Modifier.weight(1.4f), style = estilo, color = cor, textAlign = TextAlign.End)
-        }
-        LinhaProjecao("Hoje", null, p.rendimentoHojeEur * projecao.fatorLiquido, null)
-        pontos.forEach { pt ->
-            val r = liquido(emValores(pt.rendimento, pt.anos))
-            LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), r.p50, r)
+        // A tabela de 4 colunas só cabe com largura (medida com a letra do telemóvel); num ecrã estreito ou com letra
+        // grande, cada horizonte ocupa duas linhas, para nada ficar cortado (o ano, os intervalos).
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val tabela = maxWidth >= LARGURA_TABELA * LocalDensity.current.fontScale
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CabecalhoProjecao(tabela)
+                LinhaProjecao("Hoje", null, p.rendimentoHojeEur * projecao.fatorLiquido, null, tabela)
+                pontos.forEach { pt ->
+                    val r = liquido(emValores(pt.rendimento, pt.anos))
+                    LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), r.p50, r, tabela)
+                }
+            }
         }
         HorizontalDivider(color = corBordaCartao())
         val ultimo = pontos.last()
@@ -608,8 +610,8 @@ private const val SEM_IRS = "Sem"
 @Composable
 private fun LinhaEscolha(nome: String, opcoes: List<String>, escolhida: String, aoEscolher: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        TextoPequeno(nome, modifier = Modifier.width(58.dp))
-        Filtros(opcoes, escolhida, compacto = true, aoEscolher = aoEscolher)
+        TextoPequeno(nome, modifier = Modifier.width(58.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)))
+        Filtros(opcoes, escolhida, compacto = true, quebrar = true, aoEscolher = aoEscolher)
     }
 }
 
@@ -622,8 +624,63 @@ private fun intervalo(f: Faixa): String =
         "${mil(f.p10)}–${mil(f.p90)} mil${Formatos.NB}€"
     }
 
+/** Abaixo desta largura (com letra normal; cresce com a letra), a projeção passa de tabela a duas linhas por horizonte. */
+private val LARGURA_TABELA = 330.dp
+
 @Composable
-private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double, faixa: Faixa?) {
+private fun CabecalhoProjecao(tabela: Boolean) {
+    val estilo = MaterialTheme.typography.labelSmall
+    val cor = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(Modifier.fillMaxWidth()) {
+        if (tabela) {
+            Text("Daqui a", Modifier.weight(1.25f), style = estilo, color = cor)
+            Text("Por ano", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
+            Text("Por mês", Modifier.weight(0.85f), style = estilo, color = cor, textAlign = TextAlign.End)
+            Text("Intervalo/ano", Modifier.weight(1.4f), style = estilo, color = cor, textAlign = TextAlign.End)
+        } else {
+            Text("Daqui a", style = estilo, color = cor)
+            Text(
+                "Por ano · por mês · intervalo/ano",
+                Modifier.weight(1f).padding(start = 12.dp),
+                style = estilo,
+                color = cor,
+                textAlign = TextAlign.End,
+            )
+        }
+    }
+}
+
+/**
+ * Um horizonte da projeção. Em tabela: "10 anos 2036 | 1 124 € | 94 € | 0,8–1,7 mil €". Em duas linhas (ecrã
+ * estreito): "10 anos" com o ano por baixo, e à direita o valor por ano com o por mês e o intervalo por baixo.
+ */
+@Composable
+private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double, faixa: Faixa?, tabela: Boolean) {
+    if (!tabela) {
+        Row(Modifier.fillMaxWidth()) {
+            Column {
+                Text(rotulo, style = MaterialTheme.typography.bodyMedium)
+                if (ano != null) {
+                    Text(ano, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Column(Modifier.weight(1f).padding(start = 12.dp), horizontalAlignment = Alignment.End) {
+                Text(
+                    Formatos.eur(porAnoEur, 0),
+                    style = MaterialTheme.typography.bodyMedium.numeros(),
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.End,
+                )
+                Text(
+                    listOfNotNull("${Formatos.eur(porAnoEur / 12, 0)}/mês", faixa?.let { intervalo(it) }).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall.numeros(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                )
+            }
+        }
+        return
+    }
     Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1.25f), verticalAlignment = Alignment.CenterVertically) {
             Text(rotulo, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
