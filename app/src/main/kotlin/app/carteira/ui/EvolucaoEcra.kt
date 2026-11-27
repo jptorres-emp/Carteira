@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.Dados
 import app.carteira.dados.Objetivo
+import app.carteira.dados.ProjecaoRendimentos
 import app.carteira.dados.Rendimentos
 import kotlin.math.abs
 import kotlin.math.max
@@ -91,6 +92,8 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
     val p = d.patrimonio
     if (p != null && p.classes.isNotEmpty()) item { CartaoComposicao(p) }
     if (rendimentos != null) item { CartaoRendimentos(rendimentos) }
+    val projecao = rendimentos?.let { ProjecaoRendimentos.de(d, it) }
+    if (projecao != null) item { CartaoProjecao(projecao) }
     if (d.versaoPonte < 3) {
         item {
             Cartao("Há mais para ver") {

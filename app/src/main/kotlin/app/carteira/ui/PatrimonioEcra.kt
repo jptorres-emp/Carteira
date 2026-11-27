@@ -19,6 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,9 +40,12 @@ import app.carteira.dados.ClassePatrimonio
 import app.carteira.dados.GruposPatrimonio
 import app.carteira.dados.Patrimonio
 import app.carteira.dados.PosicaoPlano
+import app.carteira.dados.ProjecaoRendimentos
 import app.carteira.dados.Rendimentos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 /*
  * Peças da vista Património do separador Evolução (EvolucaoEcra): o topo, o gráfico com o plano,
@@ -468,6 +475,77 @@ internal fun CartaoRendimentos(r: Rendimentos) {
         TextoPequeno(
             "Valores brutos, por ano, ao ritmo de hoje: o valor de cada classe × a taxa da tab Investimentos" +
                 (if (r.temPagosUltimos12m) "; os ETFs, que lá estão a 0%, pelo que pagaram nos últimos 12 meses" else "") + ".",
+        )
+    }
+}
+
+// ───────────────────────────── Rendimentos no futuro ─────────────────────────────
+
+/** O que o património vai render por ano e por mês daqui a 1 a 30 anos, nos cenários do plano. */
+@Composable
+internal fun CartaoProjecao(p: ProjecaoRendimentos) {
+    if (p.cenarios.isEmpty() || p.pontos.isEmpty()) return
+    var escolhido by rememberSaveable { mutableIntStateOf(p.indiceBase) }
+    val k = escolhido.coerceIn(0, p.cenarios.lastIndex)
+    val cenario = p.cenarios[k]
+    val rotulos = p.cenarios.map { "${it.nome} ${Formatos.pct(it.taxa)}" }
+    val pontos = p.pontos[k]
+    Cartao("Rendimentos no futuro") {
+        Filtros(rotulos, rotulos[k], compacto = true) { rotulo -> escolhido = rotulos.indexOf(rotulo).coerceAtLeast(0) }
+        Row(Modifier.fillMaxWidth()) {
+            val estilo = MaterialTheme.typography.labelSmall
+            val cor = MaterialTheme.colorScheme.onSurfaceVariant
+            Text("Daqui a", Modifier.weight(1.3f), style = estilo, color = cor)
+            Text("Por ano", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
+            Text("Por mês", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
+        }
+        LinhaProjecao("Hoje", null, p.rendimentoHojeEur)
+        pontos.forEach { pt -> LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), pt.rendimentoAnualEur) }
+        HorizontalDivider(color = corBordaCartao())
+        val ultimo = pontos.last()
+        val levantar = ultimo.patrimonioEur * ProjecaoRendimentos.LEVANTAMENTO
+        TextoPequeno(
+            "Em ${ultimo.ano} o património seria de ${Formatos.eur(ultimo.patrimonioEur, 0)}: levantar " +
+                "${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO, 0)} ao ano daria ${Formatos.eur(levantar, 0)} " +
+                "(${Formatos.eur(levantar / 12, 0)}/mês)" +
+                if (levantar > ultimo.rendimentoAnualEur) ", mais do que os dividendos e juros: os ETFs de acumulação não pagam nada." else ".",
+        )
+        val centimos = (100 / 1.02.pow(ultimo.anos)).roundToInt()
+        TextoPequeno(
+            "Pressupostos: ${Formatos.eur(p.reforcoMensalEur, 0)} por mês para ações e ETFs (o reforço do plano), a carteira " +
+                "a crescer ${Formatos.pct(cenario.taxa)} ao ano com os dividendos reinvestidos e a render " +
+                "${Formatos.pct(p.taxaCarteira)} do valor, como hoje; certificados, P2P e saldos às taxas da tab Investimentos, " +
+                "sem reforços. Valores brutos e nominais: com 2% de inflação, um euro daqui a ${ultimo.anos} anos vale " +
+                "cerca de $centimos cêntimos de hoje.",
+        )
+    }
+}
+
+@Composable
+private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.weight(1.3f), verticalAlignment = Alignment.CenterVertically) {
+            Text(rotulo, style = MaterialTheme.typography.bodyMedium)
+            if (ano != null) {
+                Spacer(Modifier.width(6.dp))
+                Text(ano, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Text(
+            Formatos.eur(porAnoEur, 0),
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium.numeros(),
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.End,
+            maxLines = 1,
+        )
+        Text(
+            Formatos.eur(porAnoEur / 12, 0),
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium.numeros(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End,
+            maxLines = 1,
         )
     }
 }

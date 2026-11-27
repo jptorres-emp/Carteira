@@ -345,7 +345,8 @@ class EcrasTest {
         tocarSeparador("Evolução")
         esperar("Património total")
         val marcas = listOf("Património total", "Acima da meta base", "Registo na folha", "Mês a mês", "Face ao plano",
-            "Onde o plano te leva (dez/30)", "Marcos", "Próximo marco", "Ano a ano", "Composição hoje", "Rendimentos por ano")
+            "Onde o plano te leva (dez/30)", "Marcos", "Próximo marco", "Ano a ano", "Composição hoje", "Rendimentos por ano",
+            "Rendimentos no futuro")
         val vistas = mutableSetOf<String>()
         registar(marcas, vistas)
         // O topo diz quanto o património rende por ano.
@@ -353,8 +354,8 @@ class EcrasTest {
         esperar("dividendos e juros")
         foto("11-evolucao")
         // Itens: 0 filtros, 1 topo, 2 registo, 3 gráfico, 4 plano, 5 marcos, 6 ano a ano, 7 composição,
-        // 8 rendimentos, 9 rodapé.
-        for (k in 2..9) {
+        // 8 rendimentos, 9 rendimentos no futuro, 10 rodapé.
+        for (k in 2..10) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
@@ -376,6 +377,25 @@ class EcrasTest {
                     esperar("Certificados de Aforro 180")
                     esperar("351")
                     esperar("depois dos 28% de IRS")
+                }
+                9 -> {
+                    foto("11j-evolucao-futuro")
+                    // Cenário base do plano de exemplo (400 €/mês, 6,5%): de 577 € por ano hoje a 10 405 € em 2056.
+                    esperar("Base 6,5%")
+                    esperar("Daqui a")
+                    esperar(Formatos.eur(577.0, 0))
+                    esperar(Formatos.eur(2_138.0, 0))
+                    esperar(Formatos.eur(10_405.0, 0))
+                    esperar(Formatos.eur(867.0, 0))
+                    esperar("2056")
+                    esperar("levantar 4% ao ano daria ${Formatos.eur(22_797.0, 0)}")
+                    esperar("${Formatos.eur(400.0, 0)} por mês para ações e ETFs")
+                    // O cenário alargado (8%) dá mais.
+                    tocar("Alargada 8,0%")
+                    esperar(Formatos.eur(14_007.0, 0))
+                    foto("11k-evolucao-futuro-alargado")
+                    tocar("Base 6,5%")
+                    esperar(Formatos.eur(10_405.0, 0))
                 }
             }
         }

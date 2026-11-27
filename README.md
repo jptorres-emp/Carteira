@@ -57,6 +57,12 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   das contas), o P2P e o resto, com o total por mês, em % do património e depois dos 28% de IRS. A base é a
   coluna Rendimento Anual da tab Investimentos; os ETFs que lá estão a 0% mas pagam distribuições contam pelo
   que pagaram nos últimos 12 meses. Mostra também os dividendos recebidos nos últimos 12 meses e no ano.
+  O cartão **Rendimentos no futuro** (`dados/Projecoes.kt`) projeta esse rendimento por ano e por mês daqui a
+  1, 3, 5, 10, 20 e 30 anos, nos três cenários do plano (referência, base e alargada, linha 3 da tab Evolução
+  Patrimonial): as ações e os ETFs recebem o reforço mensal do plano, crescem à taxa do cenário com os
+  dividendos reinvestidos e rendem a mesma % de hoje; o resto (certificados, P2P, saldos) capitaliza à sua taxa,
+  sem reforços. Para comparar, mostra quanto daria levantar 4% ao ano do património projetado. Valores brutos e
+  nominais.
   As Posições têm duas vistas (a escolhida fica guardada): Lista, com os cartões, e Pesos, com o peso de cada
   posição e ETF numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a concentração das
   5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo. Os Pesos têm três
