@@ -380,37 +380,39 @@ class EcrasTest {
                 }
                 9 -> {
                     foto("11j-evolucao-futuro")
-                    // Por omissão: o cenário base do plano (6,5%), o teu reforço real (446 €, a média dos últimos
-                    // 12 meses fechados) e euros de hoje (2% de inflação). Daqui a 30 anos: 5 002 € por ano.
-                    esperar("Base 6,5%")
-                    esperar("O teu ritmo 8,3%")
+                    // Monte Carlo (2 000 simulações) com o teu reforço real (446 €, a média dos últimos 12 meses
+                    // fechados), a taxa base do plano (6,5%), a volatilidade da carteira (14,3%) e euros de hoje.
+                    val nb = Formatos.NB
                     esperar("O teu ${Formatos.eur(446.0, 0)}")
                     esperar("Euros de hoje")
+                    esperar("Intervalo/ano")
                     esperar(Formatos.eur(577.0, 0))
-                    esperar(Formatos.eur(1_584.0, 0))
-                    esperar(Formatos.eur(5_002.0, 0))
-                    esperar(Formatos.eur(417.0, 0))
+                    esperar(Formatos.eur(1_561.0, 0))
+                    esperar("1,1–2,3 mil$nb€")
+                    esperar(Formatos.eur(4_729.0, 0))
+                    esperar(Formatos.eur(394.0, 0))
+                    esperar("2,4–10,1 mil$nb€")
                     esperar("2056")
-                    esperar("${Formatos.eur(341_629.0, 0)} em euros de hoje")
-                    esperar("levantar 4% ao ano daria ${Formatos.eur(13_665.0, 0)}")
-                    // A tua evolução face ao plano e o que pagam as tuas metas.
+                    esperar("Mediana de ${Formatos.numero(2_000.0, 0)} simulações")
+                    esperar("os dividendos e juros dariam ${Formatos.eur(284.0, 0)} por mês")
+                    esperar("O património mediano seria de ${Formatos.eur(326_220.0, 0)} em euros de hoje")
+                    esperar("ao ano daria ${Formatos.eur(11_418.0, 0)} a ${Formatos.eur(13_049.0, 0)}")
+                    // A tua evolução (comparação, não projeção) e os pressupostos que vêm da folha.
                     esperar("investes ${Formatos.eur(446.0, 0)} por mês em média nos últimos 12 meses (o plano assume ${Formatos.eur(400.0, 0)})")
-                    esperar("a carteira rendeu 8,3% ao ano desde o início (o plano assume 6,5%) e 11,2% nos últimos 12 meses")
-                    esperar("o dinheiro novo rende 1,3% (as tuas metas: 65% em ações")
+                    esperar("a carteira rendeu 8,3% ao ano desde o início e 11,2% nos últimos 12 meses (a projeção usa os 6,5% do plano")
+                    esperar("com volatilidade de 14,3%, a da tua carteira")
                     esperar("O que já tens rende 1,8%")
-                    // Nominais: 9 060 € em 2056; com o reforço do plano (400 €), 8 404 €.
+                    esperar("o dinheiro novo rende 1,3% (as tuas metas: 65% em ações")
+                    // Nominais: 8 566 € em 2056; com o reforço do plano (400 €), 7 928 €; em euros de hoje, 4 377 €.
                     tocar("Nominais")
-                    esperar(Formatos.eur(9_060.0, 0))
+                    esperar(Formatos.eur(8_566.0, 0))
                     tocar("Plano ${Formatos.eur(400.0, 0)}")
-                    esperar(Formatos.eur(8_404.0, 0))
+                    esperar(Formatos.eur(7_928.0, 0))
                     foto("11k-evolucao-futuro-plano-nominal")
-                    // De volta ao teu reforço e aos euros de hoje, no cenário alargado: 6 755 €.
-                    tocar("O teu ${Formatos.eur(446.0, 0)}")
                     tocar("Euros de hoje")
-                    tocar("Alargada 8,0%")
-                    esperar(Formatos.eur(6_755.0, 0))
-                    tocar("Base 6,5%")
-                    esperar(Formatos.eur(5_002.0, 0))
+                    esperar(Formatos.eur(4_377.0, 0))
+                    tocar("O teu ${Formatos.eur(446.0, 0)}")
+                    esperar(Formatos.eur(4_729.0, 0))
                 }
             }
         }

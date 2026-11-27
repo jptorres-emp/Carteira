@@ -57,15 +57,17 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   das contas), o P2P e o resto, com o total por mês, em % do património e depois dos 28% de IRS. A base é a
   coluna Rendimento Anual da tab Investimentos; os ETFs que lá estão a 0% mas pagam distribuições contam pelo
   que pagaram nos últimos 12 meses. Mostra também os dividendos recebidos nos últimos 12 meses e no ano.
-  O cartão **Rendimentos no futuro** (`dados/Projecoes.kt`) projeta o rendimento em dinheiro por ano e por mês
-  daqui a 1, 3, 5, 10, 20 e 30 anos e ajusta-se sozinho à tua evolução: parte dos valores e taxas de hoje, usa o
-  teu reforço real (a média dos últimos 12 meses fechados; ou o do plano, à escolha) e o ritmo pode ser um dos
-  cenários do plano (referência, base e alargada, linha 3 da tab Evolução Patrimonial) ou o teu (o TWR
-  anualizado com dividendos da Dashboard, só para comparar: poucos anos e em dólares). O que já tens rende a
-  previsão de dividendos do próximo ano (tab Dividendos, já sem as vendas do plano); o dinheiro novo rende o que
-  pagam as tuas metas (peso alvo × yield de cada ação), com o resto no ETF de acumulação, que não paga; o resto
-  do património (certificados, P2P, saldos) capitaliza à sua taxa, sem reforços. Em euros de hoje (2% de
-  inflação) ou nominais, e com quanto daria levantar 4% ao ano do património projetado. Valores brutos.
+  O cartão **Rendimentos no futuro** (`dados/Projecoes.kt`) projeta o rendimento em dinheiro daqui a 1, 3, 5, 10,
+  20 e 30 anos como os simuladores de reforma e as calculadoras de dividendos: Monte Carlo (2 000 percursos de
+  mercado, mês a mês, retornos lognormais, semente fixa) com a mediana e o intervalo dos percentis 10 a 90,
+  dividendos reinvestidos depois dos 28% de IRS e valores em euros de hoje (2% de inflação; nominais à escolha).
+  Ajusta-se sozinho à tua evolução: parte do património e das taxas de hoje (tab Investimentos), usa o teu
+  reforço real (a média dos últimos 12 meses fechados; o do plano à escolha) e a volatilidade da tua carteira
+  (Dashboard). A rendibilidade mediana é a do cenário base do plano (linha 3 da tab Evolução Patrimonial), e não a
+  do teu passado: o TWR real aparece só para comparar. O que já tens rende a previsão de dividendos do próximo
+  ano (tab Dividendos, já sem as vendas do plano); o dinheiro novo rende o que pagam as tuas metas (peso alvo ×
+  yield), com o resto no ETF de acumulação, que não paga; certificados, P2P e saldos capitalizam à taxa líquida,
+  sem reforços. No fim, quanto daria levantar 3,5% a 4% ao ano do património mediano.
   As Posições têm duas vistas (a escolhida fica guardada): Lista, com os cartões, e Pesos, com o peso de cada
   posição e ETF numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a concentração das
   5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo. Os Pesos têm três

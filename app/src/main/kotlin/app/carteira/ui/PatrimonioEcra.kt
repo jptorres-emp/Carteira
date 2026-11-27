@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.AnoPatrimonio
 import app.carteira.dados.ClassePatrimonio
+import app.carteira.dados.Faixa
 import app.carteira.dados.GruposPatrimonio
 import app.carteira.dados.Patrimonio
 import app.carteira.dados.PosicaoPlano
@@ -45,8 +47,6 @@ import app.carteira.dados.ProjecaoRendimentos
 import app.carteira.dados.Rendimentos
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 /*
  * Peças da vista Património do separador Evolução (EvolucaoEcra): o topo, o gráfico com o plano,
@@ -483,27 +483,22 @@ internal fun CartaoRendimentos(r: Rendimentos) {
 // ───────────────────────────── Rendimentos no futuro ─────────────────────────────
 
 /**
- * O que o património vai render em dinheiro por ano e por mês daqui a 1 a 30 anos. Ajusta-se sozinho à tua
- * evolução: parte dos valores e taxas de hoje, usa o teu reforço real e o que as tuas metas pagam; o ritmo pode
- * ser o teu ou um cenário do plano; em euros de hoje (por omissão) ou nominais.
+ * O que o património vai render em dinheiro daqui a 1 a 30 anos, como nos simuladores de reforma: Monte Carlo com a
+ * mediana e o intervalo dos percentis 10 a 90, impostos e euros de hoje. Ajusta-se sozinho à tua evolução: parte
+ * dos valores e taxas de hoje, usa o teu reforço real, o que as tuas metas pagam e a volatilidade da tua carteira.
  */
 @Composable
 internal fun CartaoProjecao(p: ProjecaoRendimentos) {
-    if (p.cenarios.isEmpty() || p.reforcos.isEmpty()) return
-    var cenarioEscolhido by rememberSaveable { mutableIntStateOf(p.indiceCenarioPadrao) }
+    if (p.reforcos.isEmpty()) return
     var reforcoEscolhido by rememberSaveable { mutableIntStateOf(p.indiceReforcoPadrao) }
     var nominais by rememberSaveable { mutableStateOf(false) }
-    val cenario = p.cenarios[cenarioEscolhido.coerceIn(0, p.cenarios.lastIndex)]
     val reforco = p.reforcos[reforcoEscolhido.coerceIn(0, p.reforcos.lastIndex)]
-    val rotulosCenarios = p.cenarios.map { "${it.nome} ${Formatos.pct(it.taxa)}" }
     val rotulosReforcos = p.reforcos.map { "${it.nome} ${Formatos.eur(it.mensalEur, 0)}" }
     val rotulosValores = listOf(VALORES_DE_HOJE, VALORES_NOMINAIS)
-    val pontos = p.pontos(cenario, reforco.mensalEur)
-    val valor = { v: Double, anos: Int -> if (nominais) v else ProjecaoRendimentos.emEurosDeHoje(v, anos) }
+    val pontos = remember(p, reforco.mensalEur) { p.simular(reforco.mensalEur) }
+    if (pontos.isEmpty()) return
+    val emValores = { f: Faixa, anos: Int -> if (nominais) f else f.map { ProjecaoRendimentos.emEurosDeHoje(it, anos) } }
     Cartao("Rendimentos no futuro") {
-        LinhaEscolha("Ritmo", rotulosCenarios, rotulosCenarios[p.cenarios.indexOf(cenario)]) { rotulo ->
-            cenarioEscolhido = rotulosCenarios.indexOf(rotulo).coerceAtLeast(0)
-        }
         LinhaEscolha("Reforço", rotulosReforcos, rotulosReforcos[p.reforcos.indexOf(reforco)]) { rotulo ->
             reforcoEscolhido = rotulosReforcos.indexOf(rotulo).coerceAtLeast(0)
         }
@@ -513,40 +508,46 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
         Row(Modifier.fillMaxWidth()) {
             val estilo = MaterialTheme.typography.labelSmall
             val cor = MaterialTheme.colorScheme.onSurfaceVariant
-            Text("Daqui a", Modifier.weight(1.3f), style = estilo, color = cor)
+            Text("Daqui a", Modifier.weight(1.25f), style = estilo, color = cor)
             Text("Por ano", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
-            Text("Por mês", Modifier.weight(1f), style = estilo, color = cor, textAlign = TextAlign.End)
+            Text("Por mês", Modifier.weight(0.85f), style = estilo, color = cor, textAlign = TextAlign.End)
+            Text("Intervalo/ano", Modifier.weight(1.4f), style = estilo, color = cor, textAlign = TextAlign.End)
         }
-        LinhaProjecao("Hoje", null, p.rendimentoHojeEur)
+        LinhaProjecao("Hoje", null, p.rendimentoHojeEur, null)
         pontos.forEach { pt ->
-            LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), valor(pt.rendimentoAnualEur, pt.anos))
+            val r = emValores(pt.rendimento, pt.anos)
+            LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), r.p50, r)
         }
-        HorizontalDivider(color = corBordaCartao())
-        textoEvolucao(p)?.let { TextoPequeno(it) }
-        val ultimo = pontos.last()
-        val patrimonio = valor(ultimo.patrimonioEur, ultimo.anos)
-        val levantar = patrimonio * ProjecaoRendimentos.LEVANTAMENTO
         TextoPequeno(
-            "Em ${ultimo.ano} o património seria de ${Formatos.eur(patrimonio, 0)}" +
-                (if (nominais) "" else " em euros de hoje") + ": levantar " +
-                "${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO, 0)} ao ano daria ${Formatos.eur(levantar, 0)} " +
-                "(${Formatos.eur(levantar / 12, 0)}/mês)" +
-                if (levantar > valor(ultimo.rendimentoAnualEur, ultimo.anos)) {
-                    ", mais do que os dividendos e juros: numa carteira de acumulação, é isto que mede o que podes vir a ter."
-                } else {
-                    "."
-                },
+            "Mediana de ${Formatos.numero(ProjecaoRendimentos.SIMULACOES.toDouble(), 0)} simulações de mercado, mês a mês. " +
+                "O intervalo vai do percentil 10 (mercados maus) ao 90 (mercados bons): 8 em cada 10 ficam lá dentro.",
         )
+        HorizontalDivider(color = corBordaCartao())
+        val ultimo = pontos.last()
+        val rendimento = emValores(ultimo.rendimento, ultimo.anos)
+        val patrimonio = emValores(ultimo.patrimonio, ultimo.anos).p50
+        val liquidoMes = rendimento.p50 * (1 - ProjecaoRendimentos.IRS) / 12
+        TextoPequeno(
+            "Em ${ultimo.ano}, depois dos 28% de IRS, os dividendos e juros dariam ${Formatos.eur(liquidoMes, 0)} por mês (mediana).",
+        )
+        val prudente = patrimonio * ProjecaoRendimentos.LEVANTAMENTO_PRUDENTE
+        val classico = patrimonio * ProjecaoRendimentos.LEVANTAMENTO
+        TextoPequeno(
+            "O património mediano seria de ${Formatos.eur(patrimonio, 0)}" + (if (nominais) "" else " em euros de hoje") +
+                ": levantar ${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO_PRUDENTE)} a ${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO, 0)} " +
+                "ao ano daria ${Formatos.eur(prudente, 0)} a ${Formatos.eur(classico, 0)} " +
+                "(${Formatos.eur(prudente / 12, 0)} a ${Formatos.eur(classico / 12, 0)} por mês). Numa carteira de acumulação é este o " +
+                "número que conta: os ETFs de acumulação não pagam nada, mas crescem. A regra dos 4% vem dos EUA; na Europa, " +
+                "3,5% é mais prudente.",
+        )
+        textoEvolucao(p)?.let { TextoPequeno(it) }
         val deOnde = if (reforco.nome == ProjecaoRendimentos.TEU_REFORCO) "a tua média dos últimos 12 meses" else "o reforço do plano"
-        val ritmo = if (cenario.nome == ProjecaoRendimentos.TEU_RITMO) {
-            "ao teu ritmo (${Formatos.pct(cenario.taxa)} ao ano desde o início: poucos anos, de mercado em alta e medido em dólares)"
-        } else {
-            "a ${Formatos.pct(cenario.taxa)} ao ano (cenário ${cenario.nome.lowercase()} do plano)"
-        }
+        val volatilidade = Formatos.pct(p.volatilidade) + if (p.volatilidadeReal) ", a da tua carteira" else ", de referência"
         val metas = p.parteAcoesNovo?.let { " (as tuas metas: ${Formatos.pct(it, 0)} em ações e o resto no ETF de acumulação, que não paga)" } ?: ""
         TextoPequeno(
-            "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde) e a carteira a crescer " +
-                "$ritmo, com os dividendos reinvestidos. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
+            "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde); a carteira a crescer " +
+                "${Formatos.pct(p.taxaMediana)} ao ano na mediana (o cenário base do teu plano), com volatilidade de $volatilidade, " +
+                "e os dividendos reinvestidos depois dos 28% de IRS. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
                 "(a previsão de dividendos, já sem as vendas do plano); o dinheiro novo rende ${Formatos.pct(p.taxaNovo)}$metas. " +
                 "Certificados, P2P e saldos às taxas da tab Investimentos, sem reforços. Tudo se recalcula com os dados da folha. " +
                 (
@@ -563,18 +564,18 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
 private const val VALORES_DE_HOJE = "Euros de hoje"
 private const val VALORES_NOMINAIS = "Nominais"
 
-/** "Ritmo  [O teu ritmo 12,7%] [Base 6,5%] …": uma linha de escolhas com o nome à esquerda. */
+/** "Reforço  [O teu 772 €] [Plano 800 €]": uma linha de escolhas com o nome à esquerda. */
 @Composable
 private fun LinhaEscolha(nome: String, opcoes: List<String>, escolhida: String, aoEscolher: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        TextoPequeno(nome, modifier = Modifier.width(52.dp))
+        TextoPequeno(nome, modifier = Modifier.width(58.dp))
         Filtros(opcoes, escolhida, compacto = true, aoEscolher = aoEscolher)
     }
 }
 
 /**
  * "A tua evolução: investes 772 € por mês em média nos últimos 12 meses (o plano assume 800 €); a carteira rendeu
- * 12,7% ao ano desde o início (o plano assume 6,5%) e 5,7% nos últimos 12 meses."
+ * 12,7% ao ano desde o início e 5,7% nos últimos 12 meses (a projeção usa os 6,5% do plano: …)."
  */
 private fun textoEvolucao(p: ProjecaoRendimentos): String? {
     val frases = mutableListOf<String>()
@@ -582,23 +583,33 @@ private fun textoEvolucao(p: ProjecaoRendimentos): String? {
         frases += "investes ${Formatos.eur(teu.mensalEur, 0)} por mês em média nos últimos 12 meses" +
             (p.reforcoDoPlano?.let { " (o plano assume ${Formatos.eur(it.mensalEur, 0)})" } ?: "")
     }
-    p.teuRitmo?.let { ritmo ->
-        frases += "a carteira rendeu ${Formatos.pct(ritmo.taxa)} ao ano desde o início" +
-            (p.taxaBase?.let { " (o plano assume ${Formatos.pct(it)})" } ?: "") +
-            (p.ritmoUltimos12m?.let { " e ${Formatos.pct(it)} nos últimos 12 meses" } ?: "")
+    p.twrReal?.let { twr ->
+        frases += "a carteira rendeu ${Formatos.pct(twr)} ao ano desde o início" +
+            (p.ritmoUltimos12m?.let { " e ${Formatos.pct(it)} nos últimos 12 meses" } ?: "") +
+            " (a projeção usa os ${Formatos.pct(p.taxaMediana)} do plano: poucos anos, de mercado em alta e medidos em dólares, " +
+            "não chegam para projetar trinta)"
     }
     if (frases.isEmpty()) return null
     return "A tua evolução: " + frases.joinToString("; ") + "."
 }
 
+/** "1,6–2,9 mil €" ou "540–720 €". */
+private fun intervalo(f: Faixa): String =
+    if (f.p90 < 1_000) {
+        "${Formatos.numero(f.p10, 0)}–${Formatos.eur(f.p90, 0)}"
+    } else {
+        fun mil(x: Double) = Formatos.numero(x / 1_000, if (x < 100_000) 1 else 0)
+        "${mil(f.p10)}–${mil(f.p90)} mil${Formatos.NB}€"
+    }
+
 @Composable
-private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double) {
+private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double, faixa: Faixa?) {
     Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.weight(1.3f), verticalAlignment = Alignment.CenterVertically) {
-            Text(rotulo, style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.weight(1.25f), verticalAlignment = Alignment.CenterVertically) {
+            Text(rotulo, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
             if (ano != null) {
-                Spacer(Modifier.width(6.dp))
-                Text(ano, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(4.dp))
+                Text(ano, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
         Text(
@@ -611,8 +622,16 @@ private fun LinhaProjecao(rotulo: String, ano: String?, porAnoEur: Double) {
         )
         Text(
             Formatos.eur(porAnoEur / 12, 0),
-            Modifier.weight(1f),
+            Modifier.weight(0.85f),
             style = MaterialTheme.typography.bodyMedium.numeros(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End,
+            maxLines = 1,
+        )
+        Text(
+            faixa?.let { intervalo(it) } ?: "",
+            Modifier.weight(1.4f),
+            style = MaterialTheme.typography.bodySmall.numeros(),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.End,
             maxLines = 1,
