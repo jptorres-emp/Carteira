@@ -691,10 +691,14 @@ class EcrasTest {
         deslizarPara(0)
         tocar("🎁 De borla")
         esperar("1 posição já está de borla")
-        // Só conta o lucro: a ALFA vendeu 997 €, mas o lucro (mais-valias e dividendos) paga só uma parte das que tem.
-        esperar("Só conta o lucro")
         esperar("faltam ")
         foto("07f-de-borla")
+        // A regra está no ⓘ do título. Só conta o lucro: a ALFA vendeu 997 €, mas o lucro (mais-valias e
+        // dividendos) paga só uma parte das que tem.
+        tocarDescricao("Explicação: De borla?")
+        esperar("Só conta o lucro")
+        fotoDaDica("07f2-de-borla-dica")
+        fecharDica("Só conta o lucro")
         // Ao tocar numa posição: de onde vem o lucro (vendas e dividendos) e o que ele tem de pagar.
         tocar("ALFA ▾")
         esperar("De onde vem o lucro")
