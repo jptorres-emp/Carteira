@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import app.carteira.dados.AnalisePatrimonio
 import app.carteira.dados.AnoPatrimonio
 import app.carteira.dados.ClassePatrimonio
+import app.carteira.dados.GruposPatrimonio
 import app.carteira.dados.Patrimonio
 import app.carteira.dados.PosicaoPlano
 import app.carteira.dados.Rendimentos
@@ -372,18 +373,7 @@ private fun LinhaAno(y: AnoPatrimonio) {
 internal fun agruparClasses(classes: List<ClassePatrimonio>): List<Pair<String, Double>> {
     val grupos = linkedMapOf<String, Double>()
     classes.forEach { c ->
-        val n = c.classe.lowercase()
-        val g = when {
-            n.startsWith("ações") || n.startsWith("acoes") -> "Ações"
-            n.startsWith("etf") -> "ETFs"
-            "certificado" in n -> "Certificados de Aforro"
-            "ppr" in n -> "PPR"
-            "p2p" in n -> "P2P"
-            "cripto" in n -> "Cripto"
-            // Os saldos das corretoras podem ter mais do que dinheiro (a Trading Republic tem cripto e ETFs).
-            "saldo" in n || "cash" in n || "revolut" in n || "depósito" in n || "deposito" in n -> "Corretoras e liquidez"
-            else -> c.classe
-        }
+        val g = GruposPatrimonio.de(c.classe)
         grupos[g] = (grupos[g] ?: 0.0) + c.valorEur
     }
     val total = grupos.values.sum()

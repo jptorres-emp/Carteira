@@ -58,8 +58,14 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   coluna Rendimento Anual da tab Investimentos; os ETFs que lá estão a 0% mas pagam distribuições contam pelo
   que pagaram nos últimos 12 meses. Mostra também os dividendos recebidos nos últimos 12 meses e no ano.
   As Posições têm duas vistas (a escolhida fica guardada): Lista, com os cartões, e Pesos, com o peso de cada
-  posição e ETF na carteira numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a
-  concentração das 5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo.
+  posição e ETF numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a concentração das
+  5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo. Os Pesos têm três
+  bases (`dados/Pesos.kt`; a escolhida também fica guardada): **Ações**, só o portefólio de ações, sem os ETFs;
+  **Ações + ETFs**, a carteira, que é a base das regras; e **Tudo**, o património inteiro, com o resto da tab
+  Investimentos (certificados, PPR, P2P, saldos) no fim, sem barra. Os alvos e máximos da folha são % da
+  carteira e passam para a base escolhida com o mesmo valor em euros, por isso o âmbar e o vermelho não mudam
+  de base. No topo, uma barra mostra a base inteira pelas cores das camadas: nas Ações, o peso de cada camada;
+  nas outras, ações contra ETFs (e o resto).
   O **Reforço do mês** (`dados/Reforco.kt`) diz onde pôr o dinheiro novo pela regra 10 da folha: primeiro os
   core (Core A e Core B) em 🟢 e abaixo do alvo, cada um até ao Ajuste sugerido, e o resto no ETF global; com
   ações inteiras ou com frações. Cada compra abre o Registar já preenchido, e as que registas saem do que falta

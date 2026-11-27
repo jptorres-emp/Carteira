@@ -32,9 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.carteira.dados.BaseDosPesos
+import app.carteira.dados.BasePesos
 import app.carteira.dados.Dados
 import app.carteira.dados.Gatilhos
 import app.carteira.dados.Historico
+import app.carteira.dados.ParteDoPatrimonio
+import app.carteira.dados.Pesos
 import app.carteira.dados.Sinais
 import kotlin.math.max
 
@@ -63,6 +67,9 @@ internal const val VISTA_LISTA = "Lista"
 internal const val VISTA_PESOS = "Pesos"
 internal val VISTAS_POSICOES = listOf(VISTA_LISTA, VISTA_PESOS)
 
+/** Uma parte da base no topo da vista Pesos (uma camada, os ETFs ou o resto do património). */
+private data class Bloco(val nome: String, val peso: Double, val cor: Color)
+
 /** Na ordem "Sinal": primeiro o que pede para agir (sair, reduzir, comprar forte, comprar), os ETF no fim. */
 private fun prioridadeSinal(l: Linha): Int = when {
     l.etf -> 9
@@ -82,7 +89,16 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     val ordem = estado.prefs.ordemPosicoes.takeIf { it in ORDENS_POSICOES } ?: "Valor"
     val vista = estado.prefs.vistaPosicoes.takeIf { it in VISTAS_POSICOES } ?: VISTA_LISTA
 
-    val totalCarteira = (d.totaisAcoes?.valorEur ?: 0.0) + (d.totaisEtfs?.valorEur ?: 0.0)
+    val acoesEur = d.totaisAcoes?.valorEur ?: d.posicoes.sumOf { it.valorEur ?: 0.0 }
+    val etfsEur = d.totaisEtfs?.valorEur ?: d.etfs.sumOf { it.valorEur ?: 0.0 }
+    val totalCarteira = acoesEur + etfsEur
+    // A base dos pesos (só na vista Pesos): só as ações, ações + ETFs (a das regras) ou o património todo.
+    val base = if (vista == VISTA_PESOS) {
+        Pesos.base(BasePesos.de(estado.prefs.basePesos), acoesEur, etfsEur, d.patrimonio?.classes)
+            ?: Pesos.base(BasePesos.CARTEIRA, acoesEur, etfsEur, null)
+    } else {
+        null
+    }
     val historico = d.historico
     val linhas = d.posicoes.map {
         // O valor da lista está em euros, por isso o ganho também.
@@ -100,8 +116,11 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
     val maximos = d.posicoes.associate { it.ticker to it.pesoMaximo }
     // As cores das camadas são as da Alocação do Início (pela mesma ordem); os ETFs ficam a cinzento.
     val ordemCamadas = d.camadas.filter { (it.pesoHoje ?: 0.0) > 0 || (it.pesoIdeal ?: 0.0) > 0 }.map { it.camada }
+    val indiceCamada = { camada: String ->
+        ordemCamadas.indexOfFirst { it == camada || (camada.startsWith("Sair") && it.startsWith("Sair")) }
+    }
     val corDaCamada = { camada: String ->
-        val k = ordemCamadas.indexOfFirst { it == camada || (camada.startsWith("Sair") && it.startsWith("Sair")) }
+        val k = indiceCamada(camada)
         if (k >= 0) Paleta.categoria(k) else Paleta.cinzento
     }
 
@@ -147,18 +166,28 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
             )
         }
         item { Filtros(opcoes, filtroAtivo) { filtro = it } }
+        // Na base "Ações" os ETFs saem; os pesos, alvos e máximos passam a % da base (o mesmo valor em euros).
+        val naBase = if (base == null) visiveis else visiveis.filter { base.incluiEtfs || !it.etf }
         item {
-            val soma = visiveis.sumOf { it.valorEur ?: 0.0 }
+            val soma = naBase.sumOf { it.valorEur ?: 0.0 }
+            val totalDaBase = base?.totalEur ?: totalCarteira
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextoPequeno("Ver")
                     Spacer(Modifier.width(8.dp))
                     Filtros(VISTAS_POSICOES, vista, compacto = true) { vm.escolherVistaPosicoes(it) }
                 }
+                if (base != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextoPequeno("Base")
+                        Spacer(Modifier.width(8.dp))
+                        Filtros(BasePesos.ROTULOS, base.base.rotulo, compacto = true) { vm.escolherBasePesos(it) }
+                    }
+                }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextoPequeno(
-                        "${visiveis.size} ${if (visiveis.size == 1) "posição" else "posições"} · ${Formatos.eur(soma, 0)}" +
-                            if (totalCarteira > 0) " · ${Formatos.pct(soma / totalCarteira)} da carteira" else "",
+                        "${naBase.size} ${if (naBase.size == 1) "posição" else "posições"} · ${Formatos.eur(soma, 0)}" +
+                            if (totalDaBase > 0) " · ${Formatos.pct(soma / totalDaBase)} ${base?.base?.nome ?: "da carteira"}" else "",
                         modifier = Modifier.weight(1f),
                     )
                     MenuOrdem(ordem) { vm.escolherOrdemPosicoes(it) }
@@ -166,8 +195,34 @@ fun PosicoesEcra(estado: Estado, vm: CarteiraViewModel) {
             }
         }
         val abrir = { l: Linha -> vm.irPara(if (l.etf) Ecra.Etf(l.ticker) else Ecra.Posicao(l.ticker)) }
-        if (vista == VISTA_PESOS) {
-            item(key = "pesos") { CartaoPesos(visiveis, alvos, maximos, corDaCamada, abrir) }
+        if (base != null) {
+            // O resto do património (base Tudo) só sem filtro; a procura também o encontra pelo nome.
+            val outras = if (filtroAtivo != "Todas") {
+                emptyList()
+            } else {
+                base.outras.filter { base.peso(it.valorEur) >= 0.001 && (termo.isEmpty() || it.nome.lowercase().contains(termo)) }
+            }
+            val composicao = composicaoDaBase(linhas, base, ordemCamadas, indiceCamada, corDaCamada)
+            if (naBase.isEmpty() && outras.isEmpty()) {
+                if (visiveis.any { it.etf } && !base.incluiEtfs) {
+                    item(key = "pesos") {
+                        Cartao { TextoPequeno("Os ETFs não entram na base «Ações». Escolhe «Ações + ETFs» ou «Tudo».") }
+                    }
+                }
+            } else {
+                item(key = "pesos") {
+                    CartaoPesos(
+                        linhas = naBase.map { it.copy(peso = base.naBase(it.peso)) },
+                        outras = outras,
+                        base = base,
+                        composicao = composicao,
+                        alvos = alvos.mapValues { base.naBase(it.value) },
+                        maximos = maximos.mapValues { base.naBase(it.value) },
+                        corDaCamada = corDaCamada,
+                        aoTocar = abrir,
+                    )
+                }
+            }
         } else {
             items(visiveis, key = { it.ticker }) { l ->
                 CartaoLinha(l, alvos[l.ticker]) { abrir(l) }
@@ -242,33 +297,113 @@ private fun CartaoLinha(l: Linha, alvo: Double?, aoTocar: () -> Unit) {
 }
 
 /**
- * A vista Pesos: o peso de cada posição (e ETF) na carteira, numa barra à mesma escala, com o traço no peso
- * máximo da camada e o alvo ao lado. O peso fica âmbar acima do máximo e vermelho acima de 1,25 × o máximo
- * (onde as regras mandam aparar). Tocar abre a posição.
+ * O topo da vista Pesos: a base inteira (sem filtro) numa barra, pelas cores das camadas, e o texto que a
+ * resume. Nas ações, o peso de cada camada; com os ETFs, ações contra ETFs; no Tudo, também o resto.
+ */
+private fun composicaoDaBase(
+    linhas: List<Linha>,
+    base: BaseDosPesos,
+    ordemCamadas: List<String>,
+    indiceCamada: (String) -> Int,
+    corDaCamada: (String) -> Color,
+): Pair<List<Bloco>, String> {
+    val camadas = linhas.filter { !it.etf }
+        .groupBy { l -> ordemCamadas.getOrNull(indiceCamada(l.camada)) ?: l.camada }
+        .map { (nome, ls) -> Bloco(nome, ls.sumOf { base.naBase(it.peso) ?: 0.0 }, corDaCamada(nome)) }
+        .filter { it.peso > 0 }
+        .sortedBy { b -> indiceCamada(b.nome).let { if (it < 0) Int.MAX_VALUE else it } }
+    val etfs = Bloco("ETFs", base.peso(base.etfsEur), corDaCamada("ETFs"))
+    // O resto a cinzento claro, para não se confundir com os ETFs se estes também ficarem a cinzento.
+    val resto = Bloco("resto do património", base.peso(base.outrasEur), Paleta.cinzento.copy(alpha = 0.5f))
+    val barra = camadas + (if (base.incluiEtfs && etfs.peso > 0) listOf(etfs) else emptyList()) +
+        (if (resto.peso > 0) listOf(resto) else emptyList())
+    val partes = when (base.base) {
+        BasePesos.ACOES -> camadas
+        BasePesos.CARTEIRA -> listOf(Bloco("Ações", base.peso(base.acoesEur), Paleta.cinzento), etfs)
+        BasePesos.TUDO -> listOf(Bloco("Ações", base.peso(base.acoesEur), Paleta.cinzento), etfs, resto).filter { it.peso > 0 }
+    }
+    return barra to partes.joinToString(" · ") { "${it.nome} ${Formatos.pct(it.peso)}" }
+}
+
+/**
+ * A vista Pesos: o peso de cada posição (e ETF) na base escolhida, numa barra à mesma escala, com o traço no
+ * peso máximo da camada e o alvo ao lado (os da folha, convertidos para a base). O peso fica âmbar acima do
+ * máximo e vermelho acima de 1,25 × o máximo (onde as regras mandam aparar). Tocar abre a posição. Na base
+ * Tudo, o resto do património vem no fim, sem barra (não tem alvo nem máximo).
  */
 @Composable
 private fun CartaoPesos(
     linhas: List<Linha>,
+    outras: List<ParteDoPatrimonio>,
+    base: BaseDosPesos,
+    composicao: Pair<List<Bloco>, String>,
     alvos: Map<String, Double?>,
     maximos: Map<String, Double?>,
     corDaCamada: (String) -> Color,
     aoTocar: (Linha) -> Unit,
 ) {
-    if (linhas.isEmpty()) return
     val pesos = linhas.mapNotNull { it.peso }.sortedDescending()
-    val escala = linhas.maxOf { l -> max(l.peso ?: 0.0, maximos[l.ticker] ?: 0.0) }.coerceAtLeast(0.01) * 1.05
+    val escala = (linhas.maxOfOrNull { l -> max(l.peso ?: 0.0, maximos[l.ticker] ?: 0.0) } ?: 0.0).coerceAtLeast(0.01) * 1.05
     Cartao {
+        val (barra, resumo) = composicao
+        if (barra.isNotEmpty()) {
+            BarraEmpilhada(barra.map { it.peso to it.cor }, altura = 10.dp)
+            TextoPequeno(resumo)
+        }
         if (pesos.size > 5) {
-            TextoPequeno(
-                "As 5 maiores: ${Formatos.pct(pesos.take(5).sum())} · as 10 maiores: ${Formatos.pct(pesos.take(10).sum())} da carteira",
-            )
+            val dez = if (pesos.size > 10) " · as 10 maiores: ${Formatos.pct(pesos.take(10).sum())}" else ""
+            TextoPequeno("As 5 maiores: ${Formatos.pct(pesos.take(5).sum())}$dez ${base.base.nome}")
         }
         linhas.forEach { l ->
             LinhaPeso(l, alvos[l.ticker], maximos[l.ticker], escala, corDaCamada(l.camada)) { aoTocar(l) }
         }
-        TextoPequeno(
-            "A barra é o peso na carteira e o traço o máximo da camada; ao lado, o alvo. " +
-                "Âmbar: acima do máximo · vermelho: acima de 1,25 × o máximo (aparar).",
+        if (outras.isNotEmpty()) {
+            Text(
+                "Resto do património",
+                Modifier.padding(top = 6.dp),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            outras.forEach { LinhaParte(it, base.peso(it.valorEur)) }
+        }
+        if (base.semPatrimonio) {
+            TextoPequeno("A ponte não trouxe o património da folha: «Tudo» fica igual a ações + ETFs.")
+        }
+        val legenda = when (base.base) {
+            BasePesos.CARTEIRA -> "A barra é o peso na carteira e o traço o máximo da camada; ao lado, o alvo. "
+            BasePesos.ACOES ->
+                "A barra é o peso nas ações (sem os ETFs). O traço (máximo da camada) e o alvo são os da folha, " +
+                    "convertidos para esta base com o mesmo valor em euros. "
+            BasePesos.TUDO ->
+                "A barra é o peso no património todo. O traço (máximo da camada) e o alvo são os da folha, " +
+                    "convertidos para esta base com o mesmo valor em euros; o resto é o último saldo da tab Investimentos. "
+        }
+        TextoPequeno(legenda + "Âmbar: acima do máximo · vermelho: acima de 1,25 × o máximo (aparar).")
+    }
+}
+
+/** Uma parte do património que não é ação nem ETF (base Tudo): o nome, o valor e o peso, sem barra. */
+@Composable
+private fun LinhaParte(p: ParteDoPatrimonio, peso: Double) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            p.nome,
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            Formatos.eur(p.valorEur, 0),
+            style = MaterialTheme.typography.labelSmall.numeros(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            Formatos.pct(peso),
+            style = MaterialTheme.typography.bodyMedium.numeros(),
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }

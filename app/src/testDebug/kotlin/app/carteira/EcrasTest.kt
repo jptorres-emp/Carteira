@@ -440,6 +440,54 @@ class EcrasTest {
         assertEquals("Lista", app.getSharedPreferences("carteira", Context.MODE_PRIVATE).getString("vista_posicoes", null))
     }
 
+    /**
+     * Vista Pesos nas três bases: só as ações (os ETFs saem; os pesos, alvos e máximos sobem pelo mesmo fator),
+     * ações + ETFs (a base das regras) e o património todo, com o resto no fim. A base fica guardada.
+     */
+    @Test
+    fun pesosNasTresBases() {
+        abrir()
+        esperar("Valor da carteira")
+        tocar("Posições")
+        esperar("ALFA")
+        tocar("Pesos")
+        // Por omissão, a base das regras: ações + ETFs, como antes.
+        esperar("Ações 70,1% · ETFs 29,9%")
+        esperar("As 5 maiores: 55,0% · as 10 maiores: 89,1% da carteira")
+        // Só as ações: o alvo de 9% da carteira da ALFA passa a 12,8% das ações.
+        tocar("Ações")
+        esperar("Core A 41,0% · Core B 32,6% · Satélite 24,9% · Residual 1,5%")
+        esperar("As 5 maiores: 63,3% das ações")
+        esperar("10 posições")
+        esperar("100,0% das ações")
+        esperar("alvo 12,8%")
+        assertTrue("os ETFs saem da base Ações", compose.onAllNodes(hasText("MUND")).fetchSemanticsNodes().isEmpty())
+        foto("02d-posicoes-pesos-acoes")
+        val preferencias = app.getSharedPreferences("carteira", Context.MODE_PRIVATE)
+        assertEquals("Ações", preferencias.getString("base_pesos", null))
+        // Tudo: o património inteiro; o resto (certificados, PPR, depósito) no fim, sem barra.
+        tocar("Tudo")
+        esperar("Ações 39,4% · ETFs 16,8% · resto do património 43,9%")
+        esperar("As 5 maiores: 30,9% · as 10 maiores: 50,0% do património")
+        esperar("Resto do património")
+        esperar("Certificados de Aforro")
+        esperar("23,0%")
+        deslizarPara(4)
+        foto("02e-posicoes-pesos-tudo")
+        assertEquals("Tudo", preferencias.getString("base_pesos", null))
+        // Fica escolhida ao voltar ao separador.
+        tocarSeparador("Início")
+        tocarSeparador("Posições")
+        esperar("Resto do património")
+        // A Lista continua com o peso na carteira (o MUND, um ETF, pesa 18,3%).
+        tocar("Lista")
+        esperar("peso 18,3%")
+        tocar("Pesos")
+        tocar("Ações + ETFs")
+        esperar("As 5 maiores: 55,0%")
+        assertEquals("Ações + ETFs", preferencias.getString("base_pesos", null))
+    }
+
     @Test
     fun atualizaOPatrimonioDoMes() {
         val fonte = abrir()

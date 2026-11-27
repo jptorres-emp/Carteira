@@ -14,8 +14,8 @@ android {
         applicationId = "app.carteira"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 15
-        versionName = "1.8.0"
+        versionCode = 16
+        versionName = "1.9.0"
     }
 
     // Chave de depuração fixa e pública: cada APK do CI instala-se por cima do anterior sem apagar

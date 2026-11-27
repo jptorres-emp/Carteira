@@ -7,6 +7,7 @@ import app.carteira.alertas.Alerta
 import app.carteira.alertas.Notificacoes
 import app.carteira.alertas.ServicoAlertas
 import app.carteira.alertas.VerificadorAlertas
+import app.carteira.dados.BasePesos
 import app.carteira.dados.Dados
 import app.carteira.dados.FonteDados
 import app.carteira.dados.Leitor
@@ -80,6 +81,8 @@ data class Preferencias(
     val ordemPosicoes: String = "Valor",
     /** As Posições em cartões ("Lista") ou só o peso de cada uma ("Pesos"). */
     val vistaPosicoes: String = "Lista",
+    /** Na vista Pesos, o total sobre que se calcula o peso: "Ações", "Ações + ETFs" ou "Tudo" (ver BasePesos). */
+    val basePesos: String = BasePesos.CARTEIRA.rotulo,
 )
 
 /** Ecrãs que podem abrir ao entrar na app. */
@@ -228,6 +231,7 @@ class CarteiraViewModel(
         etfReforco = repositorio.etfReforco,
         ordemPosicoes = repositorio.ordemPosicoes,
         vistaPosicoes = repositorio.vistaPosicoes,
+        basePesos = repositorio.basePesos,
     )
 
     private fun nomeDoEcra(e: Ecra) = when (e) {
@@ -243,12 +247,15 @@ class CarteiraViewModel(
         repositorio.etfReforco = nova.etfReforco
         repositorio.ordemPosicoes = nova.ordemPosicoes
         repositorio.vistaPosicoes = nova.vistaPosicoes
+        repositorio.basePesos = nova.basePesos
         _estado.update { it.copy(prefs = nova) }
     }
 
     fun escolherOrdemPosicoes(ordem: String) = definirPreferencias(_estado.value.prefs.copy(ordemPosicoes = ordem))
 
     fun escolherVistaPosicoes(vista: String) = definirPreferencias(_estado.value.prefs.copy(vistaPosicoes = vista))
+
+    fun escolherBasePesos(base: String) = definirPreferencias(_estado.value.prefs.copy(basePesos = base))
 
     // ── Reforço do mês ──
 

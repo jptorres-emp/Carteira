@@ -72,6 +72,11 @@ class Repositorio(contexto: Context) {
         get() = preferencias.getString("vista_posicoes", "Lista") ?: "Lista"
         set(v) = preferencias.edit().putString("vista_posicoes", v).apply()
 
+    /** A última base da vista Pesos: "Ações", "Ações + ETFs" (a das regras) ou "Tudo" (o património todo). */
+    var basePesos: String
+        get() = preferencias.getString("base_pesos", BasePesos.CARTEIRA.rotulo) ?: BasePesos.CARTEIRA.rotulo
+        set(v) = preferencias.edit().putString("base_pesos", v).apply()
+
     // ── Alertas ──
 
     var alertasAtivos: Boolean
