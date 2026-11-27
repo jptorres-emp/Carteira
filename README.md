@@ -70,7 +70,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   do teu passado: o TWR real aparece só para comparar. O que já tens rende a previsão de dividendos do próximo
   ano (tab Dividendos, já sem as vendas do plano); o dinheiro novo rende o que pagam as tuas metas (peso alvo ×
   yield), com o resto no ETF de acumulação, que não paga; certificados, P2P e saldos capitalizam à sua taxa
-  (líquida, com IRS), sem reforços. No fim, quanto daria levantar 3,5% a 4% ao ano do património mediano.
+  (líquida, com IRS), sem reforços. No fim, quanto daria levantar 3,5% a 4% ao ano do património mediano. Num
+  ecrã estreito ou com letra grande, a tabela passa a duas linhas por horizonte, para o ano e os intervalos não
+  ficarem cortados.
   As Posições têm duas vistas (a escolhida fica guardada): Lista, com os cartões, e Pesos, com o peso de cada
   posição e ETF numa barra à mesma escala, o traço no peso máximo da camada, o alvo ao lado, a concentração das
   5 e das 10 maiores, e o peso a âmbar acima do máximo e a vermelho acima de 1,25 × o máximo. Os Pesos têm três
