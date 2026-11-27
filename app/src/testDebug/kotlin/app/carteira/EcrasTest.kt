@@ -479,7 +479,9 @@ class EcrasTest {
         tocarSeparador("Início")
         tocarSeparador("Posições")
         esperar("Resto do património")
-        // A Lista continua com o peso na carteira (o MUND, um ETF, pesa 18,3%).
+        // A Lista continua com o peso na carteira (o MUND, um ETF, pesa 18,3%). Volta ao topo antes de tocar:
+        // com a lista deslizada, o seletor fica por baixo da barra de cima e o toque não lhe chega.
+        deslizarPara(0)
         tocar("Lista")
         esperar("peso 18,3%")
         tocar("Pesos")
