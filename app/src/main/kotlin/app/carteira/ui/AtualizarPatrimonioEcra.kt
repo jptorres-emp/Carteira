@@ -80,8 +80,9 @@ fun AtualizarPatrimonioEcra(estado: Estado, vm: CarteiraViewModel, ecra: Ecra.At
         BotaoEnviar(if (naFolha != null) "Substituir na folha" else "Gravar na folha", v != null && v > 0, estado.aEnviar) {
             vm.registarPatrimonio(mes, v!!) { ok -> if (ok) vm.voltar() }
         }
-        TextoPequeno(
-            "Fica na coluna Net Worth (€) da tab Evolução Patrimonial, na linha de ${mesLongo(mes)}, com uma nota. " +
+        TextoComDica(
+            "Fica na tab Evolução Patrimonial (Net Worth).",
+            dica = "Fica na coluna Net Worth (€) da tab Evolução Patrimonial, na linha de ${mesLongo(mes)}, com uma nota. " +
                 "Podes gravar outra vez: o valor é substituído. Enquanto o mês não acaba, a app mostra o valor de agora.",
         )
         Spacer(Modifier.size(80.dp))

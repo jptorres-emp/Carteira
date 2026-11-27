@@ -290,9 +290,10 @@ private fun FormDividendo(d: Dados, estado: Estado, vm: CarteiraViewModel, ticke
     CampoData(data) { data = it }
     CampoNumero(valor, "Valor bruto recebido", { valor = it }, erroValor)
     Filtros(listOf("USD", "EUR", "GBP"), moeda) { moeda = it }
-    TextoPequeno(
-        "Valor bruto, antes de impostos, como na folha. Em euros ou libras, a ponte converte para dólares " +
-            "ao câmbio da Carteira e soma ao mês da data em Dividendos Mensais.",
+    TextoComDica(
+        "Valor bruto, antes de impostos.",
+        dica = "Como na folha. Em euros ou libras, a ponte converte para dólares ao câmbio da Carteira e soma ao mês " +
+            "da data em Dividendos Mensais.",
     )
     BotaoEnviar("Registar dividendo", valido, estado.aEnviar) {
         vm.registarDividendo(dataIso!!, ticker.trim().uppercase(), v!!, moeda) { ok -> if (ok) vm.voltar() }

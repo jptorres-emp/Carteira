@@ -218,13 +218,13 @@ private fun CartaoDeFora(deFora: List<ForaDoReforco>) {
 
 @Composable
 private fun CartaoRegrasReforco(plano: PlanoReforco, vm: CarteiraViewModel) {
-    Cartao("Como a app escolhe") {
-        TextoPequeno(
-            "Pela regra 10 da folha (Dinheiro novo): 1.º os core (Core A e Core B) em 🟢 e abaixo do peso alvo, cada um " +
-                "até ao Ajuste sugerido, que já traz os limites da regra 13 — primeiro os 🟢\u2060🟢, depois o Core A e depois " +
-                "quem mais falta para o alvo; 2.º o resto vai para o ETF global. Satélites e apostas não recebem dinheiro " +
-                "novo (regras 5 e 10).",
-        )
+    Cartao(
+        "Como a app escolhe",
+        dica = "Pela regra 10 da folha (Dinheiro novo): 1.º os core (Core A e Core B) em 🟢 e abaixo do peso alvo, cada um " +
+            "até ao Ajuste sugerido, que já traz os limites da regra 13 — primeiro os 🟢\u2060🟢, depois o Core A e depois " +
+            "quem mais falta para o alvo; 2.º o resto vai para o ETF global. Satélites e apostas não recebem dinheiro " +
+            "novo (regras 5 e 10).",
+    ) {
         if (plano.pesoAcoes != null) {
             LinhaValor(
                 "Peso das ações",

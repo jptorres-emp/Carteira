@@ -163,8 +163,9 @@ fun CartaoDefinicoesAlertas(estado: Estado, vm: CarteiraViewModel) {
                 }
                 OutlinedButton(onClick = { vm.notificacaoDeTeste() }) { Text("Testar aviso") }
             }
-            TextoPequeno(
-                "Os preços vêm da folha (GOOGLEFINANCE, até 20 min de atraso). Se os avisos não chegarem, nas " +
+            TextoComDica(
+                "Preços da folha, com até 20 min de atraso.",
+                dica = "Os preços vêm da folha (GOOGLEFINANCE, até 20 min de atraso). Se os avisos não chegarem, nas " +
                     "definições do Android põe a bateria da app Carteira em \"Sem restrições\".",
             )
         }

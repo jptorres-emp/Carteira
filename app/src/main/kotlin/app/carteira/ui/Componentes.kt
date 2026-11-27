@@ -3,6 +3,21 @@
 package app.carteira.ui
 
 import androidx.compose.foundation.BorderStroke
+import app.carteira.R
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -54,6 +69,8 @@ fun Cartao(
     modifier: Modifier = Modifier,
     acao: String? = null,
     aoAcao: (() -> Unit)? = null,
+    /** O texto a mais (como se calcula, de onde vem): fica num ⓘ ao lado do título em vez de ocupar o cartão. */
+    dica: String? = null,
     conteudo: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
@@ -65,12 +82,15 @@ fun Cartao(
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (titulo != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        titulo,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            titulo,
+                            modifier = Modifier.weight(1f, fill = false),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        if (dica != null) Dica(dica, titulo)
+                    }
                     if (acao != null && aoAcao != null) {
                         Text(
                             acao,
@@ -83,6 +103,52 @@ fun Cartao(
             }
             conteudo()
         }
+    }
+}
+
+/**
+ * Um ⓘ que abre uma caixa com o texto a mais (como se calcula, de onde vem, ressalvas): toca para abrir; toca na
+ * caixa ou fora dela para fechar. Assim os cartões mostram só o necessário.
+ */
+@Composable
+fun Dica(texto: String, titulo: String? = null, modifier: Modifier = Modifier) {
+    var aberta by remember { mutableStateOf(false) }
+    Box(modifier) {
+        Box(
+            Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .clickable { aberta = true }
+                .semantics { contentDescription = "Explicação" + (titulo?.let { ": $it" } ?: "") },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_info),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(expanded = aberta, onDismissRequest = { aberta = false }, modifier = Modifier.widthIn(max = 340.dp)) {
+            Column(
+                Modifier.clickable { aberta = false }.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (titulo != null) Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                texto.split("\n\n").forEach { paragrafo ->
+                    Text(paragrafo, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+/** Uma linha curta de texto pequeno com um ⓘ no fim para o resto da explicação. */
+@Composable
+fun TextoComDica(texto: String, dica: String, modifier: Modifier = Modifier, tituloDica: String? = null) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        TextoPequeno(texto, modifier = Modifier.weight(1f, fill = false))
+        Dica(dica, tituloDica)
     }
 }
 

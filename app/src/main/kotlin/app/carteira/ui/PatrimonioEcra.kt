@@ -41,6 +41,7 @@ import app.carteira.dados.AnoPatrimonio
 import app.carteira.dados.ClassePatrimonio
 import app.carteira.dados.Faixa
 import app.carteira.dados.GruposPatrimonio
+import app.carteira.dados.OpcaoReforco
 import app.carteira.dados.Patrimonio
 import app.carteira.dados.PosicaoPlano
 import app.carteira.dados.ProjecaoRendimentos
@@ -162,7 +163,16 @@ private fun ColunaTopo(rotulo: String, valor: String, detalhe: String?, modifier
 @Composable
 internal fun CartaoPlano(a: AnalisePatrimonio) {
     val plano = a.plano
-    Cartao("Face ao plano") {
+    val dicaPlano = buildString {
+        append("A meta de hoje fica entre a do fim do mês passado e a do fim deste mês, pelo dia do mês.")
+        if (plano?.taxaBase != null) {
+            val taxas = listOfNotNull(plano.taxaReferencia, plano.taxaBase, plano.taxaAlargada).joinToString(" / ") { Formatos.pct(it) }
+            append("\n\nPressupostos (linha 3 da tab Evolução Patrimonial): ")
+            plano.reforcoMensalEur?.let { append("${Formatos.eur(it, 0)} por mês e ") }
+            append("$taxas ao ano (referência / base / alargada).")
+        }
+    }
+    Cartao("Face ao plano", dica = dicaPlano) {
         val hoje = a.metaHoje
         val base = hoje?.baseEur
         if (hoje != null && base != null) {
@@ -185,7 +195,6 @@ internal fun CartaoPlano(a: AnalisePatrimonio) {
                 },
                 style = MaterialTheme.typography.bodyMedium,
             )
-            TextoPequeno("A meta de hoje fica entre a do fim do mês passado e a do fim deste mês, pelo dia do mês.")
         }
         val doMes = a.metaDoMes?.baseEur
         if (doMes != null) {
@@ -218,13 +227,6 @@ internal fun CartaoPlano(a: AnalisePatrimonio) {
             val al = fim.alargadaEur
             if (r != null && al != null) LinhaValor("Intervalo", Formatos.intervaloEur(r, al))
             fim.historicaEur?.let { LinhaValor("Ao ritmo histórico (TTWROR real)", Formatos.eur(it, 0)) }
-            if (plano?.taxaBase != null) {
-                val taxas = listOfNotNull(plano.taxaReferencia, plano.taxaBase, plano.taxaAlargada).joinToString(" / ") { Formatos.pct(it) }
-                TextoPequeno(
-                    "Pressupostos (linha 3 da tab Evolução Patrimonial): " +
-                        (reforcoPlano?.let { "${Formatos.eur(it, 0)} por mês e " } ?: "") + "$taxas ao ano.",
-                )
-            }
         }
     }
 }
@@ -396,7 +398,7 @@ internal fun CartaoComposicao(p: Patrimonio) {
     val grupos = agruparClasses(p.classes)
     if (grupos.isEmpty()) return
     val total = p.totalEur ?: grupos.sumOf { it.second }
-    Cartao("Composição hoje") {
+    Cartao("Composição hoje", dica = "Da tab Investimentos: ações e ETFs ao vivo; o resto é o último saldo que lá puseste.") {
         BarraEmpilhada(grupos.mapIndexed { k, (_, v) -> v to Paleta.categoria(k) })
         grupos.forEachIndexed { k, (nome, valor) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -414,7 +416,6 @@ internal fun CartaoComposicao(p: Patrimonio) {
                 )
             }
         }
-        TextoPequeno("Da tab Investimentos: ações e ETFs ao vivo; o resto é o último saldo que lá puseste.")
     }
 }
 
@@ -425,7 +426,10 @@ internal fun CartaoComposicao(p: Patrimonio) {
 internal fun CartaoRendimentos(r: Rendimentos) {
     if (r.tipos.isEmpty()) return
     val total = r.totalEur
-    Cartao("Rendimentos por ano") {
+    val dicaRendimentos = "Valores brutos, por ano, ao ritmo de hoje: o valor de cada classe × a taxa da tab Investimentos" +
+        (if (r.temPagosUltimos12m) "; os ETFs que lá estão a 0%, pelo que pagaram nos últimos 12 meses" else "") +
+        ". Os 28% de IRS são a taxa liberatória sobre dividendos e juros."
+    Cartao("Rendimentos por ano", dica = dicaRendimentos) {
         Text(
             Formatos.eur(total, 0),
             style = MaterialTheme.typography.headlineSmall.numeros(),
@@ -473,10 +477,6 @@ internal fun CartaoRendimentos(r: Rendimentos) {
                     (r.dividendosAnoEur?.let { a -> " · ${Formatos.eur(a, 0)} em ${r.ano}" } ?: "") + ".",
             )
         }
-        TextoPequeno(
-            "Valores brutos, por ano, ao ritmo de hoje: o valor de cada classe × a taxa da tab Investimentos" +
-                (if (r.temPagosUltimos12m) "; os ETFs, que lá estão a 0%, pelo que pagaram nos últimos 12 meses" else "") + ".",
-        )
     }
 }
 
@@ -498,7 +498,7 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
     val pontos = remember(p, reforco.mensalEur) { p.simular(reforco.mensalEur) }
     if (pontos.isEmpty()) return
     val emValores = { f: Faixa, anos: Int -> if (nominais) f else f.map { ProjecaoRendimentos.emEurosDeHoje(it, anos) } }
-    Cartao("Rendimentos no futuro") {
+    Cartao("Rendimentos no futuro", dica = dicaProjecao(p, reforco, nominais)) {
         LinhaEscolha("Reforço", rotulosReforcos, rotulosReforcos[p.reforcos.indexOf(reforco)]) { rotulo ->
             reforcoEscolhido = rotulosReforcos.indexOf(rotulo).coerceAtLeast(0)
         }
@@ -518,47 +518,62 @@ internal fun CartaoProjecao(p: ProjecaoRendimentos) {
             val r = emValores(pt.rendimento, pt.anos)
             LinhaProjecao(if (pt.anos == 1) "1 ano" else "${pt.anos} anos", pt.ano.toString(), r.p50, r)
         }
-        TextoPequeno(
-            "Mediana de ${Formatos.numero(ProjecaoRendimentos.SIMULACOES.toDouble(), 0)} simulações de mercado, mês a mês. " +
-                "O intervalo vai do percentil 10 (mercados maus) ao 90 (mercados bons): 8 em cada 10 ficam lá dentro.",
-        )
         HorizontalDivider(color = corBordaCartao())
         val ultimo = pontos.last()
         val rendimento = emValores(ultimo.rendimento, ultimo.anos)
         val patrimonio = emValores(ultimo.patrimonio, ultimo.anos).p50
-        val liquidoMes = rendimento.p50 * (1 - ProjecaoRendimentos.IRS) / 12
-        TextoPequeno(
-            "Em ${ultimo.ano}, depois dos 28% de IRS, os dividendos e juros dariam ${Formatos.eur(liquidoMes, 0)} por mês (mediana).",
-        )
         val prudente = patrimonio * ProjecaoRendimentos.LEVANTAMENTO_PRUDENTE
         val classico = patrimonio * ProjecaoRendimentos.LEVANTAMENTO
-        TextoPequeno(
-            "O património mediano seria de ${Formatos.eur(patrimonio, 0)}" + (if (nominais) "" else " em euros de hoje") +
-                ": levantar ${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO_PRUDENTE)} a ${Formatos.pct(ProjecaoRendimentos.LEVANTAMENTO, 0)} " +
-                "ao ano daria ${Formatos.eur(prudente, 0)} a ${Formatos.eur(classico, 0)} " +
-                "(${Formatos.eur(prudente / 12, 0)} a ${Formatos.eur(classico / 12, 0)} por mês). Numa carteira de acumulação é este o " +
-                "número que conta: os ETFs de acumulação não pagam nada, mas crescem. A regra dos 4% vem dos EUA; na Europa, " +
-                "3,5% é mais prudente.",
+        TextoPequeno("Em ${ultimo.ano}: ${Formatos.eur(rendimento.p50 * (1 - ProjecaoRendimentos.IRS) / 12, 0)}/mês depois de IRS")
+        TextoComDica(
+            "Património em ${ultimo.ano}: ${Formatos.eur(patrimonio, 0)} · levantar 3,5–4%: " +
+                "${Formatos.eur(prudente / 12, 0)}–${Formatos.eur(classico / 12, 0)}/mês",
+            dica = "Quanto podias levantar por ano do património mediano sem o gastar: ${Formatos.eur(prudente, 0)} a " +
+                "${Formatos.eur(classico, 0)} por ano. A regra dos 4% vem dos EUA; na Europa, 3,5% é mais prudente.\n\n" +
+                "Numa carteira de acumulação é este o número que conta: os ETFs de acumulação não pagam dividendos, mas crescem.",
+            tituloDica = "Levantar do património",
         )
-        textoEvolucao(p)?.let { TextoPequeno(it) }
-        val deOnde = if (reforco.nome == ProjecaoRendimentos.TEU_REFORCO) "a tua média dos últimos 12 meses" else "o reforço do plano"
-        val volatilidade = Formatos.pct(p.volatilidade) + if (p.volatilidadeReal) ", a da tua carteira" else ", de referência"
-        val metas = p.parteAcoesNovo?.let { " (as tuas metas: ${Formatos.pct(it, 0)} em ações e o resto no ETF de acumulação, que não paga)" } ?: ""
-        TextoPequeno(
-            "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde); a carteira a crescer " +
-                "${Formatos.pct(p.taxaMediana)} ao ano na mediana (o cenário base do teu plano), com volatilidade de $volatilidade, " +
-                "e os dividendos reinvestidos depois dos 28% de IRS. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
-                "(a previsão de dividendos, já sem as vendas do plano); o dinheiro novo rende ${Formatos.pct(p.taxaNovo)}$metas. " +
-                "Certificados, P2P e saldos às taxas da tab Investimentos, sem reforços. Tudo se recalcula com os dados da folha. " +
-                (
-                    if (nominais) {
-                        "Valores brutos e nominais."
-                    } else {
-                        "Valores brutos, em euros de hoje (${Formatos.pct(ProjecaoRendimentos.INFLACAO, 0)} de inflação ao ano)."
-                    }
-                    ),
-        )
+        resumoEvolucao(p)?.let { (resumo, dica) -> TextoComDica(resumo, dica, tituloDica = "A tua evolução") }
     }
+}
+
+/** Como se calcula: o método, o intervalo e os pressupostos (o que antes enchia o cartão). */
+private fun dicaProjecao(p: ProjecaoRendimentos, reforco: OpcaoReforco, nominais: Boolean): String {
+    val deOnde = if (reforco.nome == ProjecaoRendimentos.TEU_REFORCO) "a tua média dos últimos 12 meses" else "o reforço do plano"
+    val volatilidade = Formatos.pct(p.volatilidade) + if (p.volatilidadeReal) ", a da tua carteira" else ", de referência"
+    val metas = p.parteAcoesNovo?.let { " (as tuas metas: ${Formatos.pct(it, 0)} em ações e o resto no ETF de acumulação, que não paga)" } ?: ""
+    return "Mediana de ${Formatos.numero(ProjecaoRendimentos.SIMULACOES.toDouble(), 0)} simulações de mercado, mês a mês, " +
+        "como nos simuladores de reforma. O intervalo vai do percentil 10 (mercados maus) ao 90 (mercados bons): 8 em cada " +
+        "10 simulações ficam lá dentro.\n\n" +
+        "Pressupostos: ${Formatos.eur(reforco.mensalEur, 0)} por mês para ações e ETFs ($deOnde); a carteira a crescer " +
+        "${Formatos.pct(p.taxaMediana)} ao ano na mediana (o cenário base do teu plano), com volatilidade de $volatilidade, " +
+        "e os dividendos reinvestidos depois dos 28% de IRS. O que já tens rende ${Formatos.pct(p.taxaExistente)} " +
+        "(a previsão de dividendos, já sem as vendas do plano); o dinheiro novo rende ${Formatos.pct(p.taxaNovo)}$metas. " +
+        "Certificados, P2P e saldos às taxas da tab Investimentos, sem reforços.\n\n" +
+        "Tudo se recalcula com os dados da folha. " +
+        if (nominais) "Valores brutos e nominais." else "Valores brutos, em euros de hoje (${Formatos.pct(ProjecaoRendimentos.INFLACAO, 0)} de inflação ao ano)."
+}
+
+/**
+ * "Investes 772 €/mês (plano 800 €) · a carteira rendeu 12,7%/ano (plano 6,5%)", com a explicação no ⓘ.
+ * Null se a folha não tiver nem o teu reforço nem a tua rendibilidade.
+ */
+private fun resumoEvolucao(p: ProjecaoRendimentos): Pair<String, String>? {
+    val partes = mutableListOf<String>()
+    val dica = mutableListOf<String>()
+    p.teuReforco?.let { teu ->
+        partes += "Investes ${Formatos.eur(teu.mensalEur, 0)}/mês" + (p.reforcoDoPlano?.let { " (plano ${Formatos.eur(it.mensalEur, 0)})" } ?: "")
+        dica += "Investes: a média dos teus reforços nos últimos 12 meses fechados (tab Evolução Patrimonial)."
+    }
+    p.twrReal?.let { twr ->
+        partes += "a carteira rendeu ${Formatos.pct(twr)}/ano (plano ${Formatos.pct(p.taxaMediana)})"
+        dica += "Rendeu: o TWR anualizado com dividendos desde o início" +
+            (p.ritmoUltimos12m?.let { " (${Formatos.pct(it)} nos últimos 12 meses)" } ?: "") + ". A projeção usa os " +
+            "${Formatos.pct(p.taxaMediana)} do plano e não o teu passado: poucos anos, de mercado em alta e medidos em dólares, " +
+            "não chegam para projetar trinta."
+    }
+    if (partes.isEmpty()) return null
+    return partes.joinToString(" · ") to dica.joinToString("\n\n")
 }
 
 private const val VALORES_DE_HOJE = "Euros de hoje"
@@ -571,26 +586,6 @@ private fun LinhaEscolha(nome: String, opcoes: List<String>, escolhida: String, 
         TextoPequeno(nome, modifier = Modifier.width(58.dp))
         Filtros(opcoes, escolhida, compacto = true, aoEscolher = aoEscolher)
     }
-}
-
-/**
- * "A tua evolução: investes 772 € por mês em média nos últimos 12 meses (o plano assume 800 €); a carteira rendeu
- * 12,7% ao ano desde o início e 5,7% nos últimos 12 meses (a projeção usa os 6,5% do plano: …)."
- */
-private fun textoEvolucao(p: ProjecaoRendimentos): String? {
-    val frases = mutableListOf<String>()
-    p.teuReforco?.let { teu ->
-        frases += "investes ${Formatos.eur(teu.mensalEur, 0)} por mês em média nos últimos 12 meses" +
-            (p.reforcoDoPlano?.let { " (o plano assume ${Formatos.eur(it.mensalEur, 0)})" } ?: "")
-    }
-    p.twrReal?.let { twr ->
-        frases += "a carteira rendeu ${Formatos.pct(twr)} ao ano desde o início" +
-            (p.ritmoUltimos12m?.let { " e ${Formatos.pct(it)} nos últimos 12 meses" } ?: "") +
-            " (a projeção usa os ${Formatos.pct(p.taxaMediana)} do plano: poucos anos, de mercado em alta e medidos em dólares, " +
-            "não chegam para projetar trinta)"
-    }
-    if (frases.isEmpty()) return null
-    return "A tua evolução: " + frases.joinToString("; ") + "."
 }
 
 /** "1,6–2,9 mil €" ou "540–720 €". */

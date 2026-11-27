@@ -66,8 +66,7 @@ fun InicioEcra(estado: Estado, vm: CarteiraViewModel) {
         item { CartaoAlocacao(d) }
         item {
             TextoPequeno(
-                "Dados da folha de ${Formatos.momento(d.meta.atualizadoEm)}. Puxa para baixo para atualizar. " +
-                    "A evolução, o desempenho e os objetivos estão no separador Evolução.",
+                "Dados da folha de ${Formatos.momento(d.meta.atualizadoEm)}. Puxa para baixo para atualizar.",
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
         }

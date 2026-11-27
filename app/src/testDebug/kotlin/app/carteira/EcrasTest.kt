@@ -15,6 +15,7 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onFirst
@@ -193,6 +194,21 @@ class EcrasTest {
         assentar()
     }
 
+    /** Fecha a caixa de um ⓘ tocando nela (o texto tem de ter [parte]). */
+    private fun fecharDica(parte: String) {
+        compose.onAllNodes(hasText(parte, substring = true) and hasClickAction()).onFirst().performClick()
+        assentar()
+    }
+
+    /** Fotografa a caixa aberta de um ⓘ (é uma janela à parte, por cima do ecrã). */
+    private fun fotoDaDica(nome: String) {
+        assentar()
+        val pasta = File("build/screenshots").apply { mkdirs() }
+        val raizes = compose.onAllNodes(isRoot())
+        val imagem = raizes[raizes.fetchSemanticsNodes().size - 1].captureToImage().asAndroidBitmap()
+        File(pasta, "$nome.png").outputStream().use { imagem.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
     private fun tocarDescricao(descricao: String) {
         compose.onNodeWithContentDescription(descricao).performClick()
         assentar()
@@ -354,8 +370,8 @@ class EcrasTest {
         esperar("dividendos e juros")
         foto("11-evolucao")
         // Itens: 0 filtros, 1 topo, 2 registo, 3 gráfico, 4 plano, 5 marcos, 6 ano a ano, 7 composição,
-        // 8 rendimentos, 9 rendimentos no futuro, 10 rodapé.
-        for (k in 2..10) {
+        // 8 rendimentos, 9 rendimentos no futuro (as notas de rodapé passaram para os ⓘ dos cartões).
+        for (k in 2..9) {
             deslizarPara(k)
             registar(marcas, vistas)
             when (k) {
@@ -393,16 +409,30 @@ class EcrasTest {
                     esperar(Formatos.eur(394.0, 0))
                     esperar("2,4–10,1 mil$nb€")
                     esperar("2056")
-                    esperar("Mediana de ${Formatos.numero(2_000.0, 0)} simulações")
-                    esperar("os dividendos e juros dariam ${Formatos.eur(284.0, 0)} por mês")
-                    esperar("O património mediano seria de ${Formatos.eur(326_220.0, 0)} em euros de hoje")
-                    esperar("ao ano daria ${Formatos.eur(11_418.0, 0)} a ${Formatos.eur(13_049.0, 0)}")
-                    // A tua evolução (comparação, não projeção) e os pressupostos que vêm da folha.
-                    esperar("investes ${Formatos.eur(446.0, 0)} por mês em média nos últimos 12 meses (o plano assume ${Formatos.eur(400.0, 0)})")
-                    esperar("a carteira rendeu 8,3% ao ano desde o início e 11,2% nos últimos 12 meses (a projeção usa os 6,5% do plano")
+                    // À vista, só o necessário; o resto nos ⓘ.
+                    esperar("Em 2056: ${Formatos.eur(284.0, 0)}/mês depois de IRS")
+                    esperar(
+                        "Património em 2056: ${Formatos.eur(326_220.0, 0)} · levantar 3,5–4%: " +
+                            "${Formatos.eur(951.0, 0)}–${Formatos.eur(1_087.0, 0)}/mês",
+                    )
+                    esperar("Investes ${Formatos.eur(446.0, 0)}/mês (plano ${Formatos.eur(400.0, 0)}) · a carteira rendeu 8,3%/ano (plano 6,5%)")
+                    assertTrue(
+                        "os pressupostos já não ocupam o cartão",
+                        compose.onAllNodes(hasText("Pressupostos", substring = true)).fetchSemanticsNodes().isEmpty(),
+                    )
+                    // O ⓘ do título: o método, o intervalo e os pressupostos que vêm da folha.
+                    tocarDescricao("Explicação: Rendimentos no futuro")
+                    esperar("Mediana de ${Formatos.numero(2_000.0, 0)} simulações de mercado")
                     esperar("com volatilidade de 14,3%, a da tua carteira")
                     esperar("O que já tens rende 1,8%")
                     esperar("o dinheiro novo rende 1,3% (as tuas metas: 65% em ações")
+                    fotoDaDica("11l-evolucao-futuro-dica")
+                    fecharDica("Mediana de")
+                    // O ⓘ da tua evolução: porque a projeção usa a taxa do plano.
+                    tocarDescricao("Explicação: A tua evolução")
+                    esperar("11,2% nos últimos 12 meses")
+                    esperar("A projeção usa os 6,5% do plano e não o teu passado")
+                    fecharDica("Investes: a média")
                     // Nominais: 8 566 € em 2056; com o reforço do plano (400 €), 7 928 €; em euros de hoje, 4 377 €.
                     tocar("Nominais")
                     esperar(Formatos.eur(8_566.0, 0))

@@ -364,8 +364,9 @@ private fun ContraIndice(r: Rentabilidade, h: Historico, verTodas: (() -> Unit)?
         cor = corDoSinal(dif),
         destaque = true,
     )
-    TextoPequeno(
-        "Cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos euros, com as mesmas " +
+    TextoComDica(
+        "O mesmo dinheiro no VUAA, nas mesmas datas.",
+        dica = "Cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos euros, com as mesmas " +
             "comissões (como a tab Validação S&P 500). O VUAA reinveste os dividendos dele." +
             if (e.unidades < -1e-6) " Vendeste mais do que o VUAA chegava a valer: a diferença conta o que faltava, ao preço de hoje." else "",
     )
@@ -549,9 +550,9 @@ internal fun CartaoSimularVenda(r: Rentabilidade, h: Historico, p: Posicao?) {
                     (p.pesoMaximo?.let { " · máx. ${Formatos.pct(it)}" } ?: p.pesoAlvo?.let { " · alvo ${Formatos.pct(it)}" } ?: ""),
             )
         }
-        TextoPequeno(
-            "Saldo de mais-valias de ${s.ano}: ${Formatos.eurSinal(s.saldoAnoAntesEur)} → ${Formatos.eurSinal(s.saldoAnoDepoisEur)}. " +
-                "O IRS é 28% do saldo do ano (mais-valias − menos-valias), se não englobares; aqui conta só a diferença " +
+        TextoComDica(
+            "Saldo de mais-valias de ${s.ano}: ${Formatos.eurSinal(s.saldoAnoAntesEur)} → ${Formatos.eurSinal(s.saldoAnoDepoisEur)}.",
+            dica = "O IRS é 28% do saldo do ano (mais-valias − menos-valias), se não englobares; aqui conta só a diferença " +
                 "que esta venda faz. Sem comissão de venda; o preço muda até venderes." +
                 if (s.unidadesMenosDeUmAno > 1e-9) {
                     " ${Formatos.quantidade(s.unidadesMenosDeUmAno)} destas $nome têm menos de um ano: se o teu rendimento " +

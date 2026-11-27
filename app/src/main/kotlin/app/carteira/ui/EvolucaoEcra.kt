@@ -84,7 +84,15 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
     }
     if (d.versaoPonte >= 3) item { CartaoRegistoMensal(d, a, vm) }
     if (a != null) {
-        if (a.serie.size >= 2) item { Cartao("Mês a mês") { GraficoPatrimonio(a) } }
+        if (a.serie.size >= 2) {
+            item {
+                Cartao(
+                    "Mês a mês",
+                    dica = "Da tab Evolução Patrimonial: cada mês é o património no fim do mês; o deste mês é o valor de " +
+                        "agora (tab Investimentos).",
+                ) { GraficoPatrimonio(a) }
+            }
+        }
         if (a.metaHoje != null || a.fimDoPlano != null) item { CartaoPlano(a) }
         if (a.proximoMarcoEur != null) item { CartaoMarcos(a) }
         if (a.anos.isNotEmpty()) item { CartaoAnoAAno(a) }
@@ -106,13 +114,6 @@ private fun LazyListScope.itensPatrimonio(d: Dados, a: AnalisePatrimonio?, vm: C
                 TextButton(onClick = { vm.irPara(Ecra.Definicoes) }) { Text("Como atualizar") }
             }
         }
-    }
-    item {
-        TextoPequeno(
-            "Da tab Evolução Patrimonial: cada mês é o património no fim do mês; o deste mês é o valor de agora " +
-                "(tab Investimentos).",
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-        )
     }
 }
 
@@ -300,7 +301,12 @@ private fun CartaoDesempenho(d: Dados) {
         d.indicador(rotulo)?.let { i -> nome to if (pct) Formatos.pct(i.valor) else Formatos.numero(i.valor, 2) }
     }
     if (linhas.isEmpty()) return
-    Cartao("Desempenho e risco") {
+    val dicaDesempenho = carteira?.tir?.let {
+        "TIR: o que o teu dinheiro rendeu por ano, em euros, com as datas de cada compra, venda e dividendo " +
+            "desde ${Formatos.data(carteira.desde.toString())}; no VUAA, o mesmo dinheiro nas mesmas datas. A TWR " +
+            "da folha mede só as escolhas, sem o efeito de quando entrou o dinheiro, em dólares e desde set/22."
+    }
+    Cartao("Desempenho e risco", dica = dicaDesempenho) {
         linhas.chunked(2).forEach { par ->
             // Valores alinhados por baixo: com letra grande, um rótulo pode ocupar duas linhas e o do lado uma.
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
@@ -312,13 +318,6 @@ private fun CartaoDesempenho(d: Dados) {
                 }
                 if (par.size == 1) Spacer(Modifier.weight(1f))
             }
-        }
-        if (carteira?.tir != null) {
-            TextoPequeno(
-                "TIR: o que o teu dinheiro rendeu por ano, em euros, com as datas de cada compra, venda e dividendo " +
-                    "desde ${Formatos.data(carteira.desde.toString())}; no VUAA, o mesmo dinheiro nas mesmas datas. A TWR " +
-                    "da folha mede só as escolhas, sem o efeito de quando entrou o dinheiro, em dólares e desde set/22.",
-            )
         }
     }
 }

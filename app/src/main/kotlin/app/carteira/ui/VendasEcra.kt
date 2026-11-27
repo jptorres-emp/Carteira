@@ -88,10 +88,12 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
         // dariam hoje se as tivesses mantido: lucro ou prejuízo face ao que custaram.
         val sep = h.vendasSeparadas(ano.toIntOrNull())
         item {
-            TextoPequeno(
-                "Uma linha por empresa, separadas por: se as tivesses mantido, hoje davam lucro ou continuavam em " +
+            TextoComDica(
+                "Agrupadas pelo que dariam hoje se as tivesses mantido.",
+                dica = "Uma linha por empresa, separadas por: se as tivesses mantido, hoje davam lucro ou continuavam em " +
                     "prejuízo? Custo: o que pagaste pelas ações vendidas (FIFO). Vendeste por: o que recebeste. Hoje " +
                     "valeriam: o que valeriam hoje, ao câmbio de hoje (preços da tab Vendas).",
+                tituloDica = "Como se lê",
             )
         }
         val alternar: (String) -> Unit = { t -> aberto = if (aberto == t) null else t }
@@ -117,10 +119,12 @@ fun VendasEcra(estado: Estado, vm: CarteiraViewModel) {
             items(h.fechadas, key = { "f${it.ticker}" }) { r -> CartaoFechada(r) }
         }
         item {
-            TextoPequeno(
-                "Mais-valia = o que recebeste (menos a comissão) − o custo em euros das ações vendidas, com as comissões " +
+            TextoComDica(
+                "Mais-valias pelo FIFO, como no IRS, antes de impostos.",
+                dica = "Mais-valia = o que recebeste (menos a comissão) − o custo em euros das ações vendidas, com as comissões " +
                     "das compras. O custo segue o FIFO (as primeiras compradas são as primeiras vendidas), como no IRS, " +
                     "e cada compra e venda conta com o câmbio do seu dia. Valores antes de impostos.",
+                tituloDica = "Mais-valias",
             )
         }
     }
@@ -134,7 +138,13 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
     var aberta by rememberSaveable { mutableStateOf<String?>(null) }
     val lista = h.recuperacao
     val livres = h.deBorla
-    Cartao("De borla?") {
+    Cartao(
+        "De borla?",
+        dica = "Uma posição fica de borla quando o lucro que já tiraste dela (as mais-valias das vendas e os dividendos) " +
+            "paga o que custaram as ações que ainda tens: essas passam a ser lucro. Só conta o lucro: numa venda, " +
+            "o custo das ações vendidas é o teu dinheiro a voltar. É só informativo: o que conta para comprar ou " +
+            "vender continua a ser a zona e o peso de cada posição. Toca numa posição para veres de onde vem o lucro.",
+    ) {
         Text(
             when {
                 livres.isNotEmpty() -> "🎁 " + plural(livres.size, "posição já está de borla", "posições já estão de borla") +
@@ -145,12 +155,6 @@ private fun CartaoDeBorla(h: Historico, abrir: (Rentabilidade) -> Unit) {
             },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
-        )
-        TextoPequeno(
-            "Uma posição fica de borla quando o lucro que já tiraste dela (as mais-valias das vendas e os dividendos) " +
-                "paga o que custaram as ações que ainda tens: essas passam a ser lucro. Só conta o lucro: numa venda, " +
-                "o custo das ações vendidas é o teu dinheiro a voltar. É só informativo: o que conta para comprar ou " +
-                "vender continua a ser a zona e o peso de cada posição. Toca numa posição para veres de onde vem o lucro.",
         )
         (if (todas) lista else lista.take(8)).forEach { r ->
             val estaAberta = aberta == r.ticker

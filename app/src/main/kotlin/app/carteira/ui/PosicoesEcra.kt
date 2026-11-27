@@ -378,7 +378,11 @@ private fun CartaoPesos(
                 "A barra é o peso no património todo. O traço (máximo da camada) e o alvo são os da folha, " +
                     "convertidos para esta base com o mesmo valor em euros; o resto é o último saldo da tab Investimentos. "
         }
-        TextoPequeno(legenda + "Âmbar: acima do máximo · vermelho: acima de 1,25 × o máximo (aparar).")
+        TextoComDica(
+            "Âmbar: acima do máximo · vermelho: aparar",
+            dica = legenda + "Âmbar: acima do máximo da camada. Vermelho: acima de 1,25 × o máximo, onde as regras mandam aparar.",
+            tituloDica = "Como ler os pesos",
+        )
     }
 }
 

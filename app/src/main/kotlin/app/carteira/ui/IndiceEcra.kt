@@ -75,14 +75,6 @@ fun IndiceEcra(estado: Estado, vm: CarteiraViewModel) {
                 )
             }
         }
-        item {
-            TextoPequeno(
-                "Cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos euros, com as mesmas " +
-                    "comissões, como a tab Validação S&P 500. Diferença = o lucro da ação (com os dividendos) − o lucro " +
-                    "do VUAA, que reinveste os dele. TIR: o que cada uma rendeu por ano, contando com as datas; só " +
-                    "aparece quando o dinheiro está lá, em média, há mais de um ano.",
-            )
-        }
     }
 }
 
@@ -91,7 +83,13 @@ private fun ResumoContraIndice(d: Dados, h: Historico, lista: List<Rentabilidade
     val frente = lista.count { (it.diferencaIndiceEur ?: 0.0) >= 0 }
     val soma = lista.sumOf { it.diferencaIndiceEur ?: 0.0 }
     val nome = if (filtro == FILTRO_ETFS) "ETF" else "ações"
-    Cartao("Contra o S&P 500") {
+    Cartao(
+        "Contra o S&P 500",
+        dica = "Cada compra põe os mesmos euros no VUAA nesse dia e cada venda tira os mesmos euros, com as mesmas " +
+            "comissões, como a tab Validação S&P 500. Diferença = o lucro da ação (com os dividendos) − o lucro " +
+            "do VUAA, que reinveste os dele. TIR: o que cada uma rendeu por ano, contando com as datas; só " +
+            "aparece quando o dinheiro está lá, em média, há mais de um ano.",
+    ) {
         Text(
             if (lista.isEmpty()) "Sem $nome para comparar." else "$frente de ${lista.size} $nome à frente do VUAA",
             style = MaterialTheme.typography.titleMedium,

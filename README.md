@@ -86,7 +86,9 @@ App Android  ⇄  ponte (Apps Script, na folha)  ⇄  folha Google
   (carregar sem largar), a ordem das Posições numa lista (guardada), cada ecrã fica como o deixaste ao voltar
   de outro, e nas Definições escolhe-se o ecrã de entrada, o valor habitual do reforço, as frações e o ETF do
   dinheiro novo. O olho no topo
-  esconde os valores em dinheiro (modo privado). Guarda a última cópia dos dados para abrir sem rede. Com uma
+  esconde os valores em dinheiro (modo privado). Os cartões mostram só o necessário: como se calcula, de onde
+  vêm os dados e as ressalvas ficam num ⓘ ao lado do título ou da linha (`Dica` em `ui/Componentes.kt`), que abre
+  uma caixa com o texto. Guarda a última cópia dos dados para abrir sem rede. Com uma
   ponte antiga, o que é novo fica de fora. Segue o tema claro ou escuro do telemóvel; o texto colorido usa
   tons com contraste de pelo menos 4,5:1 (WCAG AA) nos dois temas, e os gráficos podem mudar de mês com
   setas de 48 dp ou, no TalkBack, com as ações "Mês anterior" e "Mês seguinte".

@@ -358,8 +358,9 @@ private fun GraficoYtd(serie: SerieYtd?, aoMudarPeriodo: (String) -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        TextoPequeno(
-            "YTD: quanto a carteira e o S&P 500 mudaram desde o $inicio, sem contar o dinheiro que entrou ou saiu: " +
+        TextoComDica(
+            "Sem o dinheiro que entrou ou saiu · em dólares.",
+            dica = "YTD: quanto a carteira e o S&P 500 mudaram desde o $inicio, sem contar o dinheiro que entrou ou saiu: " +
                 "a rentabilidade de cada mês da tab Evolução Patrimonial, encadeada, como a tabela por ano da folha. " +
                 "Em dólares e sem dividendos. O mês atual usa os valores de agora.",
         )
