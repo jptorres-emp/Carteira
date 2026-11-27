@@ -447,6 +447,7 @@ class EcrasTest {
                     tocarDescricao("Explicação: A tua evolução")
                     esperar("11,2% nos últimos 12 meses")
                     esperar("A projeção usa os 6,5% do plano e não o teu passado")
+                    fotoDaDica("11m-evolucao-tua-evolucao-dica")
                     fecharDica("Investes: a média")
                     // Nominais: 8 566 € em 2056; com o reforço do plano (400 €), 7 928 €; em euros de hoje, 4 377 €.
                     tocar("Nominais")

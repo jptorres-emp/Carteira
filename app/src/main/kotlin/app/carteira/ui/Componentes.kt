@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Icon
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
@@ -52,6 +51,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -108,7 +116,8 @@ fun Cartao(
 
 /**
  * Um ⓘ que abre uma caixa com o texto a mais (como se calcula, de onde vem, ressalvas): toca para abrir; toca na
- * caixa ou fora dela para fechar. Assim os cartões mostram só o necessário.
+ * caixa, fora dela ou em Voltar para fechar. Assim os cartões mostram só o necessário. Parágrafos separados por uma
+ * linha em branco.
  */
 @Composable
 fun Dica(texto: String, titulo: String? = null, modifier: Modifier = Modifier) {
@@ -118,7 +127,7 @@ fun Dica(texto: String, titulo: String? = null, modifier: Modifier = Modifier) {
             Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .clickable { aberta = true }
+                .clickable { aberta = !aberta }
                 .semantics { contentDescription = "Explicação" + (titulo?.let { ": $it" } ?: "") },
             contentAlignment = Alignment.Center,
         ) {
@@ -129,21 +138,65 @@ fun Dica(texto: String, titulo: String? = null, modifier: Modifier = Modifier) {
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        DropdownMenu(expanded = aberta, onDismissRequest = { aberta = false }, modifier = Modifier.widthIn(max = 340.dp)) {
-            Column(
-                Modifier.clickable { aberta = false }.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+        if (aberta) {
+            val densidade = LocalDensity.current
+            val posicao = remember(densidade) {
+                PosicaoDaDica(margem = with(densidade) { 16.dp.roundToPx() }, espaco = with(densidade) { 4.dp.roundToPx() })
+            }
+            Popup(
+                popupPositionProvider = posicao,
+                onDismissRequest = { aberta = false },
+                properties = PopupProperties(focusable = true),
             ) {
-                if (titulo != null) Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                texto.split("\n\n").forEach { paragrafo ->
-                    Text(paragrafo, style = MaterialTheme.typography.bodySmall)
+                Surface(
+                    onClick = { aberta = false },
+                    modifier = Modifier.widthIn(max = 360.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    shadowElevation = 6.dp,
+                ) {
+                    Column(
+                        Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (titulo != null) {
+                            Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        }
+                        texto.split("\n\n").forEach { paragrafo ->
+                            Text(paragrafo, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-/** Uma linha curta de texto pequeno com um ⓘ no fim para o resto da explicação. */
+/**
+ * Onde abre a caixa de um ⓘ: centrada no ⓘ mas sem sair do ecrã (com [margem] dos lados), por baixo dele se couber,
+ * senão por cima, senão encostada ao fundo.
+ */
+private class PosicaoDaDica(private val margem: Int, private val espaco: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val maxX = (windowSize.width - popupContentSize.width - margem).coerceAtLeast(margem)
+        val x = (anchorBounds.center.x - popupContentSize.width / 2).coerceIn(margem, maxX)
+        val abaixo = anchorBounds.bottom + espaco
+        val acima = anchorBounds.top - espaco - popupContentSize.height
+        val y = when {
+            abaixo + popupContentSize.height <= windowSize.height - margem -> abaixo
+            acima >= margem -> acima
+            else -> (windowSize.height - popupContentSize.height - margem).coerceAtLeast(0)
+        }
+        return IntOffset(x, y)
+    }
+}
+
 @Composable
 fun TextoComDica(texto: String, dica: String, modifier: Modifier = Modifier, tituloDica: String? = null) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
